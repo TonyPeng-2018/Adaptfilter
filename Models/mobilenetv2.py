@@ -1,262 +1,118 @@
-# copied from torchvision mobilenetv2.py
+# Originally copied from https://blog.csdn.net/Haoyee1/article/details/124740736
 
-from functools import partial
-from typing import Any, Callable, List, Optional
-
+import torch.nn as nn
 import torch
-from torch import nn, Tensor
 
-from ..ops.misc import Conv2dNormActivation
-from ..transforms._presets import ImageClassification
-from ..utils import _log_api_usage_once
-from ._api import register_model, Weights, WeightsEnum
-from ._meta import _IMAGENET_CATEGORIES
-from ._utils import _make_divisible, _ovewrite_named_param, handle_legacy_interface
-
-
-__all__ = ["MobileNetV2", "MobileNet_V2_Weights", "mobilenet_v2"]
-
-
-# necessary for backwards compatibility
-class InvertedResidual(nn.Module):
-    def __init__(
-        self, inp: int, oup: int, stride: int, expand_ratio: int, norm_layer: Optional[Callable[..., nn.Module]] = None
-    ) -> None:
-        super().__init__()
-        self.stride = stride
-        if stride not in [1, 2]:
-            raise ValueError(f"stride should be 1 or 2 instead of {stride}")
-
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
-
-        hidden_dim = int(round(inp * expand_ratio))
-        self.use_res_connect = self.stride == 1 and inp == oup
-
-        layers: List[nn.Module] = []
-        if expand_ratio != 1:
-            # pw
-            layers.append(
-                Conv2dNormActivation(inp, hidden_dim, kernel_size=1, norm_layer=norm_layer, activation_layer=nn.ReLU6)
-            )
-        layers.extend(
-            [
-                # dw
-                Conv2dNormActivation(
-                    hidden_dim,
-                    hidden_dim,
-                    stride=stride,
-                    groups=hidden_dim,
-                    norm_layer=norm_layer,
-                    activation_layer=nn.ReLU6,
-                ),
-                # pw-linear
-                nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
-                norm_layer(oup),
-            ]
-        )
-        self.conv = nn.Sequential(*layers)
-        self.out_channels = oup
-        self._is_cn = stride > 1
-
-    def forward(self, x: Tensor) -> Tensor:
-        if self.use_res_connect:
-            return x + self.conv(x)
-        else:
-            return self.conv(x)
-
-
-class MobileNetV2(nn.Module):
-    def __init__(
-        self,
-        num_classes: int = 1000,
-        width_mult: float = 1.0,
-        inverted_residual_setting: Optional[List[List[int]]] = None,
-        round_nearest: int = 8,
-        block: Optional[Callable[..., nn.Module]] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
-        dropout: float = 0.2,
-    ) -> None:
-        """
-        MobileNet V2 main class
-
-        Args:
-            num_classes (int): Number of classes
-            width_mult (float): Width multiplier - adjusts number of channels in each layer by this amount
-            inverted_residual_setting: Network structure
-            round_nearest (int): Round the number of channels in each layer to be a multiple of this number
-            Set to 1 to turn off rounding
-            block: Module specifying inverted residual building block for mobilenet
-            norm_layer: Module specifying the normalization layer to use
-            dropout (float): The droupout probability
-
-        """
-        super().__init__()
-        _log_api_usage_once(self)
-
-        if block is None:
-            block = InvertedResidual
-
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
-
-        input_channel = 32
-        last_channel = 1280
-
-        if inverted_residual_setting is None:
-            inverted_residual_setting = [
-                # t, c, n, s
-                [1, 16, 1, 1],
-                [6, 24, 2, 2],
-                [6, 32, 3, 2],
-                [6, 64, 4, 2],
-                [6, 96, 3, 1],
-                [6, 160, 3, 2],
-                [6, 320, 1, 1],
-            ]
-
-        # only check the first element, assuming user knows t,c,n,s are required
-        if len(inverted_residual_setting) == 0 or len(inverted_residual_setting[0]) != 4:
-            raise ValueError(
-                f"inverted_residual_setting should be non-empty or a 4-element list, got {inverted_residual_setting}"
-            )
-
-        # building first layer
-        input_channel = _make_divisible(input_channel * width_mult, round_nearest)
-        self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
-        features: List[nn.Module] = [
-            Conv2dNormActivation(3, input_channel, stride=2, norm_layer=norm_layer, activation_layer=nn.ReLU6)
-        ]
-        # building inverted residual blocks
-        for t, c, n, s in inverted_residual_setting:
-            output_channel = _make_divisible(c * width_mult, round_nearest)
-            for i in range(n):
-                stride = s if i == 0 else 1
-                features.append(block(input_channel, output_channel, stride, expand_ratio=t, norm_layer=norm_layer))
-                input_channel = output_channel
-        # building last several layers
-        features.append(
-            Conv2dNormActivation(
-                input_channel, self.last_channel, kernel_size=1, norm_layer=norm_layer, activation_layer=nn.ReLU6
-            )
-        )
-        # make it nn.Sequential
-        self.features = nn.Sequential(*features)
-
-        # building classifier
-        self.classifier = nn.Sequential(
-            nn.Dropout(p=dropout),
-            nn.Linear(self.last_channel, num_classes),
-        )
-
-        # weight initialization
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out")
-                if m.bias is not None:
-                    nn.init.zeros_(m.bias)
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.ones_(m.weight)
-                nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                nn.init.zeros_(m.bias)
-
-    def _forward_impl(self, x: Tensor) -> Tensor:
-        # This exists since TorchScript doesn't support inheritance, so the superclass method
-        # (this one) needs to have a name other than `forward` that can be accessed in a subclass
-        x = self.features(x)
-        # Cannot use "squeeze" as batch-size can be 1
-        x = nn.functional.adaptive_avg_pool2d(x, (1, 1))
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
+class bottleneck1(nn.Module):
+    expansion=1
+    def __init__(self,in_channels,out_channels,stride=1,downsample=None):
+        super(bottleneck1, self).__init__()
+        self.conv1=nn.Conv2d(in_channels=in_channels,out_channels=out_channels,kernel_size=3,stride=stride,padding=1,bias=False)
+        self.bn1=nn.BatchNorm2d(out_channels)
+        self.relu=nn.ReLU(inplace=True)
+ 
+        self.conv2=nn.Conv2d(in_channels=out_channels,out_channels=out_channels,kernel_size=3,stride=1,padding=1,bias=False)
+        self.bn2=nn.BatchNorm2d(out_channels)
+        self.downsample=downsample
+ 
+    def forward(self,x):
+        a=x
+        if self.downsample is True:
+            a=self.downsample(x)
+        x=self.conv1(x)
+        x=self.bn1(x)
+        x=self.relu(x)
+        x=self.conv2(x)
+        x=self.bn2(x)
+        x+=a
+        x=self.relu(x)
         return x
-
-    def forward(self, x: Tensor) -> Tensor:
-        return self._forward_impl(x)
-
-
-_COMMON_META = {
-    "num_params": 3504872,
-    "min_size": (1, 1),
-    "categories": _IMAGENET_CATEGORIES,
-}
-
-
-class MobileNet_V2_Weights(WeightsEnum):
-    IMAGENET1K_V1 = Weights(
-        url="https://download.pytorch.org/models/mobilenet_v2-b0353104.pth",
-        transforms=partial(ImageClassification, crop_size=224),
-        meta={
-            **_COMMON_META,
-            "recipe": "https://github.com/pytorch/vision/tree/main/references/classification#mobilenetv2",
-            "_metrics": {
-                "ImageNet-1K": {
-                    "acc@1": 71.878,
-                    "acc@5": 90.286,
-                }
-            },
-            "_ops": 0.301,
-            "_file_size": 13.555,
-            "_docs": """These weights reproduce closely the results of the paper using a simple training recipe.""",
-        },
-    )
-    IMAGENET1K_V2 = Weights(
-        url="https://download.pytorch.org/models/mobilenet_v2-7ebf99e0.pth",
-        transforms=partial(ImageClassification, crop_size=224, resize_size=232),
-        meta={
-            **_COMMON_META,
-            "recipe": "https://github.com/pytorch/vision/issues/3995#new-recipe-with-reg-tuning",
-            "_metrics": {
-                "ImageNet-1K": {
-                    "acc@1": 72.154,
-                    "acc@5": 90.822,
-                }
-            },
-            "_ops": 0.301,
-            "_file_size": 13.598,
-            "_docs": """
-                These weights improve upon the results of the original paper by using a modified version of TorchVision's
-                `new training recipe
-                <https://pytorch.org/blog/how-to-train-state-of-the-art-models-using-torchvision-latest-primitives/>`_.
-            """,
-        },
-    )
-    DEFAULT = IMAGENET1K_V2
-
-
-@register_model()
-@handle_legacy_interface(weights=("pretrained", MobileNet_V2_Weights.IMAGENET1K_V1))
-def mobilenet_v2(
-    *, weights: Optional[MobileNet_V2_Weights] = None, progress: bool = True, **kwargs: Any
-) -> MobileNetV2:
-    """MobileNetV2 architecture from the `MobileNetV2: Inverted Residuals and Linear
-    Bottlenecks <https://arxiv.org/abs/1801.04381>`_ paper.
-
-    Args:
-        weights (:class:`~torchvision.models.MobileNet_V2_Weights`, optional): The
-            pretrained weights to use. See
-            :class:`~torchvision.models.MobileNet_V2_Weights` below for
-            more details, and possible values. By default, no pre-trained
-            weights are used.
-        progress (bool, optional): If True, displays a progress bar of the
-            download to stderr. Default is True.
-        **kwargs: parameters passed to the ``torchvision.models.mobilenetv2.MobileNetV2``
-            base class. Please refer to the `source code
-            <https://github.com/pytorch/vision/blob/main/torchvision/models/mobilenetv2.py>`_
-            for more details about this class.
-
-    .. autoclass:: torchvision.models.MobileNet_V2_Weights
-        :members:
-    """
-    weights = MobileNet_V2_Weights.verify(weights)
-
-    if weights is not None:
-        _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
-
-    model = MobileNetV2(**kwargs)
-
-    if weights is not None:
-        model.load_state_dict(weights.get_state_dict(progress=progress, check_hash=True))
-
-    return model
+ 
+# this is for 50, 101 and 152
+class bottleneck2(nn.Module):
+    expansion=4
+    def __init__(self,in_channels,out_channels,stride=1,downsample=None):
+        super(bottleneck2,self).__init__()
+        self.conv1=nn.Conv2d(in_channels=in_channels,out_channels=out_channels,kernel_size=1,stride=1,bias=False)
+        self.bn1=nn.BatchNorm2d(out_channels)
+        self.conv2=nn.Conv2d(in_channels=out_channels,out_channels=out_channels,kernel_size=3,stride=stride,padding=1,bias=False)
+        self.bn2=nn.BatchNorm2d(out_channels)
+        # the third layer is extended.
+        self.conv3=nn.Conv2d(in_channels=out_channels,out_channels=out_channels*self.expansion,kernel_size=1,stride=1,bias=False)
+        self.bn3=nn.BatchNorm2d(out_channels*self.expansion)
+        self.downsample=downsample
+        self.relu=nn.ReLU(inplace=True)
+ 
+    def forward(self,x):
+        a=x
+        if self.downsample is True:
+            a=self.downsample(x)
+        x=self.conv1(x)
+        x=self.bn1(x)
+        x=self.relu(x)
+        x=self.conv2(x)
+        x=self.bn2(x)
+        x=self.relu(x)
+        x=self.conv3(x)
+        x=self.bn3(x)
+        x+=a
+        x=self.relu(x)
+ 
+ 
+class resnet(nn.Module):
+    in_channel = 64
+    def __init__(self,block,block_num,num_classes=1000):
+        super(resnet,self).__init__()
+        #假设输入图片大小为600x600x3
+        #600x600x3-->300x300x64
+        # the size of the input is 224x224x3
+        self.conv1=nn.Conv2d(3,self.in_channel,kernel_size=7,stride=2,padding=3,bias=False)
+        self.bn=nn.BatchNorm2d(self.in_channel)
+        self.relu=nn.ReLU(inplace=True)
+        self.maxpooling=nn.MaxPool2d(kernel_size=3,stride=2,ceil_mode=True)
+        self.layer1=self.makelayer(block=block,channel=64,block_num=block_num[0])
+        self.layer2=self.makelayer(block=block,channel=128,block_num=block_num[1],stride=2)
+        self.layer3=self.makelayer(block=block,channel=256,block_num=block_num[2],stride=2)
+        self.layer4=self.makelayer(block=block,channel=512,block_num=block_num[3],stride=2)
+        self.avgpool=nn.AdaptiveAvgPool2d((1,1))
+        self.fc=nn.Linear(512*block.expansion,num_classes)
+        for m in self.modules():
+            if isinstance(m,nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+ 
+ 
+    #block use bottleneck1 or bottleneck2
+    #channel is the input layer channel
+    #block_num is the number of blocks in each layer
+    def makelayer(self,block,channel,block_num,stride=1):
+        downsample=None
+        #如果步距不为1则代表有残差结构或者expension不为1也有
+        if stride!=1 or self.in_channel!=channel*block.expansion:
+           downsample=nn.Sequential(nn.Conv2d(in_channels=self.in_channel,out_channels=channel*block.expansion,kernel_size=1,stride=stride,bias=False),
+                                    nn.BatchNorm2d(channel*block.expansion))
+        #把第一层的结构放到列表里
+        layers=[]
+        layers.append(block(self.in_channel,channel,stride,downsample))
+        #第二层的输入是第一层的输出
+        self.in_channel=channel*block.expansion
+        for i in range(1,block_num):
+            layers.append(block(self.in_channel,channel))
+        return nn.Sequential(*layers)
+ 
+    def forward(self,x):
+        x=self.conv1(x)
+        x=self.bn(x)
+        x=self.relu(x)
+        x=self.maxpooling(x)
+        x=self.layer1(x)
+        x=self.layer2(x)
+        x=self.layer3(x)
+        x=self.avgpool(x)
+        x=torch.flatten(x,dims=1)
+        x=self.fc(x)
+        return x
+ 
+ 
+net=resnet(block=bottleneck2,block_num=[3,4,6,3])
+ 
+print(net)

@@ -3,7 +3,7 @@
 
 from Dataloaders.dataloader_cifar10 import Dataloader_cifar10
 import argparse
-
+import torch
 
 
 def main(dataset_name, model_name):
@@ -17,7 +17,9 @@ def main(dataset_name, model_name):
     # get the training loader, freeze the model. Where is the partitioning point? 
 
     # 1. get the train, test and val datasets, and labels.
-    train, test, val, labels = some_dataset_function()
+    if dataset_name == 'cifar10':
+        # return train, test, val, labels, these are all dataloaders
+        train, test, val, labels = Dataloader_cifar10(128, random_seed)
     
     # 2. transfer the dataset to fit the model, for the training, client and server model are all on the server
     client_model = some_model_function()
@@ -36,7 +38,8 @@ def main(dataset_name, model_name):
     server_model = some_model_function()
     # pipline data -> dataloader -> client_model -> gating -> reducer -> generator -> server_model
     
-    
+    client_model = client_model.cuda()
+    server_model = server_model.cuda()
 
 
 if '__name__' == '__main__':

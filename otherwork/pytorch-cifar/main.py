@@ -19,6 +19,7 @@ parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
+parser.add_argument('--modelname', default='', type=str, help='The name of the model')
 args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -40,19 +41,37 @@ transform_test = transforms.Compose([
 ])
 
 trainset = torchvision.datasets.CIFAR10(
-    root='/home/tonypeng/Workspace1/adaptfilter/data/', train=True, download=True, transform=transform_train)
+    root='/data2/anp407/', train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=128, shuffle=True, num_workers=2)
+    trainset, batch_size=128, shuffle=True, num_workers=8)
 
 testset = torchvision.datasets.CIFAR10(
-    root='/home/tonypeng/Workspace1/adaptfilter/data/', train=False, download=True, transform=transform_test)
+    root='/data2/anp407/', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(
-    testset, batch_size=100, shuffle=False, num_workers=2)
+    testset, batch_size=100, shuffle=False, num_workers=4)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer',
            'dog', 'frog', 'horse', 'ship', 'truck')
 
 # Model
+modelname = args.modelname
+if modelname == 'MobileNetV2':
+    net = MobileNetV2()
+elif modelname == 'ResNet18':
+    net = ResNet18()
+elif modelname == 'ResNet34':
+    net = ResNet34()
+elif modelname == 'ResNet50':
+    net = ResNet50()
+elif modelname == 'ResNet101':
+    net = ResNet101()
+elif modelname == 'ResNet152':
+    net = ResNet152()
+elif modelname == 'ShuffleNetV2':
+    net = ShuffleNetV2(1)
+elif modelname == 'SimpleDLA':
+    net = SimpleDLA()
+
 print('==> Building model..')
 # net = VGG('VGG19')
 # net = ResNet18()
@@ -61,7 +80,7 @@ print('==> Building model..')
 # net = DenseNet121()
 # net = ResNeXt29_2x64d()
 # net = MobileNet()
-net = MobileNetV2()
+# net = MobileNetV2()
 # net = DPN92()
 # net = ShuffleNetG2()
 # net = SENet18()
@@ -144,7 +163,7 @@ def test(epoch):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt.pth')
+        torch.save(state, './checkpoint/modelname.pth')
         best_acc = acc
 
 

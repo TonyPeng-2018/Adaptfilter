@@ -1,0 +1,2 @@
+# not upload the weight file
+*.pth

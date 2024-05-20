@@ -21,16 +21,21 @@ class MobileNetV2(nn.Module):
     # num_classesm: the number of classes in the dataset
     # pretrained: if the model is pretrained (if we need to retrain the model)
     def __init__(self, num_classes: int = 1000, partioning_point:int = 3, pretrained: bool = True,
-                 slice_granularity: str = 'coarse grained') -> None:
+                 slice_granularity: str = 'coarse grained', weight_path: str = '') -> None:
         super(MobileNetV2, self).__init__()
 
         self.num_classes = num_classes
         self.pretrained = pretrained
         self.partioning_point = partioning_point
         self.slice_granularity = slice_granularity
+        self.weight_path = weight_path
 
         # create a mobilenetv2 model, this is pretrained
-        self.model = torchvision.models.mobilenet_v2(weights=self.pretrained)
+        if weight_path != '':
+            self.model = torchvision.models.mobilenet_v2(weights=self.pretrained)
+        else:
+            self.model = torchvision.models.mobilenet_v2()
+            self.model.load_state_dict(torch.load(weight_path))
         # change it to nn.modules type
         self.feature = nn.Sequential(*list(self.model.features.children())) # not every layer
         self.connection = nn.Sequential(nn.AdaptiveAvgPool2d((1, 1)),

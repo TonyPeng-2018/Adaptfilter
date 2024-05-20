@@ -6,12 +6,28 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import sys
+import cv2
 
 def Dataloader_cifar10(batch_size, seed):
     torch.manual_seed(seed)
+    # resize the figure to 224*224, and normalize the figure
     transform = transforms.Compose(
         [transforms.ToTensor(),
+         transforms.Resize((224, 224)),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    
+    # # load data, https://github.com/chenhang98/mobileNet-v2_cifar10/blob/master/train.py 
+    # Where are these values from?
+    # transform_train = transforms.Compose([
+    #     transforms.RandomCrop(32, padding = 4),
+    #     transforms.RandomHorizontalFlip(),
+    #     transforms.ToTensor(),
+    #     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
+    # transform_test = transforms.Compose([
+    #     transforms.ToTensor(),
+    #     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
+    
+
     trainset = torchvision.datasets.CIFAR10(root='/home/tonypeng/Workspace1/adaptfilter/data/', train=True, download=True, transform=transform)
     # put 80% for training and 20% for validation
     trainset, valset = torch.utils.data.random_split(trainset, [40000, 10000])
@@ -27,6 +43,9 @@ def Dataloader_cifar10(batch_size, seed):
 # add a main testing function here
 if __name__ == '__main__':
     train, test, val, classes = Dataloader_cifar10(128, 2024)
+    for i, data in enumerate(train):
+        inputs, labels = data
+        break
     # print the size of each loader
     print(len(train))
     print(len(test))

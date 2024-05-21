@@ -31,7 +31,7 @@ class MobileNetV2(nn.Module):
         self.weight_path = weight_path
 
         # create a mobilenetv2 model, this is pretrained
-        if weight_path != '':
+        if weight_path == '':
             self.model = torchvision.models.mobilenet_v2(weights=self.pretrained)
         else:
             self.model = torchvision.models.mobilenet_v2()

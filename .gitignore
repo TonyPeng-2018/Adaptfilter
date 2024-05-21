@@ -1,2 +1,5 @@
 # not upload the weight file
 *.pth
+
+# not files in the Weights
+Weights/*

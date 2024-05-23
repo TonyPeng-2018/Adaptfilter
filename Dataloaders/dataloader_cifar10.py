@@ -1,6 +1,8 @@
 # this file is a data loader for cifar 10. 
 # the root path is /data3/anp407/cifar-10-batches-py
 # inspired by https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html?highlight=cifar
+# the dataloader is from https://github.com/kuangliu/pytorch-cifar
+
 
 import torch
 import torchvision
@@ -65,7 +67,7 @@ import cv2
 
 # add a main testing function here
 
-def Dataloader_cifar10(batch_size_train, batch_size_test, seed, val_set = False):
+def Dataloader_cifar10(train_batch, test_batch, seed, val_set = False):
     torch.manual_seed(seed)
     transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -82,12 +84,12 @@ def Dataloader_cifar10(batch_size_train, batch_size_test, seed, val_set = False)
     trainset = torchvision.datasets.CIFAR10(
         root='/home/tonypeng/Workspace1/adaptfilter/data/', train=True, download=True, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=batch_size_train, shuffle=True, num_workers=8)
+        trainset, batch_size=train_batch, shuffle=True, num_workers=8)
 
     testset = torchvision.datasets.CIFAR10(
         root='/home/tonypeng/Workspace1/adaptfilter/data/', train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=batch_size_test, shuffle=False, num_workers=4)
+        testset, batch_size=test_batch, shuffle=False, num_workers=4)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer',
             'dog', 'frog', 'horse', 'ship', 'truck')
@@ -95,7 +97,7 @@ def Dataloader_cifar10(batch_size_train, batch_size_test, seed, val_set = False)
 
 
 if __name__ == '__main__':
-    train, test, classes = Dataloader_cifar10(batch_size_train=128, batch_size_test=100, seed=2024)
+    train, test, classes = Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024)
     for i, data in enumerate(train):
         inputs, labels = data
         break

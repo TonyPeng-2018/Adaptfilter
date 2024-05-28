@@ -22,7 +22,7 @@ class mobilenet_slice_train(nn.Module):
         self.part1 = nn.Sequential(*features[:4])
 
         self.encoders = nn.ModuleList()
-
+ 
         self.upscale_layers = nn.ModuleList()
 
         # The rest of the features and the classifier are shared among slice_num entries

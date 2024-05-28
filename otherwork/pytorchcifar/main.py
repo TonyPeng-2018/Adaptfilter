@@ -46,12 +46,12 @@ transform_test = transforms.Compose([
 trainset = torchvision.datasets.CIFAR10(
     root=external_path.server_path['cifar10'], train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=128, shuffle=True, num_workers=8)
+    trainset, batch_size=1, shuffle=True, num_workers=8)
 
 testset = torchvision.datasets.CIFAR10(
     root=external_path.server_path['cifar10'], train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(
-    testset, batch_size=100, shuffle=False, num_workers=4)
+    testset, batch_size=1, shuffle=False, num_workers=4)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer',
            'dog', 'frog', 'horse', 'ship', 'truck')
@@ -110,7 +110,6 @@ optimizer = optim.SGD(net.parameters(), lr=args.lr,
                       momentum=0.9, weight_decay=5e-4)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
-
 # Training
 def train(epoch):
     print('\nEpoch: %d' % epoch)
@@ -120,6 +119,7 @@ def train(epoch):
     total = 0
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
+        print(inputs.shape)
         optimizer.zero_grad()
         outputs = net(inputs)
         loss = criterion(outputs, targets)
@@ -129,11 +129,11 @@ def train(epoch):
         train_loss += loss.item()
         _, predicted = outputs.max(1)
         total += targets.size(0)
+        print('total ', total)
         correct += predicted.eq(targets).sum().item()
 
         progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                      % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
-
 
 def test(epoch):
     global best_acc
@@ -166,7 +166,7 @@ def test(epoch):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/'+modelname+'.pth')
+        torch.save(state, './checkpoint/'+modelname+'_11.pth')
         best_acc = acc
 
 

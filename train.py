@@ -20,7 +20,7 @@ import time
 def main(args):
     # initial using mobilenetV2, and cifar10
     # we need a if statement here to decide which model and dataset to use
-    random_seed = 2024
+    # random_seed = 2024
 
     # for training, it is for training the generator 
     # recall the graph, when we cut more features, the performance should be worse.
@@ -30,7 +30,7 @@ def main(args):
     # 1. get the train, test and val datasets, and labels.
     if args.dataset == 'cifar10':
         # return train, test, val, labels, these are all dataloaders
-        train, test, val, labels = Dataloader_cifar10(128, random_seed)
+        train, test, val, labels = Dataloader_cifar10(train_batch=128, test_batch=100, random_seed=2024)
     
     # 2. transfer the dataset to fit the model, for the training, client and server model are all on the server
     if args.model == 'mobilenetV2':

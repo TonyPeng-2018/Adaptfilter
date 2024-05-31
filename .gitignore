@@ -5,7 +5,7 @@ Weights/
 checkpoint/
 *.log
 *.pth
-
+*.zip
 # no pycache
 __pycache__/
 

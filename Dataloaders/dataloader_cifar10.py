@@ -67,7 +67,7 @@ import cv2
 
 # add a main testing function here
 
-def Dataloader_cifar10(train_batch, test_batch, seed, val_set = False):
+def Dataloader_cifar10(train_batch, test_batch, seed, val_set = False, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
     torch.manual_seed(seed)
     transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -80,14 +80,13 @@ def Dataloader_cifar10(train_batch, test_batch, seed, val_set = False):
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
-
     trainset = torchvision.datasets.CIFAR10(
-        root='/home/tonypeng/Workspace1/adaptfilter/data/', train=True, download=True, transform=transform_train)
+        root=datasetpath, train=True, download=True, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=train_batch, shuffle=True, num_workers=8)
 
     testset = torchvision.datasets.CIFAR10(
-        root='/home/tonypeng/Workspace1/adaptfilter/data/', train=False, download=True, transform=transform_test)
+        root=datasetpath, train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=test_batch, shuffle=False, num_workers=4)
 

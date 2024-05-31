@@ -3,6 +3,8 @@
 # not files in the Weights
 Weights/
 checkpoint/
+*.log
+*.pth
 
 # no pycache
 __pycache__/

@@ -15,15 +15,17 @@ from models import *
 from utils import progress_bar
 from torchsummary import summary
 
+import external_path
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 parser.add_argument('--modelname', default='', type=str, help='The name of the model')
+parser.add_argument('--device', default='cuda', type=str, help='The device to run the model on')
 args = parser.parse_args()
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = args.device if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
@@ -42,12 +44,12 @@ transform_test = transforms.Compose([
 ])
 
 trainset = torchvision.datasets.CIFAR10(
-    root='/home/tonypeng/Workspace1/adaptfilter/data/', train=True, download=True, transform=transform_train)
+    root=external_path.server_path['cifar10'], train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(
     trainset, batch_size=1, shuffle=True, num_workers=8)
 
 testset = torchvision.datasets.CIFAR10(
-    root='/home/tonypeng/Workspace1/adaptfilter/data/', train=False, download=True, transform=transform_test)
+    root=external_path.server_path['cifar10'], train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(
     testset, batch_size=1, shuffle=False, num_workers=4)
 
@@ -90,7 +92,7 @@ print('==> Building model..')
 # net = RegNetX_200MF()
 # net = SimpleDLA()
 net = net.to(device)
-if device == 'cuda':
+if 'cuda' in device:
     # net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
 

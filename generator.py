@@ -199,7 +199,7 @@ for epoch in tqdm(range(epochs)):
             errD = errD_real + errD_fake
             optD.step()
 
-            # update Generator
+            # update Generator #
             netG.zero_grad()
             fake_label.fill_(real_flag)
             output = netD(fake, fake_ones)

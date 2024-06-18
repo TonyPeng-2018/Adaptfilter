@@ -3,7 +3,7 @@
 
 from Dataloaders.dataloader_cifar10 import Dataloader_cifar10
 from Models.mobilenetv2 import MobileNetV2
-from Models.resnet import Resnet
+from Adaptfilter.Models.resnet_old import Resnet
 import argparse
 import torch
 import os

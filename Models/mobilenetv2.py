@@ -220,18 +220,19 @@ def stupid_model_splitter(num_classes: int = 10, partioning_point:int = 3, weigh
     assert partioning_point ==3, 'The stupid model splitter only works for partioning_point = 3'
     # create client, filter weights and load the server
     client_model = MobileNetV2_Client(num_classes=num_classes)
-    client_weights = torch.load(weight_path)['net']
-    client_model_keys = client_model.state_dict().keys()
-    client_weights = {k: v for k, v in client_weights.items() if k in client_model_keys}
-    client_model.load_state_dict(client_weights)
+    if weight_path != '':
+        client_weights = torch.load(weight_path)['net']
+        client_model_keys = client_model.state_dict().keys()
+        client_weights = {k: v for k, v in client_weights.items() if k in client_model_keys}
+        client_model.load_state_dict(client_weights)
 
-    # create server, load the weights and filter the client
-    server_model = MobileNetV2_Server(num_classes=num_classes) 
-    server_weights = torch.load(weight_path)['net']
-    server_model_keys = server_model.state_dict().keys()
-    server_weights = {k: v for k, v in server_weights.items() if k in server_model_keys}
-    server_model.load_state_dict(server_weights)
-    
+        # create server, load the weights and filter the client
+        server_model = MobileNetV2_Server(num_classes=num_classes) 
+        server_weights = torch.load(weight_path)['net']
+        server_model_keys = server_model.state_dict().keys()
+        server_weights = {k: v for k, v in server_weights.items() if k in server_model_keys}
+        server_model.load_state_dict(server_weights)
+        
     return client_model, server_model
 
 
@@ -273,6 +274,3 @@ if __name__ == '__main__':
     print(out2.size())
     out2 = server_model(out2)
     print(out2.size())
-
-
-    

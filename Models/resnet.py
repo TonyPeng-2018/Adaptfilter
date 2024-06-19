@@ -254,8 +254,11 @@ class ResNet(nn.Module):
 """
 --------------------------New Code ----------------------------
 """
+def resnet50(num_classes) -> ResNet:
+    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes = num_classes)
 
-def restnet101_client():
+
+def restnet50_client():
     # here we make a split of the model to be able to use it in the client
     # cut the original model at the third layer
     def __init__(
@@ -269,7 +272,7 @@ def restnet101_client():
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
-        super(restnet101_client).__init__()
+        super(restne50_client).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -312,7 +315,7 @@ def restnet101_client():
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-def restnet101_server():
+def restnet50_server():
     # this is a server side of the model
     def __init__(
         self,
@@ -325,7 +328,7 @@ def restnet101_server():
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
-        super(restnet101_server).__init__()
+        super(restnet50_server).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -409,13 +412,13 @@ def restnet101_server():
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-def resnet101_stupid_splitter(cweight = None, sweight = None, num_classes = 1000):
+def resnet50_stupid_splitter(cweight = None, sweight = None, num_classes = 1000):
     # here are have a very stupid splitter for 
     # the restnet101 mode
-    layers = [3, 4, 23, 3]
+    layers = [3, 4, 50, 3]
 
-    client = restnet101_client(block = Bottleneck, layers =layers, num_classes = num_classes)
-    server = restnet101_server(block = Bottleneck, layers =layers, num_classes = num_classes)
+    client = restnet50_client(block = Bottleneck, layers =layers, num_classes = num_classes)
+    server = restnet50_server(block = Bottleneck, layers =layers, num_classes = num_classes)
     # if we have weights we load them
     if cweight:
         client.load_state_dict(cweight)
@@ -425,4 +428,4 @@ def resnet101_stupid_splitter(cweight = None, sweight = None, num_classes = 1000
     
 # test the model
 if __name__ == 'main':
-    client, server = resnet101_stupid_splitter()
+    client, server = resnet50_stupid_splitter()

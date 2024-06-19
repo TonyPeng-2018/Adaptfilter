@@ -1,68 +1,99 @@
+# here we start from the scratch
+import torch
+import torch.nn as nn
 import os
-from torch.utils.data import Dataset
 from PIL import Image
-import json
 from torchvision import transforms
-from torch.utils.data import DataLoader
-class ImageNetKaggle(Dataset):
-    def __init__(self, root, split, transform=None):
-        self.samples = []
-        self.targets = []
-        self.transform = transform
-        self.syn_to_class = {}
-        with open(os.path.join(root, "imagenet_class_index.json"), "rb") as f:
-                    json_file = json.load(f)
-                    for class_id, v in json_file.items():
-                        self.syn_to_class[v[0]] = int(class_id)
-        with open(os.path.join(root, "ILSVRC2012_val_labels.json"), "rb") as f:
-                    self.val_to_syn = json.load(f)
-        samples_dir = os.path.join(root, "ILSVRC/Data/CLS-LOC", split)
-        for entry in os.listdir(samples_dir):
-            if split == "train":
-                syn_id = entry
-                target = self.syn_to_class[syn_id]
-                syn_folder = os.path.join(samples_dir, syn_id)
-                for sample in os.listdir(syn_folder):
-                    sample_path = os.path.join(syn_folder, sample)
-                    self.samples.append(sample_path)
-                    self.targets.append(target)
-            elif split == "val":
-                syn_id = self.val_to_syn[entry]
-                target = self.syn_to_class[syn_id]
-                sample_path = os.path.join(samples_dir, entry)
-                self.samples.append(sample_path)
-                self.targets.append(target)
-    def __len__(self):
-            return len(self.samples)
-    def __getitem__(self, idx):
-            x = Image.open(self.samples[idx]).convert("RGB")
-            if self.transform:
-                x = self.transform(x)
-            return x, self.targets[idx]
+import sys
+import numpy as np
+import json
+from torch.utils.data import Dataset
+
+class Dataset_imagenet():
+    def __init__(self, device):
+        # get the set for train, test and val
+        # path to the file, the number of it, 
+        np.random.seed(2024)
+        if device == 'server':
+            self.r_path = '/home/tonypeng/Workspace1/adaptfilter/data/imagenet/ILSVRC/'
+        self.d_path = self.r_path + 'Data/CLS-LOC/train/'
+        self.t_set = self.r_path + 'ImageSets/CLS-LOC/train_cls.txt' # this should be splited into train and val
+
+        # load the class_index
+        self.class_index = {}
+        with open('./imagenet_class_index.json', 'r') as f:
+            self.class_index = json.load(f) # nclass: (name, wclass)
+        # label to nclass
+        self.c_to_n = {}
+        for nclass, (fname, _) in self.class_index.items():
+            self.c_to_n[fname] = int(nclass)
+
+        # read the file to get the dict
+        self.a_dict = {} # count: (name, label)
+        with open(self.t_set, 'r') as f:
+            lines = f.readlines() # path, count
+            for line in lines:
+                line = line.strip().split()
+                count = line[1]
+                label = line[0].split('/')[0]
+                f_path = self.d_path + line[0]
+                self.a_dict[count] = (f_path, self.c_to_n[label])
+        self.len = len(self.a_dict)
+        self.t_v_sampler = np.random.choice(self.len, int(self.len*0.4), replace=False)
+        self.tr_sampler = np.delete(np.arange(self.len), self.t_v_sampler)
+        self.t_sampler = np.random.choice(len(self.t_v_sampler), int(len(self.t_v_sampler)*0.5), replace=False)
+        self.v_sampler = np.delete(self.t_v_sampler, self.t_sampler)
+        # # shuffle the dict
+        # np.random.shuffle(self.tr_sampler)
+        # np.random.shuffle(self.t_sampler)
+        # np.random.shuffle(self.v_sampler)
+        # simplify the dict
+        self.tr_dict = {str(k): self.a_dict[str(k)] for k in self.tr_sampler}
+        self.t_dict = {str(k): self.a_dict[str(k)] for k in self.t_sampler}
+        self.v_dict = {str(k): self.a_dict[str(k)] for k in self.v_sampler}
     
-def get_image(device='tintin'):
-    mean = (0.485, 0.456, 0.406)
-    std = (0.229, 0.224, 0.225)
-    transform = transforms.Compose(
-            [
-                transforms.Resize(256),
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std),
-            ]
-        )
-    if device == 'tintin':
-        d_path = '/data/anp407/imagenet'
-    elif device == 'server':
-        d_path = '../data/new-imagenet'
-    traindataset = ImageNetKaggle(d_path, 'train', transform)
-    valdataset = ImageNetKaggle(d_path, 'val', transform)
-    testdataset = ImageNetKaggle(d_path, 'val', transform)
-    dataloader = DataLoader(
-                dataset,
-                batch_size=64, # may need to reduce this depending on your GPU 
-                num_workers=8, # may need to reduce this depending on your num of CPUs and RAM
-                shuffle=False,
-                drop_last=False,
-                pin_memory=True
-            )
+    def return_sampler(self):
+        return self.tr_sampler, self.t_sampler, self.v_sampler
+    
+    def return_dict(self):
+        return self.tr_dict, self.t_dict, self.v_dict
+    
+    def return_class_index(self):
+        return self.class_index
+
+class Dataloader_imagenet(Dataset):
+    def __init__(self, sampler, files, transform):
+        self.sampler = sampler
+        self.files = files
+        
+        if transform:
+            self.trans = self.transform()
+        else:
+            self.trans = None
+
+    def __len__(self):  
+        return len(self.sampler)
+
+    def __getitem__(self, idx):
+
+        count = self.sampler[idx]
+        f_path, label = self.files[str(count)]
+        img = Image.open(f_path+'.JPEG').convert('RGB')
+
+        if self.trans != None:
+            img = self.trans(img)
+        return img, torch.tensor(label)
+
+    def transform(self):
+        mean = (0.485, 0.456, 0.406)
+        std = (0.229, 0.224, 0.225)
+        transform = transforms.Compose(
+                    [
+                        transforms.Resize(256),
+                        transforms.CenterCrop(224),
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean, std),
+                    ]
+                )
+        return transform
+        

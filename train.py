@@ -78,7 +78,7 @@ def main(args):
         correct = 0
         total = 0
         with torch.no_grad():
-            for data in val:
+            for data in tqdm(val):
                 inputs, labels = data
                 inputs, labels = inputs.cuda(), labels.cuda()
                 outputs = model(inputs)

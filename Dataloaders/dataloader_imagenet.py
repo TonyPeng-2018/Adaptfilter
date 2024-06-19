@@ -16,6 +16,8 @@ class Dataset_imagenet():
         np.random.seed(2024)
         if device == 'server':
             self.r_path = '/home/tonypeng/Workspace1/adaptfilter/data/imagenet/ILSVRC/'
+        elif device == 'tintin':
+            self.r_path = '/data/anp407/imagenet/ILSVRC/'
         self.d_path = self.r_path + 'Data/CLS-LOC/train/'
         self.t_set = self.r_path + 'ImageSets/CLS-LOC/train_cls.txt' # this should be splited into train and val
 

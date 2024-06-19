@@ -28,7 +28,7 @@ def main(args):
 
     if args.dataset == 'cifar10':
         # return train, test, val, labels, these are all dataloaders
-        train, test, val, _ = dataloader_cifar10.Dataloader_cifar10(train_batch=128, test_batch=100, random_seed=2024)
+        train, _, val, _ = dataloader_cifar10.Dataloader_cifar10(train_batch=args.batch, test_batch=100, random_seed=2024)
         num_classes = 10
     elif args.dataset == 'imagenet':
         imageset = dataloader_imagenet.Dataset_imagenet(args.device)
@@ -37,8 +37,8 @@ def main(args):
         class_index = imageset.return_class_index()
         train = dataloader_imagenet.Dataloader_imagenet(train_set, tr_dict, transform=True)
         val = dataloader_imagenet.Dataloader_imagenet(val_set, v_dict, transform=True)
-        train = torch.utils.data.DataLoader(train, batch_size=128, shuffle=True, num_workers=8)
-        val = torch.utils.data.DataLoader(val, batch_size=128, shuffle=True, num_workers=8)
+        train = torch.utils.data.DataLoader(train, batch_size=args.batch, shuffle=True, num_workers=8)
+        val = torch.utils.data.DataLoader(val, batch_size=args.batch, shuffle=True, num_workers=8)
         num_classes = 1000
     # 2. transfer the dataset to fit the model, for the training, client and server model are all on the server
     if args.model == 'mobilenetV2':
@@ -51,7 +51,7 @@ def main(args):
     elif args.model == 'resnet':
         model = resnet.Resnet(num_classes = num_classes)
 
-    model = model.cuda()
+    model = model.cuda(args.cuda)
 
     # 3. define the optimizer
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -62,7 +62,7 @@ def main(args):
         model.train()
         for i, data in tqdm(enumerate(train)):
             inputs, labels = data
-            inputs, labels = inputs.cuda(), labels.cuda()
+            inputs, labels = inputs.cuda(args.cuda), labels.cuda(args.cuda)
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
@@ -80,7 +80,7 @@ def main(args):
         with torch.no_grad():
             for data in val:
                 inputs, labels = data
-                inputs, labels = inputs.cuda(), labels.cuda()
+                inputs, labels = inputs.cuda(args.cuda), labels.cuda(args.cuda)
                 outputs = model(inputs)
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
@@ -104,6 +104,8 @@ if __name__ == '__main__':
     # parser.add_argument('--server_model', type=str, default='mobilenetV2', help='name of the model on the server, should be the same as it on the iot')
     parser.add_argument('--device', type=str, default='server', help='run on which device, home, tintin, rpi, pico, jetson?')
     parser.add_argument('--model', type=str, default='mobilenetV2', help='name of the model')
+    parser.add_argument('--cuda', type=int, default=0, help='gpu id')
+    parser.add_argument('--batch', type=int, default=128, help='batch size')
     args = parser.parse_args()
     print(args)
     main(args)

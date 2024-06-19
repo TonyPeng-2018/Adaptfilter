@@ -47,9 +47,9 @@ def main(args):
         elif args.dataset == 'imagenet':
             model = mobilenetv2_original.MobileNetV2(num_classes = num_classes)
     elif args.model == 'mobilenetV3':
-        model = mobilenetv3.MobileNetV3(num_classes = num_classes)
+        model = mobilenetv3.mobilenetV3(num_classes = num_classes, model_size='large')
     elif args.model == 'resnet':
-        model = resnet.Resnet(num_classes = num_classes)
+        model = resnet.resnet50(num_classes = num_classes)
 
     model = model.cuda(args.cuda)
 

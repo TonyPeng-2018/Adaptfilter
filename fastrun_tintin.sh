@@ -1,3 +1,3 @@
 #! bin/sh
 
-python train.py --dataset imagenet --device tintin --model mobilenetV2 --cuda 0 --batch 128
+python train.py --dataset imagenet --device tintin --model mobilenetV3 --cuda 3 --batch 128

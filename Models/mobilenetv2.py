@@ -266,12 +266,15 @@ if __name__ == '__main__':
     # print(out2.size())
 
     # test the stupid function
-    client_model, server_model = stupid_model_splitter(
-        weight_path='../otherwork/pytorchcifar/checkpoint/MobileNetV2.pth')
-    img = torch.randn(10, 3, 32, 32)
-    out1 = net(img)
-    print(out1.size())
-    out2 = client_model(img)
-    print(out2.size())
-    out2 = server_model(out2)
-    print(out2.size())
+    # client_model, server_model = stupid_model_splitter(
+    #     weight_path='../otherwork/pytorchcifar/checkpoint/MobileNetV2.pth')
+    # img = torch.randn(10, 3, 32, 32)
+    # out1 = net(img)
+    # print(out1.size())
+    # out2 = client_model(img)
+    # print(out2.size())
+    # out2 = server_model(out2)
+    # print(out2.size())
+
+    model = MobileNetV2()
+    print(model)

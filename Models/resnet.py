@@ -257,8 +257,7 @@ class ResNet(nn.Module):
 def resnet50(num_classes) -> ResNet:
     return ResNet(Bottleneck, [3, 4, 6, 3], num_classes = num_classes)
 
-
-def restnet50_client():
+class resnet50_client(nn.Module):
     # here we make a split of the model to be able to use it in the client
     # cut the original model at the third layer
     def __init__(
@@ -268,7 +267,7 @@ def restnet50_client():
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
     ):
-        super(restnet50_client).__init__()
+        super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -305,14 +304,12 @@ def restnet50_client():
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-
         return x
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-def restnet50_server():
-    # this is a server side of the model
+class resnet50_server(nn.Module):
     def __init__(
         self,
         block: Type[Union[BasicBlock, Bottleneck]],
@@ -323,8 +320,8 @@ def restnet50_server():
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
-    ):
-        super(restnet50_server).__init__()
+    ) -> None:
+        super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -390,6 +387,25 @@ def restnet50_server():
                 norm_layer(planes * block.expansion),
             )
 
+        layers = []
+        layers.append(
+            block(
+                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
+            )
+        )
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation,
+                    norm_layer=norm_layer,
+                )
+            )
+
         return nn.Sequential(*layers)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
@@ -411,9 +427,8 @@ def restnet50_server():
 def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0'):
     # here are have a very stupid splitter for 
     # the restnet101 mode
-    layers = [3, 4, 50, 3]
-
-    client_model = restnet50_client()
+    layers = [3, 4, 6, 3]
+    client_model = resnet50_client()
     if weight_path != '':
         client_weights = torch.load(weight_path, map_location=device)['net']
         client_model_keys = client_model.state_dict().keys()
@@ -421,7 +436,7 @@ def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0
         client_model.load_state_dict(client_weights)
 
         # create server, load the weights and filter the client
-    server_model = restnet50_server(block = Bottleneck, layers =layers, num_classes = num_classes)
+    server_model = resnet50_server(block = Bottleneck, layers =layers, num_classes = num_classes)
     if weight_path != '':
         server_weights = torch.load(weight_path, map_location=device)['net']
         server_model_keys = server_model.state_dict().keys()
@@ -431,5 +446,8 @@ def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0
     return client_model, server_model
     
 # test the model
-if __name__ == 'main':
+if __name__ == '__main__':
+    model = resnet50(1000)
     client, server = stupid_model_splitter()
+    print(model)
+    # client = resnet50_client()

@@ -20,9 +20,9 @@ from tqdm import tqdm
 
 def main(args):
     start_time = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-    logger = utils.APLogger('./Logs/imagenet/model_train_' + start_time + '.log')
+    logger = utils.APLogger('./Logs/' + args.dataset + '/model_train_' + start_time + '.log')
     logger.write('model: %s, dataset: %s' % (args.model, args.dataset))
-    weightfolder = './Weights/imagenet/model/'
+    weightfolder = './Weights/' + args.dataset + '/model/'
     if not os.path.exists(weightfolder+start_time+'/'):
         os.makedirs(weightfolder+start_time+'/')
 
@@ -47,10 +47,13 @@ def main(args):
         elif args.dataset == 'imagenet':
             model = mobilenetv2_original.MobileNetV2(num_classes = num_classes)
     elif args.model == 'mobilenetV3':
-        model = mobilenetv3.mobilenetV3(num_classes = num_classes, model_size='large')
+        model = mobilenetv3.mobilenetV3(num_classes = num_classes, model_size=args.mobilev3size)
     elif args.model == 'resnet':
         model = resnet.resnet50(num_classes = num_classes)
-
+    
+    if args.resume:
+        weightpath  = weightfolder + args.weighttime + '/' + args.weightname + '.pth'
+        model.load_state_dict(torch.load(weightpath))
     model = model.cuda(args.cuda)
 
     # 3. define the optimizer
@@ -88,7 +91,7 @@ def main(args):
         logger.write('Val epoch: %d, accuracy: %.3f' % (epoch, correct/total))
         if correct/total > min_loss:
             min_loss = correct/total
-            torch.save(model.state_dict(), weightfolder+start_time+'/'+args.model+'_'+str(epoch)+'_'+str(correct/total)+'.pth')
+            torch.save(model.state_dict(), weightfolder+start_time+'/'+args.model+'_'+str(epoch)+'_%.3f'%(correct/total)+'.pth')
 
 
 if __name__ == '__main__':
@@ -106,6 +109,10 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, default='mobilenetV2', help='name of the model')
     parser.add_argument('--cuda', type=int, default=0, help='gpu id')
     parser.add_argument('--batch', type=int, default=128, help='batch size')
+    parser.add_argument('--resume', type=bool, default=False, help='resume from the checkpoint')
+    parser.add_argument('--weighttime', type=str, default='', help='the time of the weight')
+    parser.add_argument('--weightname', type=str, default='', help='the name of the weight')
+    parser.add_argument('--mobilev3size', type=str, default='small', help='the size of the mobilev3')
     args = parser.parse_args()
     print(args)
     main(args)

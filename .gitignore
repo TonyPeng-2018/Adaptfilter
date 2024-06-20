@@ -3,11 +3,9 @@
 # not files in the Weights
 Weights/
 checkpoint/
-*.log
 *.pth
 *.zip
 # no pycache
 __pycache__/
 
 # no trainning logger
-Loggers/

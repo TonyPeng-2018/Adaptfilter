@@ -24,7 +24,7 @@ run_path = pre_path[run_device]
 
 # load the dataset
 emb_folder = run_path['cifar10'] + run_path['client']
-labels_folder = run_path['cifar10'] + run_path['server']
+labels_folder = run_path['cifar10'] + run_path['home']
 dataset = dataloader_gate(emb_folder, labels_folder)
 logger = utils.APLogger('./Logs/cifar-10/gate_train' + start_time + '.log')
 # print(gated_dataset.__len__(dataset)) # 391 batches                                             

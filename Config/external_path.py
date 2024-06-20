@@ -7,7 +7,7 @@ pre_path = {
         'imagenet':'/data/anp407/imagenet/',
         'client':'/cifar-10-embedding-client/', # gate is the output of the client
         'entropy':'/cifar-10-embedding-entropy/', # entropy is the output of the ranker
-        'server':'/cifar-10-embedding-server/', # output of the server
+        'home':'/cifar-10-embedding-server/', # output of the server
     },
 
     'home' : {
@@ -18,6 +18,6 @@ pre_path = {
         'imagenet':'/home/tonypeng/Workspace1/adaptfilter/data/imagenet/',
         'client':'/cifar-10-embedding-client/', # gate is the output of the client
         'entropy':'/cifar-10-embedding-entropy/', # entropy is the output of the ranker
-        'server':'/cifar-10-embedding-server/', # output of the server
+        'home':'/cifar-10-embedding-server/', # output of the server
     }
 }

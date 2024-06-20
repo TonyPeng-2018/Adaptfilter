@@ -263,16 +263,12 @@ def restnet50_client():
     # cut the original model at the third layer
     def __init__(
         self,
-        block: Type[Union[BasicBlock, Bottleneck]],
-        layers: List[int],
-        num_classes: int = 1000,
-        zero_init_residual: bool = False,
         groups: int = 1,
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
-    ) -> None:
-        super(restne50_client).__init__()
+    ):
+        super(restnet50_client).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -327,7 +323,7 @@ def restnet50_server():
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
-    ) -> None:
+    ):
         super(restnet50_server).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -412,20 +408,28 @@ def restnet50_server():
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-def resnet50_stupid_splitter(cweight = None, sweight = None, num_classes = 1000):
+def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0'):
     # here are have a very stupid splitter for 
     # the restnet101 mode
     layers = [3, 4, 50, 3]
 
-    client = restnet50_client(block = Bottleneck, layers =layers, num_classes = num_classes)
-    server = restnet50_server(block = Bottleneck, layers =layers, num_classes = num_classes)
-    # if we have weights we load them
-    if cweight:
-        client.load_state_dict(cweight)
-    if sweight:
-        server.load_state_dict(sweight)
-    return client, server
+    client_model = restnet50_client()
+    if weight_path != '':
+        client_weights = torch.load(weight_path, map_location=device)['net']
+        client_model_keys = client_model.state_dict().keys()
+        client_weights = {k: v for k, v in client_weights.items() if k in client_model_keys}
+        client_model.load_state_dict(client_weights)
+
+        # create server, load the weights and filter the client
+    server_model = restnet50_server(block = Bottleneck, layers =layers, num_classes = num_classes)
+    if weight_path != '':
+        server_weights = torch.load(weight_path, map_location=device)['net']
+        server_model_keys = server_model.state_dict().keys()
+        server_weights = {k: v for k, v in server_weights.items() if k in server_model_keys}
+        server_model.load_state_dict(server_weights)
+        
+    return client_model, server_model
     
 # test the model
 if __name__ == 'main':
-    client, server = resnet50_stupid_splitter()
+    client, server = stupid_model_splitter()

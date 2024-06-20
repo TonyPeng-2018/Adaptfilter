@@ -20,8 +20,8 @@ from tqdm import tqdm
 
 def main(args):
     start_time = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-    logger = utils.APLogger('./Logs/' + args.dataset + '/model_train_' + start_time + '.log')
-    logger.write('model: %s, dataset: %s' % (args.model, args.dataset))
+    logger = utils.APLogger('./Logs/' + args.dataset + '/model_train_' + start_time + '.log\n')
+    logger.write('model: %s, dataset: %s\n' % (args.model, args.dataset))
     weightfolder = './Weights/' + args.dataset + '/model/'
     if not os.path.exists(weightfolder+start_time+'/'):
         os.makedirs(weightfolder+start_time+'/')
@@ -37,8 +37,8 @@ def main(args):
         class_index = imageset.return_class_index()
         train = dataloader_imagenet.Dataloader_imagenet(train_set, tr_dict, transform=True)
         val = dataloader_imagenet.Dataloader_imagenet(val_set, v_dict, transform=True)
-        train = torch.utils.data.DataLoader(train, batch_size=args.batch, shuffle=True, num_workers=8)
-        val = torch.utils.data.DataLoader(val, batch_size=args.batch, shuffle=True, num_workers=8)
+        train = torch.utils.data.DataLoader(train, batch_size=args.batch, shuffle=True, num_workers=4)
+        val = torch.utils.data.DataLoader(val, batch_size=args.batch, shuffle=True, num_workers=4)
         num_classes = 1000
     # 2. transfer the dataset to fit the model, for the training, client and server model are all on the server
     if args.model == 'mobilenetV2':
@@ -53,7 +53,7 @@ def main(args):
     
     if args.resume:
         weightpath  = weightfolder + args.weighttime + '/' + args.weightname + '.pth'
-        model.load_state_dict(torch.load(weightpath))
+        model.load_state_dict(torch.load(weightpath), map_location='cuda:'+str(args.cuda))
     model = model.cuda(args.cuda)
 
     # 3. define the optimizer
@@ -72,9 +72,9 @@ def main(args):
             loss.backward()
             optimizer.step()
             if i % 100 == 0:
-                logger.write('epoch: %d, batch: %d, loss: %.3f' % (epoch, i, loss.item()))
+                logger.write('epoch: %d, batch: %d, loss: %.3f\n' % (epoch, i, loss.item()))
         # 5. save the model
-        logger.write('Train epoch: %d, loss: %.3f' % (epoch, loss.item()))
+        logger.write('Train epoch: %d, loss: %.3f\n' % (epoch, loss.item()))
         
         # use the val test to test the model
         model.eval()
@@ -88,7 +88,7 @@ def main(args):
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
-        logger.write('Val epoch: %d, accuracy: %.3f' % (epoch, correct/total))
+        logger.write('Val epoch: %d, accuracy: %.3f\n' % (epoch, correct/total))
         if correct/total > min_loss:
             min_loss = correct/total
             torch.save(model.state_dict(), weightfolder+start_time+'/'+args.model+'_'+str(epoch)+'_%.3f'%(correct/total)+'.pth')
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--server', type=str, default='LTE', help='name of the network condition on the server side')
     parser.add_argument('--generator', type=str, default='None', help='name of the generator')
     # parser.add_argument('--server_model', type=str, default='mobilenetV2', help='name of the model on the server, should be the same as it on the iot')
-    parser.add_argument('--device', type=str, default='server', help='run on which device, home, tintin, rpi, pico, jetson?')
+    parser.add_argument('--device', type=str, default='home', help='run on which device, home, tintin, rpi, pico, jetson?')
     parser.add_argument('--model', type=str, default='mobilenetV2', help='name of the model')
     parser.add_argument('--cuda', type=int, default=0, help='gpu id')
     parser.add_argument('--batch', type=int, default=128, help='batch size')

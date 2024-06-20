@@ -1,0 +1,1 @@
+model: mobilenetV2, dataset: imagenetepoch: 0, batch: 0, loss: 6.932epoch: 0, batch: 100, loss: 6.902epoch: 0, batch: 200, loss: 6.865epoch: 0, batch: 300, loss: 6.949epoch: 0, batch: 400, loss: 6.842epoch: 0, batch: 500, loss: 6.856epoch: 0, batch: 600, loss: 6.861epoch: 0, batch: 700, loss: 6.830

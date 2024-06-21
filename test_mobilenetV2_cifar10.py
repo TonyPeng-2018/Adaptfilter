@@ -9,7 +9,7 @@ import torch.optim
 import torch.nn.functional as F
 
 model = mobilenetv2_original.MobileNetV2(num_classes=10)
-weightpath = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/cifar-10/model/mobilenetv2_0_2024_06_20_17_28_43.pth'
+weightpath = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/cifar-10/model/mobilenetv2_2024_06_20_18_51_59.pth'
 model.load_state_dict(torch.load(weightpath))
 model.to('cuda')
 

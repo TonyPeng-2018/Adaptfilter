@@ -430,7 +430,7 @@ def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0
     layers = [3, 4, 6, 3]
     client_model = resnet50_client()
     if weight_path != '':
-        client_weights = torch.load(weight_path, map_location=device)['net']
+        client_weights = torch.load(weight_path, map_location=device)
         client_model_keys = client_model.state_dict().keys()
         client_weights = {k: v for k, v in client_weights.items() if k in client_model_keys}
         client_model.load_state_dict(client_weights)
@@ -438,7 +438,7 @@ def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0
         # create server, load the weights and filter the client
     server_model = resnet50_server(block = Bottleneck, layers =layers, num_classes = num_classes)
     if weight_path != '':
-        server_weights = torch.load(weight_path, map_location=device)['net']
+        server_weights = torch.load(weight_path, map_location=device)
         server_model_keys = server_model.state_dict().keys()
         server_weights = {k: v for k, v in server_weights.items() if k in server_model_keys}
         server_model.load_state_dict(server_weights)

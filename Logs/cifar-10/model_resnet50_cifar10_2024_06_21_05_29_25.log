@@ -1,0 +1,4 @@
+model: resnet50, dataset: cifar10, training
+Epoch: 0, Batch: 0, Loss: 2.573
+Epoch: 0, Batch: 100, Loss: 1.880
+Epoch: 0, Batch: 200, Loss: 1.853

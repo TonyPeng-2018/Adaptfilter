@@ -1,11 +1,15 @@
 # dataset cifar10
+resumt = True
+
 from Dataloaders import dataloader_cifar10
 train, test, val, classes = dataloader_cifar10.Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024)
 
 # get the model from original
 from Models import mobilenetv2_original
+import torch
 
 model = mobilenetv2_original.MobileNetV2(num_classes=10)
+model.load_state_dict(torch.load('./Weights/cifar-10/model/mobilenetv2_2024_06_20_18_05_59.pth'))
 model.to('cuda')
 
 from Utils import utils
@@ -15,9 +19,8 @@ from datetime import datetime
 # logger
 start_time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
 logger = utils.APLogger(path='./Logs/cifar-10/model_mobilenetv2_original_cifar10_' +start_time+ '.log')
-logger.write('model: mobilenetv2_original, dataset: cifar10, training')
+logger.write('model: mobilenetv2_original, dataset: cifar10, training resume 100-200')
 
-import torch
 import torch.optim
 import torch.nn.functional as F
 

@@ -186,13 +186,11 @@ new code
 class MobileNetV2_client(nn.Module):
     def __init__(
         self,
-        num_classes: int = 1000,
         width_mult: float = 1.0,
         inverted_residual_setting: Optional[List[List[int]]] = None,
         round_nearest: int = 8,
         block: Optional[Callable[..., nn.Module]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
-        dropout: float = 0.2,
     ) -> None:
         """
         MobileNet V2 main class
@@ -240,9 +238,10 @@ class MobileNetV2_client(nn.Module):
         # building first layer
         input_channel = _make_divisible(input_channel * width_mult, round_nearest)
         self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
-        features: List[nn.Module] = [
+        self.features: List[nn.Module] = [
             Conv2dNormActivation(3, input_channel, stride=2, norm_layer=norm_layer, activation_layer=nn.ReLU6)
         ]
+        self.features = nn.Sequential(*self.features)
 
         # weight initialization
         for m in self.modules():
@@ -374,6 +373,25 @@ class MobileNetV2_server(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
+def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0'):
+    # here are have a very stupid splitter for 
+    # the restnet101 mode
+    client_model = MobileNetV2_client()
+    if weight_path != '':
+        client_weights = torch.load(weight_path, map_location=device)
+        client_model_keys = client_model.state_dict().keys()
+        client_weights = {k: v for k, v in client_weights.items() if k in client_model_keys}
+        client_model.load_state_dict(client_weights)
+
+        # create server, load the weights and filter the client
+    server_model = MobileNetV2_server(num_classes = num_classes)
+    if weight_path != '':
+        server_weights = torch.load(weight_path, map_location=device)
+        server_model_keys = server_model.state_dict().keys()
+        server_weights = {k: v for k, v in server_weights.items() if k in server_model_keys}
+        server_model.load_state_dict(server_weights)
+        
+    return client_model, server_model
 
 if __name__ == '__main__':
     model = MobileNetV2()

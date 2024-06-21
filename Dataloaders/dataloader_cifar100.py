@@ -49,7 +49,7 @@ def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, datasetpa
     # test_batch: the batch size for testing
     # seed: the random seed for the data loader
     # val_set: a boolean to determine if we want to have a validation set
-    # datasetpath: the path to the dataset
+    # datasetpath: the path to the dataset 
     # outputs:
     # trainloader: the data loader for training
     # testloader: the data loader for testing

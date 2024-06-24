@@ -12,8 +12,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import time
+from Adaptfilter.Debuggers import mobilenetv2_revised
 from Dataloaders import dataloader_cifar10, dataloader_imagenet
-from Models import mobilenetv2, mobilenetv3, resnet, mobilenetv2_original
+from Models import mobilenetv3, resnet, mobilenetv2_original
 import datetime
 from Utils import utils
 from tqdm import tqdm
@@ -43,7 +44,7 @@ def main(args):
     # 2. transfer the dataset to fit the model, for the training, client and server model are all on the server
     if args.model == 'mobilenetV2':
         if args.dataset == 'cifar10':
-            model = mobilenetv2.MobileNetV2(num_classes = num_classes)
+            model = mobilenetv2_revised.MobileNetV2(num_classes = num_classes)
         elif args.dataset == 'imagenet':
             model = mobilenetv2_original.MobileNetV2(num_classes = num_classes)
     elif args.model == 'mobilenetV3':

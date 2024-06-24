@@ -1,7 +1,8 @@
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils 
-from Models import mobilenetv2, gatedmodel, ranker
+from Adaptfilter.Debuggers import mobilenetv2_revised
+from Models import gatedmodel, ranker
 from tqdm import tqdm
 import Utils.utils as utils
 from Dataloaders.dataloader_cifar10 import Dataloader_cifar10 , Dataloader_cifar10_val
@@ -54,7 +55,7 @@ for _gate in gates: # size, type
         gate.train()
 
 # get the server model
-client, server = mobilenetv2.stupid_model_splitter(weight_path='./Weights/cifar-10/model/MobileNetV2.pth')
+client, server = mobilenetv2_revised.stupid_model_splitter(weight_path='./Weights/cifar-10/model/MobileNetV2.pth')
 client = client.cuda()
 server = server.cuda()
 

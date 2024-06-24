@@ -9,7 +9,8 @@ from torch.autograd import Variable
 import scipy.stats
 import torch.utils 
 import os
-from Models import mobilenetv2, gatedmodel
+from Adaptfilter.Debuggers import mobilenetv2_revised
+from Models import gatedmodel
 from tqdm import tqdm
 import numpy as np
 import Utils.utils as utils
@@ -51,7 +52,7 @@ for gate in gates:
     gate.train()
 
 # get the server model
-client_model, server_model = mobilenetv2.stupid_model_splitter(weight_path='./Weights/cifar-10/model/MobileNetV2.pth')
+client_model, server_model = mobilenetv2_revised.stupid_model_splitter(weight_path='./Weights/cifar-10/model/MobileNetV2.pth')
 server_model = server_model.cuda()
 server_model.eval()
 

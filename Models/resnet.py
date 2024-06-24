@@ -1,6 +1,6 @@
 from functools import partial
 from typing import Any, Callable, List, Optional, Type, Union
-
+import os
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -254,10 +254,14 @@ class ResNet(nn.Module):
 """
 --------------------------New Code ----------------------------
 """
+def resnet18(num_classes) -> ResNet:
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes = num_classes)
 def resnet50(num_classes) -> ResNet:
     return ResNet(Bottleneck, [3, 4, 6, 3], num_classes = num_classes)
+def resnet152(num_classes) -> ResNet:
+    return ResNet(Bottleneck, [3, 8, 36, 3], num_classes = num_classes)
 
-class resnet50_client(nn.Module):
+class resnet_client(nn.Module):
     # here we make a split of the model to be able to use it in the client
     # cut the original model at the third layer
     def __init__(
@@ -309,7 +313,7 @@ class resnet50_client(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-class resnet50_server(nn.Module):
+class resnet_server(nn.Module):
     def __init__(
         self,
         block: Type[Union[BasicBlock, Bottleneck]],
@@ -339,10 +343,6 @@ class resnet50_server(nn.Module):
             )
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
-        self.bn1 = norm_layer(self.inplanes)
-        self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
@@ -424,30 +424,59 @@ class resnet50_server(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0'):
+def resnet_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', device = 'cuda:0', layers = 18, partition = -1):
     # here are have a very stupid splitter for 
     # the restnet101 mode
-    layers = [3, 4, 6, 3]
-    client_model = resnet50_client()
-    if weight_path != '':
-        client_weights = torch.load(weight_path, map_location=device)
-        client_model_keys = client_model.state_dict().keys()
-        client_weights = {k: v for k, v in client_weights.items() if k in client_model_keys}
-        client_model.load_state_dict(client_weights)
-
-        # create server, load the weights and filter the client
-    server_model = resnet50_server(block = Bottleneck, layers =layers, num_classes = num_classes)
-    if weight_path != '':
-        server_weights = torch.load(weight_path, map_location=device)
-        server_model_keys = server_model.state_dict().keys()
-        server_weights = {k: v for k, v in server_weights.items() if k in server_model_keys}
-        server_model.load_state_dict(server_weights)
         
-    return client_model, server_model
+    c_model = resnet_client()
+    if layers == 18:
+        resnetname = 'resnet18'
+        s_model = resnet_server(BasicBlock, [2, 2, 2, 2], num_classes = num_classes)
+    elif layers == 50:
+        resnetname = 'resnet50'
+        s_model = resnet_server(Bottleneck, [3, 4, 6, 3], num_classes = num_classes)
+    elif layers == 152:
+        resnetname = 'resnet152'
+        s_model = resnet_server(Bottleneck, [3, 8, 36, 3], num_classes = num_classes)
+
+    c_weight = c_model.state_dict()
+    s_weight = s_model.state_dict()
+    c_weight_key = list(c_weight.keys())
+    s_weight_key = list(s_weight.keys())
+
+    if partition == -1:
+        partition = len(c_weight_key)
+
+    cw_path = weight_root + '/client/'+resnetname+'.pth'
+    sw_path = weight_root + '/server/'+resnetname+'.pth'
+    if not os.path.exists(cw_path):
+        pw_path = weight_root + '/pretrained/'+resnetname+'.pth'
+        in_weight = torch.load(pw_path, map_location=device)
+        assert (len(c_weight_key) + len(s_weight_key) == len(in_weight))
+
+        # reivese the key of weights
+        in_weight_keys = list(in_weight.keys())
+        for i in range(len(in_weight_keys)):
+            if i < partition:
+                c_weight[c_weight_key[i]] = in_weight[in_weight_keys[i]]
+            else:
+                s_weight[s_weight_key[i-partition]] = in_weight[in_weight_keys[i]]
+        # store the weights
+        if not os.path.exists(weight_root + '/client/'):
+            os.makedirs(weight_root + '/client/')
+        if not os.path.exists(weight_root + '/server/'):
+            os.makedirs(weight_root + '/server/')
+
+        torch.save(c_weight, cw_path)
+        torch.save(s_weight, sw_path)
+    
+    c_model.load_state_dict(torch.load(cw_path, map_location=device))
+    s_model.load_state_dict(torch.load(sw_path, map_location=device))
+    return c_model, s_model
     
 # test the model
 if __name__ == '__main__':
     model = resnet50(1000)
-    client, server = stupid_model_splitter()
+    client, server = resnet_client()
     print(model)
     # client = resnet50_client()

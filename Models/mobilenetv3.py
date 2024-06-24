@@ -1,6 +1,6 @@
 from functools import partial
 from typing import Any, Callable, List, Optional, Sequence
-
+import os
 import torch
 from torch import nn, Tensor
 
@@ -488,31 +488,46 @@ def _mobilenet_v3_conf_decide(
 
     return inverted_residual_setting, last_channel
 
-def stupid_model_splitter(num_classes = 1000, weight_path = '', device = 'cuda:0', model_size = 'large'):
-    # here are have a very stupid splitter for 
-    # the restnet101 mode
-    if model_size == 'large':
-        inverted_residual_setting, last_channel = _mobilenet_v3_conf("mobilenet_v3_large", num_classes = num_classes)
-    elif model_size == 'small':
-        inverted_residual_setting, last_channel = _mobilenet_v3_conf("mobilenet_v3_small", num_classes = num_classes)
+def mobilenetv3_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', 
+                         device = 'cuda:0', model_size = 'large', partition = -1):
+    inverted_residual_setting, last_channel = _mobilenet_v3_conf("mobilenet_v3_" + model_size, num_classes = num_classes)
+    c_model = MobileNetV3_client(inverted_residual_setting, last_channel)
+    s_model = MobileNetV3_server(inverted_residual_setting, last_channel, num_classes = num_classes)
 
-    client_model = MobileNetV3_client(inverted_residual_setting, last_channel)
-    if weight_path != '':
-        client_weights = torch.load(weight_path, map_location=device)
-        client_model_keys = client_model.state_dict().keys()
-        client_weights = {k: v for k, v in client_weights.items() if k in client_model_keys}
-        client_model.load_state_dict(client_weights)
+    c_weight = c_model.state_dict()
+    s_weight = s_model.state_dict()
+    c_weight_key = list(c_weight.keys())
+    s_weight_key = list(s_weight.keys())
+    
+    if partition == -1:
+        partition = len(c_weight_key)
 
-        # create server, load the weights and filter the client
-    server_model = MobileNetV3_server(inverted_residual_setting, last_channel, num_classes = num_classes)
-    if weight_path != '':
-        server_weights = torch.load(weight_path, map_location=device)
-        server_model_keys = server_model.state_dict().keys()
-        server_weights = {k: v for k, v in server_weights.items() if k in server_model_keys}
-        server_model.load_state_dict(server_weights)
-        
-    return client_model, server_model
+    cw_path = weight_root + '/client/mobilenetv3_'+ model_size+'.pth'
+    sw_path = weight_root + '/server/mobilenetv3_'+ model_size+'.pth'
+    if not os.path.exists(cw_path):
+        pw_path = weight_root + '/pretrained/mobilenetv3_'+ model_size+'.pth'
+        in_weight = torch.load(pw_path, map_location=device)
+        assert (len(c_weight_key) + len(s_weight_key) == len(in_weight))
 
+        # reivese the key of weights
+        in_weight_keys = list(in_weight.keys())
+        for i in range(len(in_weight_keys)):
+            if i < partition:
+                c_weight[c_weight_key[i]] = in_weight[in_weight_keys[i]]
+            else:
+                s_weight[s_weight_key[i-partition]] = in_weight[in_weight_keys[i]]
+        # store the weights
+        if not os.path.exists(weight_root + '/client/'):
+            os.makedirs(weight_root + '/client/')
+        if not os.path.exists(weight_root + '/server/'):
+            os.makedirs(weight_root + '/server/')
+
+        torch.save(c_weight, cw_path)
+        torch.save(s_weight, sw_path)
+    
+    c_model.load_state_dict(torch.load(cw_path, map_location=device))
+    s_model.load_state_dict(torch.load(sw_path, map_location=device))
+    return c_model, s_model
 # test
 if __name__ == '__main__':
     model = mobilenetV3()

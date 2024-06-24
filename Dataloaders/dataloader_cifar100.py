@@ -5,18 +5,7 @@ import sys
 import cv2
 
 
-def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = False, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
-    # inputs: 
-    # train_batch: the batch size for training
-    # test_batch: the batch size for testing
-    # seed: the random seed for the data loader
-    # val_set: a boolean to determine if we want to have a validation set
-    # datasetpath: the path to the dataset
-    # outputs:
-    # trainloader: the data loader for training
-    # testloader: the data loader for testing
-    # classes: the classes for the dataset
-    
+def Dataloader_cifar100(train_batch=128, test_batch=100, seed=2024, val_set = False, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
     torch.manual_seed(seed)
     transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),

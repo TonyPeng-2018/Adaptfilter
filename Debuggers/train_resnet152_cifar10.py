@@ -1,15 +1,14 @@
 # dataset cifar10
-resumt = True
-
 from Dataloaders import dataloader_cifar10
-train, test, val, classes = dataloader_cifar10.Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024)
+train, test, val, classes = dataloader_cifar10.Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, 
+                                                                      datasetpath='/data/anp407/')
 
 # get the model from original
-from Models import mobilenetv2
-import torch
+from Models import resnet
 
-model = mobilenetv2.MobileNetV2(num_classes=10)
-model.to('cuda')
+cuda_no = '1'
+model = resnet.resnet152(num_classes=10)
+model.to('cuda:' + cuda_no)
 
 from Utils import utils
 from tqdm import tqdm
@@ -17,9 +16,10 @@ from datetime import datetime
 
 # logger
 start_time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-logger = utils.APLogger(path='./Logs/cifar-10/mobilenetv2_cifar10_' +start_time+ '.log')
-logger.write('model: mobilenetv2, dataset: cifar10, training resume 100-200')
+logger = utils.APLogger(path='./Logs/cifar-10/resnet152_cifar10_' +start_time+ '.log')
+logger.write('model: resnet152, dataset: cifar10, training')
 
+import torch
 import torch.optim
 import torch.nn.functional as F
 
@@ -29,7 +29,7 @@ min_loss = -1
 for epoch in tqdm(range(100)):
     model = model.train()
     for batch_idx, (inputs, targets) in enumerate(train):
-        inputs, targets = inputs.to('cuda'), targets.to('cuda')
+        inputs, targets = inputs.to('cuda:' + cuda_no), targets.to('cuda:' + cuda_no)
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = F.cross_entropy(outputs, targets)
@@ -43,7 +43,7 @@ for epoch in tqdm(range(100)):
     with torch.no_grad():
         val_loss = 0
         for batch_idx, (inputs, targets) in enumerate(val):
-            inputs, targets = inputs.to('cuda'), targets.to('cuda')
+            inputs, targets = inputs.to('cuda:' + cuda_no), targets.to('cuda:' + cuda_no)
             outputs = model(inputs)
             outputs = torch.max(outputs, dim=1)[1]
             outputs = targets.eq(outputs).sum().item()
@@ -51,13 +51,13 @@ for epoch in tqdm(range(100)):
         logger.write('Validation: %.4f' % (val_loss/len(val)/128))
     if min_loss < outputs:
         min_loss = loss.item()
-        torch.save(model.state_dict(), './Weights/cifar-10/model/mobilenetv2_' + start_time + '.pth')
+        torch.save(model.state_dict(), './Weights/cifar-10/pretrained/resnet152_' + start_time + '.pth')
 
 # test the model
 model = model.eval()
 with torch.no_grad():
     for batch_idx, (inputs, targets) in enumerate(test):
-        inputs, targets = inputs.to('cuda'), targets.to('cuda')
+        inputs, targets = inputs.to('cuda:' + cuda_no), targets.to('cuda:' + cuda_no)
         outputs = model(inputs)
         outputs = torch.max(outputs, dim=1)[1]
         outputs = targets.eq(outputs).sum().item()

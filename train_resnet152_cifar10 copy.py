@@ -6,8 +6,9 @@ train, test, val, classes = dataloader_cifar10.Dataloader_cifar10_val(train_batc
 # get the model from original
 from Models import resnet
 
-model = resnet.resnet50(num_classes=10)
-model.to('cuda')
+cuda_no = '1'
+model = resnet.resnet152(num_classes=10)
+model.to('cuda:' + cuda_no)
 
 from Utils import utils
 from tqdm import tqdm
@@ -15,8 +16,8 @@ from datetime import datetime
 
 # logger
 start_time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-logger = utils.APLogger(path='./Logs/cifar-10/model_resnet50_cifar10_' +start_time+ '.log')
-logger.write('model: resnet50, dataset: cifar10, training')
+logger = utils.APLogger(path='./Logs/cifar-10/resnet152_cifar10_' +start_time+ '.log')
+logger.write('model: resnet152, dataset: cifar10, training')
 
 import torch
 import torch.optim
@@ -28,7 +29,7 @@ min_loss = -1
 for epoch in tqdm(range(100)):
     model = model.train()
     for batch_idx, (inputs, targets) in enumerate(train):
-        inputs, targets = inputs.to('cuda'), targets.to('cuda')
+        inputs, targets = inputs.to('cuda:' + cuda_no), targets.to('cuda:' + cuda_no)
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = F.cross_entropy(outputs, targets)
@@ -42,7 +43,7 @@ for epoch in tqdm(range(100)):
     with torch.no_grad():
         val_loss = 0
         for batch_idx, (inputs, targets) in enumerate(val):
-            inputs, targets = inputs.to('cuda'), targets.to('cuda')
+            inputs, targets = inputs.to('cuda:' + cuda_no), targets.to('cuda:' + cuda_no)
             outputs = model(inputs)
             outputs = torch.max(outputs, dim=1)[1]
             outputs = targets.eq(outputs).sum().item()
@@ -50,13 +51,13 @@ for epoch in tqdm(range(100)):
         logger.write('Validation: %.4f' % (val_loss/len(val)/128))
     if min_loss < outputs:
         min_loss = loss.item()
-        torch.save(model.state_dict(), './Weights/cifar-10/model/resnet50_' + start_time + '.pth')
+        torch.save(model.state_dict(), './Weights/cifar-10/pretrained/resnet152_' + start_time + '.pth')
 
 # test the model
 model = model.eval()
 with torch.no_grad():
     for batch_idx, (inputs, targets) in enumerate(test):
-        inputs, targets = inputs.to('cuda'), targets.to('cuda')
+        inputs, targets = inputs.to('cuda:' + cuda_no), targets.to('cuda:' + cuda_no)
         outputs = model(inputs)
         outputs = torch.max(outputs, dim=1)[1]
         outputs = targets.eq(outputs).sum().item()

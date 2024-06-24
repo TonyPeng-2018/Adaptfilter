@@ -131,10 +131,10 @@ def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, datasetpa
     ])
     trainset = torchvision.datasets.CIFAR10(
         root=datasetpath, train=True, download=True, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=train_batch, shuffle=True, num_workers=4)
     # split the training set into training and validation set
     trainset, valset = torch.utils.data.random_split(trainset, [40000, 10000])
+    trainloader = torch.utils.data.DataLoader(
+        trainset, batch_size=train_batch, shuffle=True, num_workers=4)
     valloader = torch.utils.data.DataLoader(valset, batch_size=train_batch, shuffle=False, num_workers=4)
 
     testset = torchvision.datasets.CIFAR10(

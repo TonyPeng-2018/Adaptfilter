@@ -1,7 +1,6 @@
 # not upload the weight file
 
 # not files in the Weights
-Weights/
 checkpoint/
 *.pth
 *.zip

@@ -68,7 +68,8 @@ def main(args):
             inputs, labels = inputs.cuda(args.cuda), labels.cuda(args.cuda)
             optimizer.zero_grad()
             outputs = model(inputs)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, 
+                             )
             loss.backward()
             optimizer.step()
             if i % 100 == 0:

@@ -1,6 +1,7 @@
 # dataset cifar10
 from Dataloaders import dataloader_cifar10
-train, test, val, classes = dataloader_cifar10.Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024)
+train, test, val, classes = dataloader_cifar10.Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, 
+                                                                      datasetpath='/data/anp407/')
 
 # get the model from original
 from Models import resnet

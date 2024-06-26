@@ -1,0 +1,1 @@
+model: mobilenetv3_large, dataset: cifar100, training

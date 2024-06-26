@@ -8,11 +8,14 @@ import cv2
 
 def Dataloader_cifar100(train_batch=128, test_batch=100, seed=2024, val_set = False, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
     torch.manual_seed(seed)
-    trainset = torchvision.datasets.CIFAR100(root=datasetpath, train=True)
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+    trainset = torchvision.datasets.CIFAR100(root=datasetpath, train=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=train_batch, shuffle=True, num_workers=4)
 
-    testset = torchvision.datasets.CIFAR10(root=datasetpath, train=False)
+    testset = torchvision.datasets.CIFAR10(root=datasetpath, train=False, transform=transform)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=test_batch, shuffle=False, num_workers=4)
     return trainloader, testloader
@@ -21,16 +24,19 @@ def Dataloader_cifar100_val(train_batch=128, test_batch=100, seed=2024, datasetp
    
 
     torch.manual_seed(seed)
-    trainset = torchvision.datasets.CIFAR100(root=datasetpath, train=True)
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+    trainset = torchvision.datasets.CIFAR100(root=datasetpath, train=True, transform=transform)
     trainset_len = len(trainset)
-    trainset, valset = torch.utils.data.random_split(trainset, trainset_len-int(0.2*trainset_len), int(0.2*trainset_len))
+    trainset, valset = torch.utils.data.random_split(trainset, [trainset_len-int(0.2*trainset_len), int(0.2*trainset_len)])
 
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=train_batch, shuffle=True, num_workers=4)
     valoader = torch.utils.data.DataLoader(
         valset, batch_size=train_batch, shuffle=False, num_workers=4)
 
-    testset = torchvision.datasets.CIFAR10(root=datasetpath, train=False)
+    testset = torchvision.datasets.CIFAR10(root=datasetpath, train=False, transform=transform)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=test_batch, shuffle=False, num_workers=4)
     return trainloader, testloader, valoader

@@ -5,6 +5,7 @@ checkpoint/
 *.pth
 *.zip
 *.pyc
+*.tar
 # no pycache
 __pycache__/
 

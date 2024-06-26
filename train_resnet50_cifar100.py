@@ -4,10 +4,10 @@ train, test, val = dataloader_cifar100.Dataloader_cifar100_val(train_batch=128, 
                                                                       datasetpath='/data/anp407/')
 
 # get the model from original
-from Models import mobilenetv3
+from Models import resnet
 
 cuda_no = '2'
-model = mobilenetv3.mobilenetV3(num_classes=100)
+model = resnet.resnet50(num_classes=100)
 model.to('cuda:' + cuda_no)
 
 from Utils import utils
@@ -16,8 +16,8 @@ from datetime import datetime
 
 # logger
 start_time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-logger = utils.APLogger(path='./Logs/cifar-100/mobilenetv3_large_' +start_time+ '.log')
-logger.write('model: mobilenetv3_large, dataset: cifar100, training')
+logger = utils.APLogger(path='./Logs/cifar-100/resnet50_' +start_time+ '.log')
+logger.write('model: resnet50, dataset: cifar100, training')
 
 import torch
 import torch.optim
@@ -51,7 +51,7 @@ for epoch in tqdm(range(100)):
         logger.write('Validation: %.4f' % (val_loss/len(val)/128))
     if min_loss < outputs:
         min_loss = loss.item()
-        torch.save(model.state_dict(), './Weights/cifar-100/pretrained/mobilenetv3_large_' + start_time + '.pth')
+        torch.save(model.state_dict(), './Weights/cifar-100/pretrained/resnet50_' + start_time + '.pth')
 
 # test the model
 model = model.eval()

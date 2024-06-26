@@ -1,13 +1,13 @@
 # dataset cifar10
-from Dataloaders import dataloader_cifar10
-train, test, val, classes = dataloader_cifar10.Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, 
+from Dataloaders import dataloader_cifar100
+train, test, val = dataloader_cifar100.Dataloader_cifar100_val(train_batch=128, test_batch=100, seed=2024, 
                                                                       datasetpath='/data/anp407/')
 
 # get the model from original
-from Models import resnet
+from Models import mobilenetv2
 
-cuda_no = '1'
-model = resnet.resnet152(num_classes=10)
+cuda_no = '2'
+model = mobilenetv2.MobileNetV2(num_classes=100)
 model.to('cuda:' + cuda_no)
 
 from Utils import utils
@@ -16,8 +16,8 @@ from datetime import datetime
 
 # logger
 start_time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-logger = utils.APLogger(path='./Logs/cifar-10/resnet152_cifar10_' +start_time+ '.log')
-logger.write('model: resnet152, dataset: cifar10, training')
+logger = utils.APLogger(path='./Logs/cifar-100/mobilenetv2_' +start_time+ '.log')
+logger.write('model: mobilenetv2, dataset: cifar100, training')
 
 import torch
 import torch.optim
@@ -51,7 +51,7 @@ for epoch in tqdm(range(100)):
         logger.write('Validation: %.4f' % (val_loss/len(val)/128))
     if min_loss < outputs:
         min_loss = loss.item()
-        torch.save(model.state_dict(), './Weights/cifar-10/pretrained/resnet152_' + start_time + '.pth')
+        torch.save(model.state_dict(), './Weights/cifar-100/pretrained/mobilenetv2_' + start_time + '.pth')
 
 # test the model
 model = model.eval()

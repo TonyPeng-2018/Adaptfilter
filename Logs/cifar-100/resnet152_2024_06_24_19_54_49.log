@@ -1,0 +1,1 @@
+model: resnet152, dataset: cifar100, training

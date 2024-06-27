@@ -67,7 +67,9 @@ import cv2
 
 # add a main testing function here
 
-def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = False, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
+def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = False, 
+                       datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/',
+                       num_workers = 4):
     # inputs: 
     # train_batch: the batch size for training
     # test_batch: the batch size for testing
@@ -94,29 +96,21 @@ def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = Fal
     trainset = torchvision.datasets.CIFAR10(
         root=datasetpath, train=True, download=True, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=train_batch, shuffle=True, num_workers=8)
+        trainset, batch_size=train_batch, shuffle=True, num_workers=num_workers)
 
     testset = torchvision.datasets.CIFAR10(
         root=datasetpath, train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=test_batch, shuffle=False, num_workers=4)
+        testset, batch_size=test_batch, shuffle=False, num_workers=num_workers)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer',
             'dog', 'frog', 'horse', 'ship', 'truck')
     return trainloader, testloader, classes
 
-def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set = True, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
-    # inputs: 
-    # train_batch: the batch size for training
-    # test_batch: the batch size for testing
-    # seed: the random seed for the data loader
-    # val_set: a boolean to determine if we want to have a validation set
-    # datasetpath: the path to the dataset
-    # outputs:
-    # trainloader: the data loader for training
-    # testloader: the data loader for testing
-    # classes: the classes for the dataset
-    
+def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set = True, 
+                           datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/',
+                           num_workers = 4):
+   
     torch.manual_seed(seed)
     transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -132,15 +126,16 @@ def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set =
     trainset = torchvision.datasets.CIFAR10(
         root=datasetpath, train=True, download=True, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=train_batch, shuffle=True, num_workers=8)
+        trainset, batch_size=train_batch, shuffle=True, num_workers=num_workers)
     # split the training set into training and validation set
     trainset, valset = torch.utils.data.random_split(trainset, [40000, 10000])
-    valloader = torch.utils.data.DataLoader(valset, batch_size=train_batch, shuffle=False, num_workers=8)
+    valloader = torch.utils.data.DataLoader(valset, batch_size=train_batch, 
+                                            shuffle=False, num_workers=num_workers)
 
     testset = torchvision.datasets.CIFAR10(
         root=datasetpath, train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=test_batch, shuffle=False, num_workers=4)
+        testset, batch_size=test_batch, shuffle=False, num_workers=num_workers)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer',
             'dog', 'frog', 'horse', 'ship', 'truck')

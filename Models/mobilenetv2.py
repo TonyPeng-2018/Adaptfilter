@@ -216,19 +216,26 @@ class MobileNetV2_Server(nn.Module):
         return out
 
 # split the mobilenetV2 to client and server part. 
-def stupid_model_splitter(num_classes: int = 10, partioning_point:int = 3, weight_path: str = ''):
+def stupid_model_splitter(num_classes: int = 10, partioning_point:int = 3, weight_path: str = '',
+                          device = 'gpu'):
     assert partioning_point ==3, 'The stupid model splitter only works for partioning_point = 3'
     # create client, filter weights and load the server
     client_model = MobileNetV2_Client(num_classes=num_classes)
     if weight_path != '':
-        client_weights = torch.load(weight_path)['net']
+        if device == 'gpu':
+            client_weights = torch.load(weight_path)['net']
+        else:
+            client_weights = torch.load(weight_path, map_location=torch.device('cpu'))['net']
         client_model_keys = client_model.state_dict().keys()
         client_weights = {k: v for k, v in client_weights.items() if k in client_model_keys}
         client_model.load_state_dict(client_weights)
 
         # create server, load the weights and filter the client
         server_model = MobileNetV2_Server(num_classes=num_classes) 
-        server_weights = torch.load(weight_path)['net']
+        if device == 'gpu':
+            server_weights = torch.load(weight_path)['net']
+        else:
+            server_weights = torch.load(weight_path, map_location=torch.device('cpu'))['net']
         server_model_keys = server_model.state_dict().keys()
         server_weights = {k: v for k, v in server_weights.items() if k in server_model_keys}
         server_model.load_state_dict(server_weights)

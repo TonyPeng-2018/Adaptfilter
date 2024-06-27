@@ -2,8 +2,8 @@
 # Run this on the server, or as we called offline. 
 
 from Dataloaders.dataloader_cifar10 import Dataloader_cifar10
-from Models.mobilenetv2 import MobileNetV2
-from Adaptfilter.Models.resnet_old import Resnet
+from Adaptfilter.Debuggers.mobilenetv2_revised import MobileNetV2
+from Adaptfilter.Debuggers.resnet_old import Resnet
 import argparse
 import torch
 import os

@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from Models import mobilenetv2
+from Adaptfilter.Debuggers import mobilenetv2_revised
 from Dataloaders import dataloader_cifar10
 import os
 import numpy as np
@@ -14,7 +14,7 @@ from tqdm import tqdm
 train, test, labels = dataloader_cifar10.Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = False, datasetpath='/data/anp407/')
 
 # 2. transfer the dataset to fit the model, for the training, client and server model are all on the server
-client_model, server_model = mobilenetv2.stupid_model_splitter(weight_path='./Weights/cifar-10/MobileNetV2.pth')
+client_model, server_model = mobilenetv2_revised.stupid_model_splitter(weight_path='./Weights/cifar-10/MobileNetV2.pth')
 
 # gating = some_gating_function()
 

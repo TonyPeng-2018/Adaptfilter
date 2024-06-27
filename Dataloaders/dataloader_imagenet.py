@@ -14,7 +14,7 @@ class Dataset_imagenet():
         # get the set for train, test and val
         # path to the file, the number of it, 
         np.random.seed(2024)
-        if device == 'server':
+        if device == 'home':
             self.r_path = '/home/tonypeng/Workspace1/adaptfilter/data/imagenet/ILSVRC/'
         elif device == 'tintin':
             self.r_path = '/data/anp407/imagenet/ILSVRC/'

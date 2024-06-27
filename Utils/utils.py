@@ -38,6 +38,7 @@ class APLogger():
         # check the type of text
         if type(text) != str:
             text = str(text)
+        text = text + '\n'
         self.file.write(text)
     def close(self):
         self.file.close()

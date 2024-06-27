@@ -1,7 +1,8 @@
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils 
-from Models import mobilenetv2, gatedmodel, ranker
+from Adaptfilter.Debuggers import mobilenetv2_revised
+from Models import gatedmodel, ranker
 from tqdm import tqdm
 import Utils.utils as utils
 from Dataloaders.dataloader_cifar10 import Dataloader_cifar10 , Dataloader_cifar10_val
@@ -15,7 +16,7 @@ start_time = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
 run_path = pre_path[run_device] 
 # load the dataset
 # emb_folder = run_path['cifar10'] + run_path['client'] # b,e,h,w
-# emb_out_folder = run_path['cifar10'] + run_path['server'] # b,o
+# emb_out_folder = run_path['cifar10'] + run_path['home'] # b,o
 # gt_folder = run_path['cifar10'] + 'cifar-10-labels/' # b,1
 # dataset = dataloader_gate_correct(emb_folder, emb_out_folder, gt_folder) # emb, b,e,h,w -> b,10
 # instead, use the original dataset
@@ -54,7 +55,7 @@ for _gate in gates: # size, type
         gate.train()
 
 # get the server model
-client, server = mobilenetv2.stupid_model_splitter(weight_path='./Weights/cifar-10/model/MobileNetV2.pth')
+client, server = mobilenetv2_revised.stupid_model_splitter(weight_path='./Weights/cifar-10/model/MobileNetV2.pth')
 client = client.cuda()
 server = server.cuda()
 

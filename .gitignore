@@ -1,13 +1,12 @@
 # not upload the weight file
 
 # not files in the Weights
-Weights/
 checkpoint/
-*.log
 *.pth
 *.zip
+*.pyc
+*.tar
 # no pycache
 __pycache__/
 
 # no trainning logger
-Loggers/

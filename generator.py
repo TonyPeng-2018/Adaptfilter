@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from Models import mobilenetv2
+from Adaptfilter.Debuggers import mobilenetv2_revised
 from Dataloaders import dataloader_cifar10
 import os
 import numpy as np
@@ -15,7 +15,7 @@ from tqdm import tqdm
 import scipy
 
 # client, and server model
-client_model, server_model = mobilenetv2.stupid_model_splitter(weight_path='./Weights/cifar-10/MobileNetV2.pth')
+client_model, server_model = mobilenetv2_revised.stupid_model_splitter(weight_path='./Weights/cifar-10/MobileNetV2.pth')
 
 # def the generator
 # https://github.com/pytorch/examples/blob/main/dcgan/main.py

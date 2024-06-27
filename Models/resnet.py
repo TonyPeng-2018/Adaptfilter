@@ -1,6 +1,6 @@
 from functools import partial
 from typing import Any, Callable, List, Optional, Type, Union
-
+import os
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -254,25 +254,24 @@ class ResNet(nn.Module):
 """
 --------------------------New Code ----------------------------
 """
+def resnet18(num_classes) -> ResNet:
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes = num_classes)
 def resnet50(num_classes) -> ResNet:
     return ResNet(Bottleneck, [3, 4, 6, 3], num_classes = num_classes)
+def resnet152(num_classes) -> ResNet:
+    return ResNet(Bottleneck, [3, 8, 36, 3], num_classes = num_classes)
 
-
-def restnet50_client():
+class resnet_client(nn.Module):
     # here we make a split of the model to be able to use it in the client
     # cut the original model at the third layer
     def __init__(
         self,
-        block: Type[Union[BasicBlock, Bottleneck]],
-        layers: List[int],
-        num_classes: int = 1000,
-        zero_init_residual: bool = False,
         groups: int = 1,
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
-    ) -> None:
-        super(restne50_client).__init__()
+    ):
+        super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -309,14 +308,12 @@ def restnet50_client():
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-
         return x
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-def restnet50_server():
-    # this is a server side of the model
+class resnet_server(nn.Module):
     def __init__(
         self,
         block: Type[Union[BasicBlock, Bottleneck]],
@@ -328,7 +325,7 @@ def restnet50_server():
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
-        super(restnet50_server).__init__()
+        super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -346,10 +343,6 @@ def restnet50_server():
             )
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
-        self.bn1 = norm_layer(self.inplanes)
-        self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
@@ -394,6 +387,25 @@ def restnet50_server():
                 norm_layer(planes * block.expansion),
             )
 
+        layers = []
+        layers.append(
+            block(
+                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
+            )
+        )
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation,
+                    norm_layer=norm_layer,
+                )
+            )
+
         return nn.Sequential(*layers)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
@@ -412,20 +424,59 @@ def restnet50_server():
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-def resnet50_stupid_splitter(cweight = None, sweight = None, num_classes = 1000):
+def resnet_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', device = 'cuda:0', layers = 18, partition = -1):
     # here are have a very stupid splitter for 
     # the restnet101 mode
-    layers = [3, 4, 50, 3]
+        
+    c_model = resnet_client()
+    if layers == 18:
+        resnetname = 'resnet18'
+        s_model = resnet_server(BasicBlock, [2, 2, 2, 2], num_classes = num_classes)
+    elif layers == 50:
+        resnetname = 'resnet50'
+        s_model = resnet_server(Bottleneck, [3, 4, 6, 3], num_classes = num_classes)
+    elif layers == 152:
+        resnetname = 'resnet152'
+        s_model = resnet_server(Bottleneck, [3, 8, 36, 3], num_classes = num_classes)
 
-    client = restnet50_client(block = Bottleneck, layers =layers, num_classes = num_classes)
-    server = restnet50_server(block = Bottleneck, layers =layers, num_classes = num_classes)
-    # if we have weights we load them
-    if cweight:
-        client.load_state_dict(cweight)
-    if sweight:
-        server.load_state_dict(sweight)
-    return client, server
+    c_weight = c_model.state_dict()
+    s_weight = s_model.state_dict()
+    c_weight_key = list(c_weight.keys())
+    s_weight_key = list(s_weight.keys())
+
+    if partition == -1:
+        partition = len(c_weight_key)
+
+    cw_path = weight_root + '/client/'+resnetname+'.pth'
+    sw_path = weight_root + '/server/'+resnetname+'.pth'
+    if not os.path.exists(cw_path):
+        pw_path = weight_root + '/pretrained/'+resnetname+'.pth'
+        in_weight = torch.load(pw_path, map_location=device)
+        assert (len(c_weight_key) + len(s_weight_key) == len(in_weight))
+
+        # reivese the key of weights
+        in_weight_keys = list(in_weight.keys())
+        for i in range(len(in_weight_keys)):
+            if i < partition:
+                c_weight[c_weight_key[i]] = in_weight[in_weight_keys[i]]
+            else:
+                s_weight[s_weight_key[i-partition]] = in_weight[in_weight_keys[i]]
+        # store the weights
+        if not os.path.exists(weight_root + '/client/'):
+            os.makedirs(weight_root + '/client/')
+        if not os.path.exists(weight_root + '/server/'):
+            os.makedirs(weight_root + '/server/')
+
+        torch.save(c_weight, cw_path)
+        torch.save(s_weight, sw_path)
+    
+    c_model.load_state_dict(torch.load(cw_path, map_location=device))
+    s_model.load_state_dict(torch.load(sw_path, map_location=device))
+    return c_model, s_model
     
 # test the model
-if __name__ == 'main':
-    client, server = resnet50_stupid_splitter()
+if __name__ == '__main__':
+    model = resnet50(1000)
+    client, server = resnet_client()
+    print(model)
+    # client = resnet50_client()

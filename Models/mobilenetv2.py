@@ -413,6 +413,16 @@ def mobilenetv2_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Works
     s_model.load_state_dict(torch.load(sw_path, map_location=device))
     return c_model, s_model
 
+def mobilenetv2_splitter_client(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', device = 'cuda:0', partition = -1):
+    # here are have a very stupid splitter for 
+    # the restnet101 mode
+    # assert that they have at least the same length of models
+
+    c_model = MobileNetV2_client()
+    cw_path = weight_root + '/client/mobilenetv2.pth'
+    c_model.load_state_dict(torch.load(cw_path, map_location=device))
+    return c_model
+
 if __name__ == '__main__':
     client, server = mobilenetv2_splitter(weight_root= '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', num_classes=1000, device = 'cuda:0')
     client, server = mobilenetv2_splitter(weight_root= '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/cifar-100', num_classes=100, device = 'cuda:0')

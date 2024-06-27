@@ -473,6 +473,25 @@ def resnet_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1
     c_model.load_state_dict(torch.load(cw_path, map_location=device))
     s_model.load_state_dict(torch.load(sw_path, map_location=device))
     return c_model, s_model
+
+def resnet_splitter_client(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', 
+                           device = 'cuda:0', layers = 18, partition = -1):
+    # here are have a very stupid splitter for 
+    # the restnet101 mode
+        
+    c_model = resnet_client()
+    if layers == 18:
+        resnetname = 'resnet18'
+    elif layers == 50:
+        resnetname = 'resnet50'
+    elif layers == 152:
+        resnetname = 'resnet152'
+
+    cw_path = weight_root + '/client/'+resnetname+'.pth'
+    
+    c_model.load_state_dict(torch.load(cw_path, map_location=device))
+    return c_model
+
     
 # test the model
 if __name__ == '__main__':

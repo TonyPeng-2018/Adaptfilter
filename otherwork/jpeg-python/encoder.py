@@ -107,6 +107,8 @@ def main():
     parser.add_argument("input", help="path to the input image")
     parser.add_argument("output", help="path to the output image")
     args = parser.parse_args()
+    print(args.input)
+    print(args.output)
 
     input_file = args.input
     output_file = args.output

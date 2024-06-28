@@ -114,7 +114,7 @@ def get_zero_rank(input):
     return zero_rank, output, one_hot
 
 def normalization(tensor):
-    
+    pass
 
 from tqdm import tqdm
 for epoch in tqdm(range(10)):

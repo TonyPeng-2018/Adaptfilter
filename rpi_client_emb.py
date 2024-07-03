@@ -9,7 +9,7 @@ import argparse
 import base64
 import cv2
 import datetime
-from Models import mobilenetv2, mobilenetv3, resnet, gatedmodel
+from Models import gatedmodel,mobilenetv2, mobilenetv3, resnet
 import numpy as np
 import os
 import PIL
@@ -63,12 +63,6 @@ def main(args):
     images_list.remove('labels.txt')
     images_list = sorted(images_list)
     
-    t_time = 0
-
-    JPEG_time_25 = 0
-    JPEG_time_50 = 0
-    JPEG_time_75 = 0
-    CJPEG_time = 0
     ML_time = 0
     ML_inf_time = 0
 
@@ -76,7 +70,9 @@ def main(args):
     image_bucket = []
     image_count = 0
 
-    i_stop = 5
+    i_stop = 600
+
+    gates = []
 
     for i, i_path in tqdm(enumerate(images_list)):
         if i >= i_stop:
@@ -92,61 +88,8 @@ def main(args):
             continue
         else:
             image_count = 0
-        
-        # 3. compress the image
-        # 3.1 JPEG 25
-        s_time = time.time()
-        for image in image_bucket:
-            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 25]
-            # result, encimg = cv2.imencode('.jpg', image, encode_param)
-            # store the image
-            cv2.imwrite('./jpeg_25.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 25])
-            # encoder.simple_run('./jpeg_25.jpg', './jpeg_25.out')
-            # with open('./jpeg_25.out', 'rb') as f:
-            #     c_encode = f.readlines()[0]
-                
-        e_time = time.time()
-        JPEG_time_25 += e_time - s_time
-
-        # 3.2 JPEG 50
-        s_time = time.time()
-        for image in image_bucket:
-            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
-            # result, encimg = cv2.imencode('.jpg', image, encode_param)
-            e_time = time.time()
-            # cv2.imwrite('./jpeg_50.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
-            # encoder.simple_run('./jpeg_50.jpg', './jpeg_50.out')
-            # with open('./jpeg_50.out', 'rb') as f:
-            #     c_encode = f.readlines()[0]
-
-        
-        JPEG_time_50 += e_time - s_time
-
-        # 3.3 JPEG 75
-        s_time = time.time()
-        for image in image_bucket:
-            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 75]
-            # result, encimg = cv2.imencode('.jpg', image, encode_param)
-            cv2.imwrite('./jpeg_75.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
-            # encoder.simple_run('./jpeg_75.jpg', './jpeg_75.out')
-            # with open('./jpeg_75.out', 'rb') as f:
-            #     c_encode = f.readlines()[0]
 
         e_time = time.time()
-        JPEG_time_75 += e_time - s_time
-
-        # 3.4 progressive JPEG
-        s_time = time.time()
-        for image in image_bucket:
-            encode_param = [int(cv2.IMWRITE_JPEG_PROGRESSIVE), 1]
-            # result, encimg = cv2.imencode('.jpg', image, encode_param)
-            cv2.imwrite('./c_jpeg.jpg', image, [int(cv2.IMWRITE_JPEG_PROGRESSIVE), 1])
-            # encoder.simple_run('./c_jpeg.jpg', './c_jpeg.out')
-            # with open('./c_jpeg.out', 'rb') as f:
-            #     c_encode = f.readlines()[0]
-
-        e_time = time.time()
-        CJPEG_time += e_time - s_time
 
         # 4. model
         image_nplist = np.stack(image_bucket)
@@ -154,30 +97,29 @@ def main(args):
         image = image.permute(0, 3, 1, 2)
         s_time = time.time()
         c_embs = c_model(image)
-        ML_inf_time += time.time() - s_time
+        s2_time = time.time()
         # c_rank, c_cut = utils.ranker_zeros(c_embs, 0.1, 0.5)
+        c_embs = c_embs.squeeze(0)
+        c_embs = c_embs.detach().numpy()
+        s3_time = time.time()
         c_rank = utils.ranker_zeros(c_embs, 0.1, 0.5)
-        for j, c_emb in enumerate(c_embs):
-            c_emb = utils.remover_zeros(c_emb, c_rank[j], 32, 0.25)
-            c_emb = c_emb.detach().numpy()
-            c_encode = base64.b64encode(c_emb)
-        e_time = time.time()
-        ML_time += e_time - s_time
+        s4_time = time.time()
+        nc_emb = utils.remover_zeros(c_embs, c_rank, 32, 0.1)
+        c_encode = base64.b64encode(nc_emb)
+        s5_time = time.time()
+        ML_inf_time += s2_time - s_time
+        ML_time += s2_time - s_time + s4_time - s3_time + s5_time - s4_time
         # encode it 
         # 5. send the data to the server
         # skipped
 
         image_bucket = []
 
-    JPEG_time_25 /= i_stop
-    JPEG_time_50 /= i_stop
-    JPEG_time_75 /= i_stop
     ML_time /= i_stop
-    CJPEG_time /= i_stop
     ML_inf_time /= i_stop
     
-    print('JPEG 25: %f, JPEG 50: %f, JPEG 75: %f, CJPEG: %f, ML: %f, ML_inf: %f' \
-          % (JPEG_time_25, JPEG_time_50, JPEG_time_75, CJPEG_time, ML_time, ML_inf_time))
+    print('ML_time: %.3f, ML_inf_time: %.3f\n' % (ML_time, ML_inf_time))
+
 
 if __name__ == '__main__':
     print('enter')

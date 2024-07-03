@@ -1,0 +1,8 @@
+model: mobilenetV2, dataset: imagenet
+
+batch: 128, compressor: home, ranker: zeros
+
+weight: ./Weight/cifar-10/
+
+ML_time: 0.007, ML_inf_time: 0.005
+

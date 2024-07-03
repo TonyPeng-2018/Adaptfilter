@@ -72,3 +72,84 @@ class GateCNN2(nn.Module):
         return out
     
 model_list = {'GateMLP': GatedRegression, 'GateCNN': GateCNN, 'GateCNN2': GateCNN2}
+
+class GateCNN_POS(nn.Module):
+    def __init__(self, i_size, width, height, o_size=1, n_ch=32):
+        super(GatedRegression, self).__init__()
+        # think about it 3*32*32 -> 1
+        # think about the classification of the mobile net
+        # the input size is b, c*p, h, w, the output size is b 
+        # how to make sure more features help the server model?
+        self.label_embedding = nn.Embedding(n_ch, n_ch)
+        self.conv0 = nn.Conv2d(i_size, n_ch, kernel_size=3, stride=1, padding=1, bias=True)
+        self.bn = nn.BatchNorm2d(n_ch)
+        self.relu = nn.ReLU()
+        self.conv1 = nn.Conv2d(n_ch, 2*n_ch, kernel_size=3, stride=1, bias=True)
+        self.bn1 = nn.BatchNorm2d(128)
+        # linear size = 2*n_ch * (width//4) * (height//4) + emb
+        self.linear_1 = 2*n_ch * (width//4) * (height//4) + n_ch
+        self.linear = nn.Linear(self.linear_1, o_size, bias=False)
+
+    def forward(self, x, chs):
+        out = self.relu(self.bn(self.conv0(x)))
+        out = self.relu(self.bn1(self.conv1(out)))
+        out = torch.flatten()
+        emb = self.label_embedding(chs)
+        out = torch.cat([out, emb], dim=-1)
+        out = self.linear(out)
+        return out
+    
+class Generator(nn.Module):
+    def __init__(self, image_size: int = 28, channels: int = 1, num_channels: int = 32, input_channels: int = 1, batch_size: int = 128):   
+        # ex input 4, output 1
+        super().__init__()
+        self.image_size = image_size
+        self.channels = channels
+
+        self.label_embedding = nn.Embedding(num_channels, num_channels)
+        self.input_size = self.image_size[0] * self.image_size[1]
+        self.input_size += num_channels
+        self.input_channels = input_channels
+        self.output_size = self.image_size[0] * self.image_size[1]
+        
+        self.pre = nn.Sequential(
+            nn.Conv2d(self.input_channels, self.input_channels//2, 3, 1, padding=1),
+            nn.BatchNorm2d(self.input_channels//2),
+            nn.ReLU(inplace=True),
+            
+            nn.Conv2d(self.input_channels//2, 1, 3, 1, padding=1),
+            nn.BatchNorm2d(1),
+            nn.ReLU(inplace=True)
+        )
+        if batch_size > 1:
+            self.main = nn.Sequential(
+                nn.Linear(self.input_size, 2*self.input_size),
+                nn.BatchNorm1d(2*self.input_size),
+                nn.LeakyReLU(negative_slope=0.2, inplace=True),
+
+                nn.Linear(2*self.input_size, 4*self.input_size),
+                nn.BatchNorm1d(4*self.input_size),
+                nn.LeakyReLU(negative_slope=0.2, inplace=True),
+
+                nn.Linear(4*self.input_size, self.output_size),
+                nn.Tanh()
+            )
+        else:
+            self.main = nn.Sequential(
+                nn.Linear(self.input_size, 2*self.input_size),
+                nn.LeakyReLU(negative_slope=0.2, inplace=True),
+
+                nn.Linear(2*self.input_size, 4*self.input_size),
+                nn.LeakyReLU(negative_slope=0.2, inplace=True),
+
+                nn.Linear(4*self.input_size, self.output_size),
+                nn.Sigmoid()
+            )
+
+    def forward(self, inputs: torch.Tensor, labels: list) -> torch.Tensor:
+        out = self.pre(inputs)
+        out = out.view(out.size(0), -1)
+        conditional_inputs = torch.cat([out, self.label_embedding(labels)], dim=-1)
+        out = self.main(conditional_inputs)
+        out = out.reshape(inputs.size(0), self.image_size[0], self.image_size[1])
+        return out

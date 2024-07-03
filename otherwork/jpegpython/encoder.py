@@ -6,7 +6,7 @@ from utils import *
 from scipy import fftpack
 from PIL import Image
 from huffman import HuffmanTree
-
+import time
 
 def quantize(block, component):
     q = load_quantization_table(component)
@@ -168,5 +168,63 @@ def main():
     write_to_file(output_file, dc, ac, blocks_count, tables)
 
 
+def simple_run(image):
+    ycbcr = image.convert('YCbCr')
+
+    npmat = np.array(ycbcr, dtype=np.uint8)
+
+    rows, cols = npmat.shape[0], npmat.shape[1]
+
+    # block size: 8x8
+    if rows % 8 == cols % 8 == 0:
+        blocks_count = rows // 8 * cols // 8
+    else:
+        raise ValueError(("the width and height of the image "
+                          "should both be mutiples of 8"))
+
+    # dc is the top-left cell of the block, ac are all the other cells
+    dc = np.empty((blocks_count, 3), dtype=np.int32)
+    ac = np.empty((blocks_count, 63, 3), dtype=np.int32)
+
+    for i in range(0, rows, 8):
+        for j in range(0, cols, 8):
+            try:
+                block_index += 1
+            except NameError:
+                block_index = 0
+
+            for k in range(3):
+                # split 8x8 block and center the data range on zero
+                # [0, 255] --> [-128, 127]
+                block = npmat[i:i+8, j:j+8, k] - 128
+
+                dct_matrix = dct_2d(block)
+                quant_matrix = quantize(dct_matrix,
+                                        'lum' if k == 0 else 'chrom')
+                zz = block_to_zigzag(quant_matrix)
+
+                dc[block_index, k] = zz[0]
+                ac[block_index, :, k] = zz[1:]
+
+    H_DC_Y = HuffmanTree(np.vectorize(bits_required)(dc[:, 0]))
+    H_DC_C = HuffmanTree(np.vectorize(bits_required)(dc[:, 1:].flat))
+    H_AC_Y = HuffmanTree(
+            flatten(run_length_encode(ac[i, :, 0])[0]
+                    for i in range(blocks_count)))
+    H_AC_C = HuffmanTree(
+            flatten(run_length_encode(ac[i, :, j])[0]
+                    for i in range(blocks_count) for j in [1, 2]))
+
+    tables = {'dc_y': H_DC_Y.value_to_bitstring_table(),
+              'ac_y': H_AC_Y.value_to_bitstring_table(),
+              'dc_c': H_DC_C.value_to_bitstring_table(),
+              'ac_c': H_AC_C.value_to_bitstring_table()}
+
+    out_file_path = './output'
+    write_to_file(out_file_path, dc, ac, blocks_count, tables)
+
 if __name__ == "__main__":
+    s_time = time.time()
     main()
+    e_time = time.time()
+    print('Time: %f' % (e_time - s_time))

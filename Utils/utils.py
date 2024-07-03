@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats 
 import os 
 import torch
+import time
 
 def calculate_entropy(embs, percentage):
     # embs are torch tensors
@@ -61,13 +62,53 @@ def fill_zeros(embs, shape, ind = None):
     out[:,ind,:,:] = embs
     return out
 
+def ranker_zeros(embs, thred, z_thred):
+    # embs # c,h,w torch
+    # zero_rate = torch.zeros(embs.shape[:2]) # b,c
+    # zero_cutoff = torch.zeros(embs.shape[:1]) # b
+    size = embs.shape[1]*embs.shape[2]
+    s_thred = size * z_thred
+    # for i, emb in enumerate(embs):
+        # for j in range(emb.shape[0]): # c
+        #     # zeros = torch.where(emb[j,:,:]<=thred, 1, 0)
+        #     # zero_rate[i,j] = torch.sum(zeros) / size
+        #     t = time.time()
+        #     zero_rate[i,j] = torch.count_nonzero(emb[j,:,:] <= thred)
+        #     print('time', time.time()-t)
+        #     # print('torch.sum(zeros)', torch.sum(zeros))
+        #     # print('np.max((np.count_nonzero(zeros), 1) ', np.max((np.count_nonzero(zeros), 1)))
+        #     # zero_rate[i,j] = torch.sum(zeros)/np.max((np.count_nonzero(zeros), 1))
+        #     # sort the zeros rate
+        #     if zero_rate[i,j] >= z_thred:
+        #         zero_cutoff[i] += 1 # 0~cutoff are useful
+    zero_rate = np.count_nonzero(embs, axis=(1,2)) # spend the most time
+    # zero_cutoff = torch.count_nonzero(zero_rate >= s_thred, axis=1) # b
+    zero_rank = np.argsort(-1*zero_rate) # first more info, least no info  # b,c
+    # return zero_rank, zero_cutoff
+    return zero_rank
+
+def remover_zeros(emb, zero_rank, cutoff, per):
+    # per is 25%, 50%, 75%
+    # embs = c,h,w, zero_rank = c, cutoff = int, per = float
+    chosen = max(int(per*cutoff), 1)
+    chosen = zero_rank[:chosen]
+    return emb[chosen,:,:]
+
+
+
 
 if __name__ == '__main__':
     import torch
-    embs = torch.randn(2, 3, 32, 32)
-    selected_embs, selected_indices = ranker_entropy(embs, 0.25)
-    print(selected_embs.size(), selected_indices)
-    # test a loger
-    logger = APLogger('./Logs/test.log')
-    # test the get_latest_weights
-    print(get_latest_weights('cifar-10', 'gate', 'GatedMLP'))
+    # embs = torch.randn(2, 3, 32, 32)
+    # selected_embs, selected_indices = ranker_entropy(embs, 0.25)
+    # print(selected_embs.size(), selected_indices)
+    # # test a loger
+    # logger = APLogger('./Logs/test.log')
+    # # test the get_latest_weights
+    # print(get_latest_weights('cifar-10', 'gate', 'GatedMLP'))
+    a = torch.randn(2, 3, 1, 1)
+    r = ranker_zeros(a, 0.0)
+    s = remover_zeros(a, r, 0.4)
+    print(a)
+    print(r)
+    print(s)

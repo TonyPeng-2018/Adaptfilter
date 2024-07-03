@@ -69,7 +69,8 @@ import cv2
 
 def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = False, 
                        datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/',
-                       num_workers = 4):
+                       num_workers = 4,
+                       normalize = True):
     # inputs: 
     # train_batch: the batch size for training
     # test_batch: the batch size for testing
@@ -82,17 +83,28 @@ def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = Fal
     # classes: the classes for the dataset
     
     torch.manual_seed(seed)
-    transform_train = transforms.Compose([
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
-
-    transform_test = transforms.Compose([
+    if normalize:
+        transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
+        ])
+
+        transform_test = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+    else:
+        transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        ])
+
+        transform_test = transforms.Compose([
+            transforms.ToTensor(),
+        ])
     trainset = torchvision.datasets.CIFAR10(
         root=datasetpath, train=True, download=True, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(
@@ -107,7 +119,10 @@ def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = Fal
             'dog', 'frog', 'horse', 'ship', 'truck')
     return trainloader, testloader, classes
 
-def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set = True, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
+def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set = True, 
+                           datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/',
+                           num_workers = 4,
+                           normalize = True):
     # inputs: 
     # train_batch: the batch size for training
     # test_batch: the batch size for testing
@@ -120,17 +135,28 @@ def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set =
     # classes: the classes for the dataset
     
     torch.manual_seed(seed)
-    transform_train = transforms.Compose([
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
-
-    transform_test = transforms.Compose([
+    if normalize:
+        transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
+        ])
+
+        transform_test = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+    else:
+        transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        ])
+
+        transform_test = transforms.Compose([
+            transforms.ToTensor(),
+        ])
     trainset = torchvision.datasets.CIFAR10(
         root=datasetpath, train=True, download=True, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(

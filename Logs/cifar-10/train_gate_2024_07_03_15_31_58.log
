@@ -1,0 +1,94 @@
+model: mobilenetV2, dataset: cifar-10
+
+batch: 128, compressor: home, ranker: zeros
+
+weight: ./Weight/cifar-10/
+
+g_rate: [0.2]
+
+epoch: 0 
+conf pre-gt loss: 0.648481 
+pred-conf gt loss: 1.262071
+
+epoch: 0 
+conf pre-gt loss: 0.729993 
+pred-conf gt loss: 0.079214
+
+epoch: 0 
+conf pre-gt loss: 0.665650 
+pred-conf gt loss: 0.079995
+
+epoch: 0 
+conf pre-gt loss: 0.699086 
+pred-conf gt loss: 0.061497
+
+val_loss: 58.829685628414154\.4f
+epoch: 1 
+conf pre-gt loss: 0.625500 
+pred-conf gt loss: 0.087205
+
+epoch: 1 
+conf pre-gt loss: 0.745667 
+pred-conf gt loss: 0.046567
+
+epoch: 1 
+conf pre-gt loss: 0.654034 
+pred-conf gt loss: 0.078395
+
+epoch: 1 
+conf pre-gt loss: 0.671035 
+pred-conf gt loss: 0.104970
+
+val_loss: 58.37569618225098\.4f
+epoch: 2 
+conf pre-gt loss: 0.713593 
+pred-conf gt loss: 0.052417
+
+epoch: 2 
+conf pre-gt loss: 0.681654 
+pred-conf gt loss: 0.072762
+
+epoch: 2 
+conf pre-gt loss: 0.716955 
+pred-conf gt loss: 0.084872
+
+epoch: 2 
+conf pre-gt loss: 0.681427 
+pred-conf gt loss: 0.074667
+
+epoch: 3 
+conf pre-gt loss: 0.632819 
+pred-conf gt loss: 0.109737
+
+epoch: 3 
+conf pre-gt loss: 0.718944 
+pred-conf gt loss: 0.052923
+
+epoch: 3 
+conf pre-gt loss: 0.722486 
+pred-conf gt loss: 0.066845
+
+epoch: 3 
+conf pre-gt loss: 0.689728 
+pred-conf gt loss: 0.077835
+
+epoch: 4 
+conf pre-gt loss: 0.680213 
+pred-conf gt loss: 0.067250
+
+epoch: 4 
+conf pre-gt loss: 0.656539 
+pred-conf gt loss: 0.076899
+
+epoch: 4 
+conf pre-gt loss: 0.742046 
+pred-conf gt loss: 0.066563
+
+epoch: 4 
+conf pre-gt loss: 0.637415 
+pred-conf gt loss: 0.062208
+
+epoch: 5 
+conf pre-gt loss: 0.662666 
+pred-conf gt loss: 0.065896
+

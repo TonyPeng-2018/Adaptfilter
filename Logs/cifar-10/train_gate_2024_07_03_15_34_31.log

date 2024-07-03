@@ -1,0 +1,46 @@
+model: mobilenetV2, dataset: cifar-10
+
+batch: 128, compressor: home, ranker: zeros
+
+weight: ./Weight/cifar-10/
+
+g_rate: [0.3]
+
+epoch: 0 
+conf pre-gt loss: 0.669098 
+pred-conf gt loss: 1.807908
+
+epoch: 0 
+conf pre-gt loss: 0.661172 
+pred-conf gt loss: 0.109972
+
+epoch: 0 
+conf pre-gt loss: 0.724046 
+pred-conf gt loss: 0.074038
+
+epoch: 0 
+conf pre-gt loss: 0.656741 
+pred-conf gt loss: 0.103530
+
+val_loss: 58.91078865528107
+epoch: 1 
+conf pre-gt loss: 0.611065 
+pred-conf gt loss: 0.072555
+
+epoch: 1 
+conf pre-gt loss: 0.615439 
+pred-conf gt loss: 0.113984
+
+epoch: 1 
+conf pre-gt loss: 0.717689 
+pred-conf gt loss: 0.075832
+
+epoch: 1 
+conf pre-gt loss: 0.655302 
+pred-conf gt loss: 0.086039
+
+val_loss: 58.91078865528107
+epoch: 2 
+conf pre-gt loss: 0.703824 
+pred-conf gt loss: 0.066890
+

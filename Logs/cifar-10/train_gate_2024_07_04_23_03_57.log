@@ -1,0 +1,287 @@
+model: mobilenetV2 MLPPOS, dataset: cifar-10
+
+batch: 128, compressor: home, ranker: zeros
+
+weight: ./Weight/cifar-10/
+
+g_rate: [0.2]
+
+epoch: 0 
+pred-conf gt loss: 1.262071
+
+epoch: 0 
+pred-conf gt loss: 0.079214
+
+epoch: 0 
+pred-conf gt loss: 0.079995
+
+epoch: 0 
+pred-conf gt loss: 0.061497
+
+val_loss: 8.853901281952858
+epoch: 1 
+pred-conf gt loss: 0.087205
+
+epoch: 1 
+pred-conf gt loss: 0.046567
+
+epoch: 1 
+pred-conf gt loss: 0.078395
+
+epoch: 1 
+pred-conf gt loss: 0.104970
+
+val_loss: 8.771794319152832
+epoch: 2 
+pred-conf gt loss: 0.052417
+
+epoch: 2 
+pred-conf gt loss: 0.072762
+
+epoch: 2 
+pred-conf gt loss: 0.084872
+
+epoch: 2 
+pred-conf gt loss: 0.074667
+
+val_loss: 8.771794319152832
+epoch: 3 
+pred-conf gt loss: 0.109737
+
+epoch: 3 
+pred-conf gt loss: 0.052923
+
+epoch: 3 
+pred-conf gt loss: 0.066845
+
+epoch: 3 
+pred-conf gt loss: 0.077835
+
+val_loss: 8.771794319152832
+epoch: 4 
+pred-conf gt loss: 0.067250
+
+epoch: 4 
+pred-conf gt loss: 0.076899
+
+epoch: 4 
+pred-conf gt loss: 0.066563
+
+epoch: 4 
+pred-conf gt loss: 0.062208
+
+val_loss: 8.771794319152832
+epoch: 5 
+pred-conf gt loss: 0.065896
+
+epoch: 5 
+pred-conf gt loss: 0.067311
+
+epoch: 5 
+pred-conf gt loss: 0.098128
+
+epoch: 5 
+pred-conf gt loss: 0.067055
+
+val_loss: 8.771794319152832
+epoch: 6 
+pred-conf gt loss: 0.086144
+
+epoch: 6 
+pred-conf gt loss: 0.063937
+
+epoch: 6 
+pred-conf gt loss: 0.062291
+
+epoch: 6 
+pred-conf gt loss: 0.068169
+
+val_loss: 8.771794319152832
+epoch: 7 
+pred-conf gt loss: 0.069083
+
+epoch: 7 
+pred-conf gt loss: 0.070283
+
+epoch: 7 
+pred-conf gt loss: 0.067484
+
+epoch: 7 
+pred-conf gt loss: 0.056920
+
+val_loss: 8.771794319152832
+epoch: 8 
+pred-conf gt loss: 0.063284
+
+epoch: 8 
+pred-conf gt loss: 0.071834
+
+epoch: 8 
+pred-conf gt loss: 0.095221
+
+epoch: 8 
+pred-conf gt loss: 0.075109
+
+val_loss: 8.771794319152832
+epoch: 9 
+pred-conf gt loss: 0.069923
+
+epoch: 9 
+pred-conf gt loss: 0.073863
+
+epoch: 9 
+pred-conf gt loss: 0.075302
+
+epoch: 9 
+pred-conf gt loss: 0.038728
+
+val_loss: 8.771794319152832
+epoch: 10 
+pred-conf gt loss: 0.057560
+
+epoch: 10 
+pred-conf gt loss: 0.072157
+
+epoch: 10 
+pred-conf gt loss: 0.064681
+
+epoch: 10 
+pred-conf gt loss: 0.056119
+
+val_loss: 8.55604763329029
+epoch: 11 
+pred-conf gt loss: 0.058717
+
+epoch: 11 
+pred-conf gt loss: 0.045413
+
+epoch: 11 
+pred-conf gt loss: 0.079674
+
+epoch: 11 
+pred-conf gt loss: 0.052521
+
+val_loss: 8.55604763329029
+epoch: 12 
+pred-conf gt loss: 0.057220
+
+epoch: 12 
+pred-conf gt loss: 0.081129
+
+epoch: 12 
+pred-conf gt loss: 0.057870
+
+epoch: 12 
+pred-conf gt loss: 0.058030
+
+val_loss: 8.295162454247475
+epoch: 13 
+pred-conf gt loss: 0.054468
+
+epoch: 13 
+pred-conf gt loss: 0.054169
+
+epoch: 13 
+pred-conf gt loss: 0.075167
+
+epoch: 13 
+pred-conf gt loss: 0.064514
+
+val_loss: 8.295162454247475
+epoch: 14 
+pred-conf gt loss: 0.092279
+
+epoch: 14 
+pred-conf gt loss: 0.083229
+
+epoch: 14 
+pred-conf gt loss: 0.082619
+
+epoch: 14 
+pred-conf gt loss: 0.085055
+
+val_loss: 8.295162454247475
+epoch: 15 
+pred-conf gt loss: 0.051725
+
+epoch: 15 
+pred-conf gt loss: 0.076037
+
+epoch: 15 
+pred-conf gt loss: 0.086733
+
+epoch: 15 
+pred-conf gt loss: 0.076754
+
+val_loss: 8.295162454247475
+epoch: 16 
+pred-conf gt loss: 0.064185
+
+epoch: 16 
+pred-conf gt loss: 0.079021
+
+epoch: 16 
+pred-conf gt loss: 0.042289
+
+epoch: 16 
+pred-conf gt loss: 0.053053
+
+val_loss: 8.295162454247475
+epoch: 17 
+pred-conf gt loss: 0.065753
+
+epoch: 17 
+pred-conf gt loss: 0.043489
+
+epoch: 17 
+pred-conf gt loss: 0.062177
+
+epoch: 17 
+pred-conf gt loss: 0.047882
+
+val_loss: 8.295162454247475
+epoch: 18 
+pred-conf gt loss: 0.067993
+
+epoch: 18 
+pred-conf gt loss: 0.084082
+
+epoch: 18 
+pred-conf gt loss: 0.064578
+
+epoch: 18 
+pred-conf gt loss: 0.053791
+
+val_loss: 8.295162454247475
+epoch: 19 
+pred-conf gt loss: 0.046732
+
+epoch: 19 
+pred-conf gt loss: 0.067819
+
+epoch: 19 
+pred-conf gt loss: 0.058135
+
+epoch: 19 
+pred-conf gt loss: 0.055080
+
+val_loss: 8.295162454247475
+epoch: 20 
+pred-conf gt loss: 0.070827
+
+epoch: 20 
+pred-conf gt loss: 0.070004
+
+epoch: 20 
+pred-conf gt loss: 0.059847
+
+epoch: 20 
+pred-conf gt loss: 0.077738
+
+val_loss: 8.295162454247475
+epoch: 21 
+pred-conf gt loss: 0.068207
+
+epoch: 21 
+pred-conf gt loss: 0.068158
+

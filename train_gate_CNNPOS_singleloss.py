@@ -22,10 +22,10 @@ from Utils import utils, encoder
 
 def main(args):
     p_start_time = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-    logger = utils.APLogger('./Logs/' + args.dataset + '/train_gate_' + p_start_time + '.log\n')
+    logger = utils.APLogger('./Logs/' + args.dataset + '/train_gate_' + p_start_time + '.log')
 
     # write the logger with all args parameters
-    logger.write('model: %s, dataset: %s\n' % (args.model, args.dataset))
+    logger.write('model: %s MLPPOS, dataset: %s\n' % (args.model, args.dataset))
     logger.write('batch: %d, compressor: %s, ranker: %s\n' % (args.batch, args.compressor, args.ranker))
     logger.write('weight: %s\n' % (args.weight))
 
@@ -104,42 +104,43 @@ def main(args):
                 preds.append(pred)
 
             # fill zeros
-            # filled_out = []
-            # logger.write('nc_embs shape: %s\n' % ((nc_embs[0][0,:,:2,:2])))
-            # logger.write('c_rank shape: %s\n' % ((c_rank[0])))
-            # for i in range(len(g_rate)):
-                # filled_out.append(utils.fill_zeros(nc_embs[i].cpu(), outcpu.shape, c_rank[:, :int(outcpu.shape[1]*g_rate[i])]).to('cuda:0'))
+            filled_out = []
+            logger.write('nc_embs shape: %s\n' % ((nc_embs[0][0,:,:2,:2])))
+            logger.write('c_rank shape: %s\n' % ((c_rank[0])))
+            for i in range(len(g_rate)):
+                filled_out.append(utils.fill_zeros(nc_embs[i].cpu(), outcpu.shape, c_rank[:, :int(outcpu.shape[1]*g_rate[i])]).to('cuda:0'))
             # logger.write('filled_out shape: %s\n' % ((filled_out[0][0,:,:2,:2])))
 
             # infer
-            # target_pre = []
-            # for i in range(len(g_rate)):
-            #     target_pre.append(s_model(filled_out[i]).detach())
+            target_pre = []
+            for i in range(len(g_rate)):
+                target_pre.append(s_model(filled_out[i]).detach())
             
             target_gt = s_model(out).detach() # b, c
-            # conf_pre = []
+            conf_pre = []
             conf_gt = []
             for i in range (len(target_gt)):
-                # for j in range(len(g_rate)):
-                #     conf_pre.append(softmax(target_pre[j])[i][label[i]])
+                for j in range(len(g_rate)):
+                    conf_pre.append(softmax(target_pre[j])[i][label[i]])
                 conf_gt.append(softmax(target_gt)[i][label[i]])
-            # conf_pre = torch.stack(conf_pre).unsqueeze(1) # b, 1
+            conf_pre = torch.stack(conf_pre).unsqueeze(1) # b, 1
             conf_gt = torch.stack(conf_gt).unsqueeze(1)
 
             loss = []
             for i in range(len(g_rate)):
                 optimizers[i].zero_grad()
-                # loss1 = loss_f(conf_pre, conf_gt)
+                loss1 = loss_f(preds[i], conf_pre)
                 loss2 = loss_f(preds[i], conf_gt)
                 # loss.append(loss1 + loss2)
-                loss.append(loss2)
+                # loss.append(loss2)
+                loss.append(loss1)
 
             for i in range(len(g_rate)):
                 loss[i].backward()
                 optimizers[i].step()
             if ind % 100 == 0:
                 logger.write('epoch: %d ' % (epoch))
-                # logger.write('conf pre-gt loss: %f ' % (loss1.item()))
+                logger.write('conf pre-gt loss: %f ' % (loss1.item()))
                 logger.write('pred-conf gt loss: %f\n' % (loss2.item()))
             
 
@@ -164,20 +165,20 @@ def main(args):
                 for i in range(len(g_rate)):
                     pred = gates[i](nc_embs[i], c_rank[:, :int(outcpu.shape[1]*g_rate[i])])
                     preds.append(pred)
-                # filled_out = []
-                # for i in range(len(g_rate)):
-                #     filled_out.append(utils.fill_zeros(nc_embs[i].cpu(), outcpu.shape, c_rank[:, :int(outcpu.shape[1]*g_rate[i])]).to('cuda:0'))
-                # target_pre = []
-                # for i in range(len(g_rate)):
-                #     target_pre.append(s_model(filled_out[i]).detach())
+                filled_out = []
+                for i in range(len(g_rate)):
+                    filled_out.append(utils.fill_zeros(nc_embs[i].cpu(), outcpu.shape, c_rank[:, :int(outcpu.shape[1]*g_rate[i])]).to('cuda:0'))
+                target_pre = []
+                for i in range(len(g_rate)):
+                    target_pre.append(s_model(filled_out[i]).detach())
                 target_gt = s_model(out).detach()
-                # conf_pre = []
+                conf_pre = []
                 conf_gt = []
                 for i in range (len(target_gt)):
-                    # for j in range(len(g_rate)):
-                    #     conf_pre.append(softmax(target_pre[j])[i][label[i]])
+                    for j in range(len(g_rate)):
+                        conf_pre.append(softmax(target_pre[j])[i][label[i]])
                     conf_gt.append(softmax(target_gt)[i][label[i]])
-                # conf_pre = torch.stack(conf_pre).unsqueeze(1)
+                conf_pre = torch.stack(conf_pre).unsqueeze(1)
                 conf_gt = torch.stack(conf_gt).unsqueeze(1)
                 loss = []
                 for i in range(len(g_rate)):
@@ -188,7 +189,7 @@ def main(args):
             if val_loss == -1 or val_loss > e_val_loss:
                 val_loss = e_val_loss
                 # store weight
-                weight_path = './Weights/' + args.dataset + '/gate/' + args.model + '_'+ str(epoch) + '_'+str(int(g_rate[0]*10)) + '.pth'
+                weight_path = './Weights/' + args.dataset + '/gate/' + args.model + '_MLPPOS_'+ str(epoch) + '_'+str(int(g_rate[0]*10)) + '.pth'
             for i in range(len(g_rate)):
                 torch.save(gates[i].state_dict(), weight_path)
             logger.write('val_loss: %s' % (val_loss))

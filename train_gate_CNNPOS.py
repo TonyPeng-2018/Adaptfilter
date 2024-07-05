@@ -62,7 +62,7 @@ def main(args):
 
     gates = []
     # create gate for 10, 20, 30, 50
-    g_rate = [0.2]
+    g_rate = [0.3]
     logger.write('g_rate: %s\n' % (g_rate))
     for i in range(len(g_rate)):
         gates.append(gatedmodel.GateCNN_POS(int(32*g_rate[i]), width, height, o_size=1, n_ch=32, rate=g_rate[i]))

@@ -67,6 +67,4 @@ class Server:
 if __name__ == '__main__':
     server = Server()
     result = 0
-    for i in range (600):4
-        result += server.receive_img(i)
     print(result)

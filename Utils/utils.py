@@ -75,14 +75,14 @@ def ranker_zeros(embs, thred, z_thred):
     # zero_rate = torch.zeros(embs.shape[:2]) # b,c
     # zero_cutoff = torch.zeros(embs.shape[:1]) # b
     if type(embs) == torch.Tensor:
-        size = embs.shape[2]*embs.shape[3]
-        s_thred = size * z_thred
+        # size = embs.shape[2]*embs.shape[3]
+        # s_thred = size * z_thred
         zero_rate = torch.count_nonzero(embs <= thred, dim=(2,3))
         zero_rank = torch.argsort(-1*zero_rate, dim=1)
     
     else:
-        size = embs.shape[1]*embs.shape[2]
-        s_thred = size * z_thred
+        # size = embs.shape[1]*embs.shape[2]
+        # s_thred = size * z_thred
         # for i, emb in enumerate(embs):
             # for j in range(emb.shape[0]): # c
             #     # zeros = torch.where(emb[j,:,:]<=thred, 1, 0)
@@ -107,7 +107,7 @@ def remover_zeros(emb, zero_rank, cutoff, per):
     # embs = c,h,w, zero_rank = c, cutoff = int, per = float
     if type(emb) == np.ndarray:
         chosen = max(int(per*cutoff), 1)
-        chosen = zero_rank[:,:chosen]
+        chosen = zero_rank[:chosen]
         return emb[chosen,:,:]
     else: # embs = b, c,h,w, zero_rank = b, c, cutoff = int, per = float
         n_emb = torch.zeros(emb.shape[0], max(int(per*cutoff), 1), emb.shape[2], emb.shape[3])
@@ -116,10 +116,6 @@ def remover_zeros(emb, zero_rank, cutoff, per):
             chosen = zero_rank[i,:chosen]
             n_emb[i] = emb[i,chosen,:,:]
         return n_emb
-    
-
-
-
 
 if __name__ == '__main__':
     import torch

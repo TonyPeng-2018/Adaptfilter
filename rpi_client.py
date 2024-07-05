@@ -62,21 +62,17 @@ def main(args):
     # remove the label file
     images_list.remove('labels.txt')
     images_list = sorted(images_list)
-    
-    t_time = 0
 
     JPEG_time_25 = 0
     JPEG_time_50 = 0
     JPEG_time_75 = 0
     CJPEG_time = 0
-    ML_time = 0
-    ML_inf_time = 0
 
     image_batch = 1
     image_bucket = []
     image_count = 0
 
-    i_stop = 5
+    i_stop = 60
 
     for i, i_path in tqdm(enumerate(images_list)):
         if i >= i_stop:
@@ -148,36 +144,15 @@ def main(args):
         e_time = time.time()
         CJPEG_time += e_time - s_time
 
-        # 4. model
-        image_nplist = np.stack(image_bucket)
-        image = torch.tensor(image_nplist)
-        image = image.permute(0, 3, 1, 2)
-        s_time = time.time()
-        c_embs = c_model(image)
-        ML_inf_time += time.time() - s_time
-        # c_rank, c_cut = utils.ranker_zeros(c_embs, 0.1, 0.5)
-        c_rank = utils.ranker_zeros(c_embs, 0.1, 0.5)
-        for j, c_emb in enumerate(c_embs):
-            c_emb = utils.remover_zeros(c_emb, c_rank[j], 32, 0.25)
-            c_emb = c_emb.detach().numpy()
-            c_encode = base64.b64encode(c_emb)
-        e_time = time.time()
-        ML_time += e_time - s_time
-        # encode it 
-        # 5. send the data to the server
-        # skipped
-
         image_bucket = []
 
     JPEG_time_25 /= i_stop
     JPEG_time_50 /= i_stop
     JPEG_time_75 /= i_stop
-    ML_time /= i_stop
     CJPEG_time /= i_stop
-    ML_inf_time /= i_stop
     
-    print('JPEG 25: %f, JPEG 50: %f, JPEG 75: %f, CJPEG: %f, ML: %f, ML_inf: %f' \
-          % (JPEG_time_25, JPEG_time_50, JPEG_time_75, CJPEG_time, ML_time, ML_inf_time))
+    print('JPEG 25: %.3f, JPEG 50: %.3f, JPEG 75: %.3f, CJPEG: %.3f\n' % (JPEG_time_25, JPEG_time_50, JPEG_time_75, CJPEG_time))
+
 
 if __name__ == '__main__':
     print('enter')

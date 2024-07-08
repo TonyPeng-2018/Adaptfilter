@@ -3,6 +3,8 @@ Dataset: CIFAR-10
 , Generator: GeneratorV1
 , Encoder: 2layerCNN
 , Batch: 128
-, Epochs: 50
+, Epochs: 100
 , Seed: 2024
+
+Rate: 0.6
 

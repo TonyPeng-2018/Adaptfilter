@@ -69,10 +69,10 @@ class Sender:
 
 if __name__ == '__main__':
     # sender = Sender('192.168.1.164', 8080)
-    sender = Sender('100.64.0.2', 8080)
+    sender = Sender('100.64.0.2', 5566)
     # for i in range (100):
     #     sender.send_jpeg('cifar_c.jpg')
     for i in tqdm(range(10)):
-        sender.send_emb('c1_gate1_imagenet', 'c2_gate1_imagenet')
+        sender.send_emb('c1_gate2_cifar-10_uint8', 'c2_gate2_cifar-10')
     sender.close()
     

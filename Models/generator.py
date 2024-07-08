@@ -28,7 +28,7 @@ class Generator(nn.Module):
             # nn.ReLU(True),
             # state size. (ngf) x 32 x 32
             nn.ConvTranspose2d(hiddensize * 2, self.outputsize, 3, 1, padding=1, bias=False, dilation=1),
-            nn.Tanh()
+            nn.Sigmoid()
             # state size. (nc) x 64 x 64
         )
 
@@ -39,10 +39,10 @@ class Generator(nn.Module):
     
 # https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/cgan/cgan.py
 class Generator2(nn.Module):
-    def __init__(self, classes=32, img_size = (16,16), s_ch = 3):
+    def __init__(self, classes=32, img_size = (16,16), in_ch = 3):
         super(Generator2, self).__init__()
         self.classes = classes
-        self.latent_dim = img_size[0] * img_size[1] * s_ch
+        self.latent_dim = img_size[0] * img_size[1] * in_ch
         self.img_size = img_size
         self.label_emb = nn.Embedding(self.classes, self.classes)
 
@@ -67,4 +67,33 @@ class Generator2(nn.Module):
         gen_input = torch.cat((self.label_emb(labels), noise), -1)
         img = self.model(gen_input)
         img = img.view(img.size(0), self.img_size)
+        return img
+    
+class Generator3(nn.Module):
+    def __init__(self, img_size = (16,16), in_ch = 3, all_ch = 32):
+        super(Generator3, self).__init__()
+        self.latent_dim = img_size[0] * img_size[1] * in_ch
+        self.img_size = img_size
+        self.all_ch = all_ch
+
+        def block(in_feat, out_feat, normalize=True):
+            layers = [nn.Linear(in_feat, out_feat)]
+            if normalize:
+                layers.append(nn.BatchNorm1d(out_feat, 0.8))
+            layers.append(nn.LeakyReLU(0.2, inplace=True))
+            return layers
+
+        self.model = nn.Sequential(
+            *block(self.latent_dim, self.latent_dim*2, normalize=False),
+            *block(self.latent_dim*2, self.latent_dim*4),
+            *block(self.latent_dim*4, self.latent_dim*8),
+            *block(self.latent_dim*8, self.latent_dim*16),
+            nn.Linear(self.latent_dim*16, int(self.img_size[0] * self.img_size[1] * self.all_ch)),
+            nn.Tanh()
+        )
+
+    def forward(self, x):
+        # Concatenate label embedding and image to produce input
+        img = self.model(x)
+        img = img.view(img.size(0), (self.all_ch, self.img_size[0], self.img_size[1]))
         return img

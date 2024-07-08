@@ -14,7 +14,7 @@ class Server:
     def __init__(self):
         # self.host = '192.168.1.164'
         self.host = '100.64.0.2'
-        self.port = 8080
+        self.port = 5566
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # get the model
         self.c_model, self.s_model = mobilenetv2.mobilenetv2_splitter(num_classes=10, 

@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 
 class Generator(nn.Module):
     def __init__(self, inputsize, hiddensize, outputsize):
@@ -35,3 +36,35 @@ class Generator(nn.Module):
         output = self.section1(input)
         output = self.section2(output)
         return output
+    
+# https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/cgan/cgan.py
+class Generator2(nn.Module):
+    def __init__(self, classes=32, img_size = (16,16), s_ch = 3):
+        super(Generator2, self).__init__()
+        self.classes = classes
+        self.latent_dim = img_size[0] * img_size[1] * s_ch
+        self.img_size = img_size
+        self.label_emb = nn.Embedding(self.classes, self.classes)
+
+        def block(in_feat, out_feat, normalize=True):
+            layers = [nn.Linear(in_feat, out_feat)]
+            if normalize:
+                layers.append(nn.BatchNorm1d(out_feat, 0.8))
+            layers.append(nn.LeakyReLU(0.2, inplace=True))
+            return layers
+
+        self.model = nn.Sequential(
+            *block(self.latent_dim + self.classes, 128, normalize=False),
+            *block(128, 256),
+            *block(256, 512),
+            *block(512, 1024),
+            nn.Linear(1024, int(self.img_size[0] * self.img_size[1])),
+            nn.Tanh()
+        )
+
+    def forward(self, noise, labels):
+        # Concatenate label embedding and image to produce input
+        gen_input = torch.cat((self.label_emb(labels), noise), -1)
+        img = self.model(gen_input)
+        img = img.view(img.size(0), self.img_size)
+        return img

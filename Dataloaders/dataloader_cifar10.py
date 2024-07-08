@@ -115,9 +115,7 @@ def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = Fal
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=test_batch, shuffle=False, num_workers=num_workers)
 
-    classes = ('plane', 'car', 'bird', 'cat', 'deer',
-            'dog', 'frog', 'horse', 'ship', 'truck')
-    return trainloader, testloader, classes
+    return trainloader, testloader
 
 def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set = True, 
                            datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/',
@@ -170,12 +168,11 @@ def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set =
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=test_batch, shuffle=False, num_workers=num_workers)
 
-    classes = ('plane', 'car', 'bird', 'cat', 'deer',
-            'dog', 'frog', 'horse', 'ship', 'truck')
-    return trainloader, testloader, valloader, classes
+
+    return trainloader, testloader, valloader
 
 if __name__ == '__main__':
-    train, test, classes = Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024)
+    train, test = Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024)
     for i, data in enumerate(train):
         inputs, labels = data
         break
@@ -191,7 +188,7 @@ if __name__ == '__main__':
         images, labels = data
     
     # print the image and label
-    print('label1: ', classes[labels[0]])
+    # print('label1: ', classes[labels[0]])
     # print image
     img = images[0]
     img = img.numpy()

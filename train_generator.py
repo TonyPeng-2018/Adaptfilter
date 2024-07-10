@@ -41,14 +41,14 @@ train, _, val = dataloader_cifar10.Dataloader_cifar10_val(train_batch=128, test_
 epochs = 100
 # we have 3 generators for 3 discriminators
 Generators = []
-# for i in range(len(g_rate)): 
-#     Generators.append(generator.Generator(inputsize=int(in_ch*g_rate[0]), hiddensize=16, outputsize=32))
-#     Generators[i] = Generators[i].cuda()
-for i in range(len(g_rate)):
-    Generators.append([])
-    for i in range (in_ch):
-        Generators.append(generator.Generator3(img_size = (16,16), in_ch = int(g_rate[i]*in_ch), ind_ch=i))
-        Generators[0][i] = Generators[0][i].cuda()
+for i in range(len(g_rate)): 
+    Generators.append(generator.Generator(inputsize=int(in_ch*g_rate[0]), hiddensize=32, outputsize=32))
+    Generators[i] = Generators[i].cuda()
+# for i in range(len(g_rate)):
+#     Generators.append([])
+#     for i in range (in_ch):
+#         Generators.append(generator.Generator3(img_size = (16,16), in_ch = int(g_rate[i]*in_ch), ind_ch=i))
+#         Generators[0][i] = Generators[0][i].cuda()
 
 Encoders = []
 for i in range(len(g_rate)):
@@ -64,7 +64,7 @@ optimizers_E = []
 for i in range(len(g_rate)):
     optimizers_E.append(optim.Adam(Encoders[i].parameters(), lr=0.001))
 
-criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss() # CE loss doesn't work because it may generate another image
 criterion = criterion.cuda()
 
 # # Observe that all parameters are being optimized

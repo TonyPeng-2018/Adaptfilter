@@ -97,3 +97,42 @@ class Generator3(nn.Module):
         img = self.model(x)
         img = img.view(img.size(0), (self.all_ch, self.img_size[0], self.img_size[1]))
         return img
+    
+class Generator4(nn.Module):
+    def __init__(self, inputsize=3, hiddensize=32, outputsize=32):
+        super(Generator4, self).__init__()
+        self.inputsize = inputsize # 8, 16, 24
+        self.outputsize = outputsize
+        self.hiddensize = hiddensize
+        self.section1 = nn.Sequential(
+            # input is Z, going into a convolution
+            nn.ConvTranspose2d(self.inputsize, self.inputsize * 64, 3, 1, padding=1, bias=False, dilation=1),
+            nn.BatchNorm2d(self.inputsize * 64),
+            nn.ReLU(True)
+        )
+        self.section2 = nn.Sequential(
+            # state size. (ngf*8) x 4 x 4
+            nn.ConvTranspose2d(self.inputsize * 64, self.inputsize * 32, 3, 1, padding=1 , bias=False, dilation=1),
+            nn.BatchNorm2d(self.inputsize * 32),
+            nn.ReLU(True),
+            # state size. (ngf*4) x 8 x 8
+            nn.ConvTranspose2d(self.inputsize * 32, self.inputsize * 16, 3, 1, padding=1, bias=False, dilation=1),
+            nn.BatchNorm2d(self.inputsize * 16),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(self.inputsize * 16, self.inputsize * 8, 3, 1, padding=1, bias=False, dilation=1),
+            nn.BatchNorm2d(self.inputsize * 8),
+            nn.ReLU(True),
+            # # state size. (ngf*2) x 16 x 16
+            # nn.ConvTranspose2d(hiddensize * 2, hiddensize, 4, 1, 0, bias=False),
+            # nn.BatchNorm2d(hiddensize),
+            # nn.ReLU(True),
+            # state size. (ngf) x 32 x 32
+            nn.ConvTranspose2d(self.inputsize * 8, self.outputsize, 3, 1, padding=1, bias=False, dilation=1),
+            nn.Sigmoid()
+            # state size. (nc) x 64 x 64
+        )
+
+    def forward(self, input):
+        output = self.section1(input)
+        output = self.section2(output)
+        return output

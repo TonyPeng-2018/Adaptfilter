@@ -171,8 +171,8 @@ class MobileNetV2(nn.Module):
         x = self.features(x)
         # Cannot use "squeeze" as batch-size can be 1
         x = nn.functional.adaptive_avg_pool2d(x, (1, 1))
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
+        # x = torch.flatten(x, 1)
+        # x = self.classifier(x)
         return x
 
     def forward(self, x: Tensor) -> Tensor:

@@ -1,0 +1,10 @@
+Dataset: CIFAR-10
+, Model: mobilenetv2
+, Generator: GeneratorV3
+, Encoder: 2layerCNN
+, Batch: 128
+, Epochs: 100
+, Seed: 2024
+
+Generator rate: [0.5] int transmission 
+

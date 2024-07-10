@@ -52,7 +52,7 @@ for ind, ip in tqdm(enumerate(imgpath)):
         # network latency
         
         latency_mat[ind, ind2] = time4-time3 + time2-time1
-np.savez('client_latency_' + dataset + '.npy', latency_mat)
+np.save('client_latency_' + dataset, latency_mat)
         
         
         

@@ -14,18 +14,20 @@ from tqdm import tqdm
 from Utils import utils
 
 # load 100 image
-imgpath_root = '../data/cifar-10-client/'
-imgpath = [imgpath_root +  str(i) + '.bmp' for i in range(100)]
-out_imgpath = [imgpath_root + str(i) for i in range(100)]
+dataset = 'imagenet'
+batch = 10
+imgpath_root = '../data/' + dataset + '-client/'
+imgpath = [imgpath_root +  str(i) + '.bmp' for i in range(batch)]
+out_imgpath = [imgpath_root + str(i) for i in range(batch)]
 compress_ratio = [x for x in range(5, 100, 5)]
 stime = datetime.now().strftime('%m-%d %H:%M')
-logger = utils.APLogger(path='./Logs/cifar-10/baseline_plot_accuracy_vs_latency_' + stime + '.log')
+logger = utils.APLogger(path='./Logs/c' + dataset + '/baseline_plot_accuracy_vs_latency_' + stime + '.log')
 logger.write('plot accuracy vs latency for cifar-10 dataset\n')
 
 latency = []
 accuracy = []
 
-latency_mat = np.zeros((100, 19))
+latency_mat = np.zeros((batch, 19))
 
 for ind, ip in tqdm(enumerate(imgpath)):
     for ind2, cr in enumerate(compress_ratio):
@@ -50,7 +52,7 @@ for ind, ip in tqdm(enumerate(imgpath)):
         # network latency
         
         latency_mat[ind, ind2] = time4-time3 + time2-time1
-np.savez('latency_mat.npz', latency_mat=latency_mat)
+np.savez('client_latency_' + dataset + '.npy', latency_mat)
         
         
         

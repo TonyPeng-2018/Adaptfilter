@@ -1,0 +1,94 @@
+plot accuracy vs latency for cifar-10 dataset
+
+time to compress image: 0.006605863571166992
+
+time to compress image: 0.006408214569091797
+
+time to compress image: 0.0060918331146240234
+
+time to compress image: 0.007128000259399414
+
+time to compress image: 0.006485700607299805
+
+time to compress image: 0.006378173828125
+
+time to compress image: 0.00680851936340332
+
+time to compress image: 0.0064580440521240234
+
+time to compress image: 0.0061109066009521484
+
+time to compress image: 0.0065424442291259766
+
+time to compress image: 0.0064411163330078125
+
+time to compress image: 0.006329536437988281
+
+time to compress image: 0.006003379821777344
+
+time to compress image: 0.00658106803894043
+
+time to compress image: 0.006457328796386719
+
+time to compress image: 0.006425380706787109
+
+time to compress image: 0.006251811981201172
+
+time to compress image: 0.006276845932006836
+
+time to compress image: 0.006449222564697266
+
+time to compress image: 0.006382465362548828
+
+time to compress image: 0.006283998489379883
+
+time to compress image: 0.006138324737548828
+
+time to compress image: 0.00621485710144043
+
+time to compress image: 0.006252288818359375
+
+time to compress image: 0.00632786750793457
+
+time to compress image: 0.006197214126586914
+
+time to compress image: 0.006248950958251953
+
+time to compress image: 0.006288766860961914
+
+time to compress image: 0.006514072418212891
+
+time to compress image: 0.0067327022552490234
+
+time to compress image: 0.0065381526947021484
+
+time to compress image: 0.006379842758178711
+
+time to compress image: 0.0067369937896728516
+
+time to compress image: 0.006699800491333008
+
+time to compress image: 0.0068051815032958984
+
+time to compress image: 0.006510734558105469
+
+time to compress image: 0.006467103958129883
+
+time to compress image: 0.0064525604248046875
+
+time to compress image: 0.006778717041015625
+
+time to compress image: 0.006796598434448242
+
+time to compress image: 0.0073659420013427734
+
+time to compress image: 0.006213188171386719
+
+time to compress image: 0.0068204402923583984
+
+time to compress image: 0.006898403167724609
+
+time to compress image: 0.00628352165222168
+
+time to compress image: 0.0064051151275634766
+

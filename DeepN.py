@@ -1,7 +1,9 @@
+import cv2
 import numpy as np
 from numpy import pi
 import math
 from scipy.fftpack import dct, idct, rfft, irfft
+import sys
 T = np.array([
         [0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536],
         [0.4904, 0.4157, 0.2778, 0.0975, -0.0975, -0.2778, -0.4157, -0.4904],
@@ -39,9 +41,10 @@ def irfft2(block):
     return irfft(irfft(block.T).T)
 
 
-def main():
-    img = image.load_img('./a.JPEG')
-    input = image.img_to_array(img)
+def main(args):
+    img = cv2.imread(args[1], cv2.IMREAD_COLOR)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    input = np.array(img)
     input_matrix = input[0:224,0:224]
     input_matrix = np.expand_dims(input_matrix, axis=0)
     n = input_matrix.shape[0]
@@ -73,7 +76,7 @@ def main():
     imp_index = np.round(imp_index)
     print(imp_index)
 
-def main_no_store(img, imp_index):
+def main_no_store(img):
     input = img
     input_matrix = input[0:224,0:224]
     input_matrix = np.expand_dims(input_matrix, axis=0)
@@ -107,4 +110,4 @@ def main_no_store(img, imp_index):
     return imp_index
 
 if __name__ == '__main__':
-    main()
+    main(args=sys.argv)

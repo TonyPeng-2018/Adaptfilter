@@ -1,0 +1,312 @@
+plot accuracy vs latency for cifar-10 dataset
+
+time to compress image: 0.00653839111328125
+
+time to compress image: 0.007867574691772461
+
+time to compress image: 0.0065081119537353516
+
+time to compress image: 0.0065975189208984375
+
+time to compress image: 0.0063359737396240234
+
+time to compress image: 0.006300687789916992
+
+time to compress image: 0.006149768829345703
+
+time to compress image: 0.0066411495208740234
+
+time to compress image: 0.006533145904541016
+
+time to compress image: 0.007017612457275391
+
+time to compress image: 0.0066623687744140625
+
+time to compress image: 0.006618976593017578
+
+time to compress image: 0.006407022476196289
+
+time to compress image: 0.0062732696533203125
+
+time to compress image: 0.006466865539550781
+
+time to compress image: 0.006360054016113281
+
+time to compress image: 0.006488800048828125
+
+time to compress image: 0.006379842758178711
+
+time to compress image: 0.006424665451049805
+
+time to compress image: 0.006371021270751953
+
+time to compress image: 0.006304025650024414
+
+time to compress image: 0.006472587585449219
+
+time to compress image: 0.006369829177856445
+
+time to compress image: 0.0061187744140625
+
+time to compress image: 0.006631135940551758
+
+time to compress image: 0.006716728210449219
+
+time to compress image: 0.006485462188720703
+
+time to compress image: 0.006862163543701172
+
+time to compress image: 0.006633281707763672
+
+time to compress image: 0.0068683624267578125
+
+time to compress image: 0.006491899490356445
+
+time to compress image: 0.006449460983276367
+
+time to compress image: 0.0064733028411865234
+
+time to compress image: 0.006332874298095703
+
+time to compress image: 0.005941867828369141
+
+time to compress image: 0.0059740543365478516
+
+time to compress image: 0.00637507438659668
+
+time to compress image: 0.006567955017089844
+
+time to compress image: 0.00599980354309082
+
+time to compress image: 0.006455659866333008
+
+time to compress image: 0.007173061370849609
+
+time to compress image: 0.007449626922607422
+
+time to compress image: 0.0067403316497802734
+
+time to compress image: 0.006468772888183594
+
+time to compress image: 0.00638127326965332
+
+time to compress image: 0.006426811218261719
+
+time to compress image: 0.0063745975494384766
+
+time to compress image: 0.006536006927490234
+
+time to compress image: 0.006686210632324219
+
+time to compress image: 0.006509065628051758
+
+time to compress image: 0.006306886672973633
+
+time to compress image: 0.006936550140380859
+
+time to compress image: 0.006714344024658203
+
+time to compress image: 0.007050275802612305
+
+time to compress image: 0.006797075271606445
+
+time to compress image: 0.006476879119873047
+
+time to compress image: 0.006400585174560547
+
+time to compress image: 0.0065348148345947266
+
+time to compress image: 0.006195545196533203
+
+time to compress image: 0.006363391876220703
+
+time to compress image: 0.006414651870727539
+
+time to compress image: 0.006595611572265625
+
+time to compress image: 0.006604194641113281
+
+time to compress image: 0.006857156753540039
+
+time to compress image: 0.006917715072631836
+
+time to compress image: 0.007212162017822266
+
+time to compress image: 0.006692171096801758
+
+time to compress image: 0.006642818450927734
+
+time to compress image: 0.006536960601806641
+
+time to compress image: 0.0062525272369384766
+
+time to compress image: 0.006131172180175781
+
+time to compress image: 0.006326198577880859
+
+time to compress image: 0.006998777389526367
+
+time to compress image: 0.006510019302368164
+
+time to compress image: 0.006540060043334961
+
+time to compress image: 0.006733894348144531
+
+time to compress image: 0.006366252899169922
+
+time to compress image: 0.006364345550537109
+
+time to compress image: 0.006211996078491211
+
+time to compress image: 0.006699085235595703
+
+time to compress image: 0.006714344024658203
+
+time to compress image: 0.006514310836791992
+
+time to compress image: 0.006303310394287109
+
+time to compress image: 0.006441354751586914
+
+time to compress image: 0.006678342819213867
+
+time to compress image: 0.008094549179077148
+
+time to compress image: 0.006692647933959961
+
+time to compress image: 0.007308483123779297
+
+time to compress image: 0.007870197296142578
+
+time to compress image: 0.006455898284912109
+
+time to compress image: 0.006378889083862305
+
+time to compress image: 0.006477832794189453
+
+time to compress image: 0.0064542293548583984
+
+time to compress image: 0.006459712982177734
+
+time to compress image: 0.006093502044677734
+
+time to compress image: 0.006381988525390625
+
+time to compress image: 0.006752729415893555
+
+time to compress image: 0.0068662166595458984
+
+time to compress image: 0.0071315765380859375
+
+time to compress image: 0.006478548049926758
+
+time to compress image: 0.006829977035522461
+
+time to compress image: 0.0064356327056884766
+
+time to compress image: 0.00608372688293457
+
+time to compress image: 0.0067293643951416016
+
+time to compress image: 0.006760835647583008
+
+time to compress image: 0.0062408447265625
+
+time to compress image: 0.006017208099365234
+
+time to compress image: 0.0061910152435302734
+
+time to compress image: 0.006092548370361328
+
+time to compress image: 0.006238460540771484
+
+time to compress image: 0.006045818328857422
+
+time to compress image: 0.006726741790771484
+
+time to compress image: 0.007154941558837891
+
+time to compress image: 0.007353782653808594
+
+time to compress image: 0.0068912506103515625
+
+time to compress image: 0.007031917572021484
+
+time to compress image: 0.006644010543823242
+
+time to compress image: 0.006626129150390625
+
+time to compress image: 0.0066814422607421875
+
+time to compress image: 0.006913661956787109
+
+time to compress image: 0.006656646728515625
+
+time to compress image: 0.0065462589263916016
+
+time to compress image: 0.006368398666381836
+
+time to compress image: 0.006324291229248047
+
+time to compress image: 0.007032871246337891
+
+time to compress image: 0.0067822933197021484
+
+time to compress image: 0.0068359375
+
+time to compress image: 0.006628274917602539
+
+time to compress image: 0.006336688995361328
+
+time to compress image: 0.006741523742675781
+
+time to compress image: 0.0067942142486572266
+
+time to compress image: 0.006425619125366211
+
+time to compress image: 0.006013154983520508
+
+time to compress image: 0.006377696990966797
+
+time to compress image: 0.006434917449951172
+
+time to compress image: 0.006289958953857422
+
+time to compress image: 0.006103515625
+
+time to compress image: 0.0066525936126708984
+
+time to compress image: 0.0066089630126953125
+
+time to compress image: 0.006488800048828125
+
+time to compress image: 0.0064907073974609375
+
+time to compress image: 0.006802797317504883
+
+time to compress image: 0.006634950637817383
+
+time to compress image: 0.006304025650024414
+
+time to compress image: 0.006170988082885742
+
+time to compress image: 0.006756782531738281
+
+time to compress image: 0.006659507751464844
+
+time to compress image: 0.006521701812744141
+
+time to compress image: 0.006191253662109375
+
+time to compress image: 0.006336688995361328
+
+time to compress image: 0.006492137908935547
+
+time to compress image: 0.006102561950683594
+
+time to compress image: 0.006669282913208008
+
+time to compress image: 0.0065457820892333984
+
+time to compress image: 0.006243228912353516
+

@@ -31,6 +31,20 @@ class Sender:
         # send the message
         self.s.sendall(msg)
 
+    def send_jpeg_BLE(self, fp):
+        img = cv2.imread(fp)
+        t1 = time.time()
+        msg = base64.b64encode(cv2.imencode('.jpg', img)[1].tobytes())
+        t2 = time.time()
+        print('img encode time: ', t2 - t1)
+        # calculate the size of the message
+        self.s.connect((self.host, self.port))
+        length = pack('>Q', len(msg))
+        # send the size of the message
+        self.s.sendall(length)
+        # send the message
+        self.s.sendall(msg)
+
     def send_emb(self, fp1, fp2):
         with open(fp1, 'rb') as f:
             msg = f.readline()
@@ -68,6 +82,6 @@ class Sender:
 
 if __name__ == '__main__':
     sender = Sender('192.168.1.164', 8080)
-    sender.send_jpeg('cifar.jpg')
+    sender.send_jpeg('imagenet.jpg')
     sender.close()
     

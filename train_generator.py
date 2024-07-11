@@ -103,7 +103,7 @@ for i in range (len(Generators)):
             # train the encoder
             out = netE(out)
             # train the generator
-            
+                    
             out = out*255
             out = out.type(torch.uint8)
 

@@ -7,7 +7,7 @@ train, test, val, _  = dataloader_cifar10.Dataloader_cifar10_val(train_batch=128
 from Models import resnet
 
 cuda_no = '1'
-model = resnet.resnet18(num_classes=100)
+model = resnet.resnet18(num_classes=10)
 model.to('cuda:' + cuda_no)
 
 from Utils import utils

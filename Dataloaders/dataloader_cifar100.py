@@ -6,7 +6,9 @@ import cv2
 # https://github.com/weiaicunzai/pytorch-cifar100/blob/master/dataset.py
 # a high-star git repo for CIFAR100 seems that it doesn't use the normalize
 
-def Dataloader_cifar100(train_batch=128, test_batch=100, seed=2024, val_set = False, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
+def Dataloader_cifar100(train_batch=128, test_batch=100, seed=2024, val_set = False, 
+                        datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/',
+                        num_workers = 4, normalize = True):
     torch.manual_seed(seed)
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -20,7 +22,9 @@ def Dataloader_cifar100(train_batch=128, test_batch=100, seed=2024, val_set = Fa
         testset, batch_size=test_batch, shuffle=False, num_workers=4)
     return trainloader, testloader
 
-def Dataloader_cifar100_val(train_batch=128, test_batch=100, seed=2024, datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/'):
+def Dataloader_cifar100_val(train_batch=128, test_batch=100, seed=2024, 
+                            datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/',
+                            num_workers = 4, normalize = True):
    
 
     torch.manual_seed(seed)

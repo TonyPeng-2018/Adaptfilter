@@ -1,0 +1,180 @@
+Files already downloaded and verified
+Files already downloaded and verified
+torch.Size([128])
+[1,     1] loss: 0.0002200513
+torch.Size([128])
+[1,     2] loss: 0.0002193205
+torch.Size([128])
+[1,     3] loss: 0.0002166224
+torch.Size([128])
+[1,     4] loss: 0.0002159696
+torch.Size([128])
+[1,     5] loss: 0.0002176149
+torch.Size([128])
+[1,     6] loss: 0.0002156832
+torch.Size([128])
+[1,     7] loss: 0.0002189018
+torch.Size([128])
+[1,     8] loss: 0.0002190673
+torch.Size([128])
+[1,     9] loss: 0.0002172373
+torch.Size([128])
+[1,    10] loss: 0.0002146173
+torch.Size([128])
+[1,    11] loss: 0.0002169764
+torch.Size([128])
+[1,    12] loss: 0.0002171216
+torch.Size([128])
+[1,    13] loss: 0.0002156361
+torch.Size([128])
+[1,    14] loss: 0.0002179751
+torch.Size([128])
+[1,    15] loss: 0.0002150390
+torch.Size([128])
+[1,    16] loss: 0.0002167434
+torch.Size([128])
+[1,    17] loss: 0.0002155768
+torch.Size([128])
+[1,    18] loss: 0.0002140637
+torch.Size([128])
+[1,    19] loss: 0.0002129286
+torch.Size([128])
+[1,    20] loss: 0.0002159894
+torch.Size([128])
+[1,    21] loss: 0.0002137705
+torch.Size([128])
+[1,    22] loss: 0.0002207186
+torch.Size([128])
+[1,    23] loss: 0.0002207838
+torch.Size([128])
+[1,    24] loss: 0.0002163303
+torch.Size([128])
+[1,    25] loss: 0.0002113620
+torch.Size([128])
+[1,    26] loss: 0.0002107477
+torch.Size([128])
+[1,    27] loss: 0.0002142950
+torch.Size([128])
+[1,    28] loss: 0.0002152528
+torch.Size([128])
+[1,    29] loss: 0.0002200165
+torch.Size([128])
+[1,    30] loss: 0.0002195593
+torch.Size([128])
+[1,    31] loss: 0.0002130615
+torch.Size([128])
+[1,    32] loss: 0.0002149578
+torch.Size([128])
+[1,    33] loss: 0.0002126569
+torch.Size([128])
+[1,    34] loss: 0.0002116725
+torch.Size([128])
+[1,    35] loss: 0.0002188293
+torch.Size([128])
+[1,    36] loss: 0.0002197816
+torch.Size([128])
+[1,    37] loss: 0.0002118743
+torch.Size([128])
+[1,    38] loss: 0.0002163819
+torch.Size([128])
+[1,    39] loss: 0.0002159154
+torch.Size([128])
+[1,    40] loss: 0.0002126810
+torch.Size([128])
+[1,    41] loss: 0.0002192408
+torch.Size([128])
+[1,    42] loss: 0.0002123501
+torch.Size([128])
+[1,    43] loss: 0.0002167662
+torch.Size([128])
+[1,    44] loss: 0.0002154964
+torch.Size([128])
+[1,    45] loss: 0.0002182001
+torch.Size([128])
+[1,    46] loss: 0.0002183170
+torch.Size([128])
+[1,    47] loss: 0.0002146507
+torch.Size([128])
+[1,    48] loss: 0.0002156970
+torch.Size([128])
+[1,    49] loss: 0.0002178891
+torch.Size([128])
+[1,    50] loss: 0.0002152818
+torch.Size([128])
+[1,    51] loss: 0.0002131893
+torch.Size([128])
+[1,    52] loss: 0.0002144230
+torch.Size([128])
+[1,    53] loss: 0.0002142647
+torch.Size([128])
+[1,    54] loss: 0.0002143096
+torch.Size([128])
+[1,    55] loss: 0.0002148861
+torch.Size([128])
+[1,    56] loss: 0.0002176023
+torch.Size([128])
+[1,    57] loss: 0.0002183905
+torch.Size([128])
+[1,    58] loss: 0.0002163516
+torch.Size([128])
+[1,    59] loss: 0.0002174633
+torch.Size([128])
+[1,    60] loss: 0.0002157947
+torch.Size([128])
+[1,    61] loss: 0.0002131032
+torch.Size([128])
+[1,    62] loss: 0.0002168630
+torch.Size([128])
+[1,    63] loss: 0.0002195823
+torch.Size([128])
+[1,    64] loss: 0.0002156385
+torch.Size([128])
+[1,    65] loss: 0.0002190855
+torch.Size([128])
+[1,    66] loss: 0.0002141507
+torch.Size([128])
+[1,    67] loss: 0.0002213005
+torch.Size([128])
+[1,    68] loss: 0.0002157709
+torch.Size([128])
+[1,    69] loss: 0.0002155053
+torch.Size([128])
+[1,    70] loss: 0.0002143960
+torch.Size([128])
+[1,    71] loss: 0.0002168681
+torch.Size([128])
+[1,    72] loss: 0.0002171905
+torch.Size([128])
+[1,    73] loss: 0.0002145883
+torch.Size([128])
+[1,    74] loss: 0.0002158258
+torch.Size([128])
+[1,    75] loss: 0.0002135551
+torch.Size([128])
+[1,    76] loss: 0.0002206515
+torch.Size([128])
+[1,    77] loss: 0.0002193933
+torch.Size([128])
+[1,    78] loss: 0.0002144455
+torch.Size([128])
+[1,    79] loss: 0.0002134211
+torch.Size([128])
+[1,    80] loss: 0.0002162123
+torch.Size([128])
+[1,    81] loss: 0.0002167885
+torch.Size([128])
+[1,    82] loss: 0.0002151512
+torch.Size([128])
+[1,    83] loss: 0.0002162200
+torch.Size([128])
+[1,    84] loss: 0.0002142447
+torch.Size([128])
+[1,    85] loss: 0.0002137753
+torch.Size([128])
+[1,    86] loss: 0.0002140564
+torch.Size([128])
+[1,    87] loss: 0.0002151120
+torch.Size([128])
+[1,    88] loss: 0.0002123051
+torch.Size([128])
+[1,    89] loss: 0.0002216987

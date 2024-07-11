@@ -1,0 +1,20 @@
+model: resnet18, dataset: cifar10, training
+Epoch: 0, Batch: 0, Loss: 2.607
+Epoch: 0, Batch: 100, Loss: 1.550
+Epoch: 0, Batch: 200, Loss: 1.650
+Epoch: 0, Batch: 300, Loss: 1.201
+Validation: 0.4516
+Epoch: 1, Batch: 0, Loss: 1.377
+Epoch: 1, Batch: 100, Loss: 1.337
+Epoch: 1, Batch: 200, Loss: 1.218
+Epoch: 1, Batch: 300, Loss: 1.169
+Validation: 0.5458
+Epoch: 2, Batch: 0, Loss: 1.202
+Epoch: 2, Batch: 100, Loss: 1.144
+Epoch: 2, Batch: 200, Loss: 1.180
+Epoch: 2, Batch: 300, Loss: 0.945
+Validation: 0.6022
+Epoch: 3, Batch: 0, Loss: 1.115
+Epoch: 3, Batch: 100, Loss: 0.926
+Epoch: 3, Batch: 200, Loss: 0.871
+Epoch: 3, Batch: 300, Loss: 0.841

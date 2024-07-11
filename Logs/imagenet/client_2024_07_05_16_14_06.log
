@@ -1,0 +1,6 @@
+model: mobilenetV2, dataset: imagenet
+
+batch: 128, compressor: home, ranker: zeros
+
+weight: ./Weight/imagenet/
+

@@ -1,0 +1,164 @@
+model: mobilenetV2, dataset: cifar-10
+
+batch: 128, compressor: home, ranker: zeros
+
+weight: ./Weight/cifar-10/
+
+val loss: 0.779363
+
+val loss: 0.755228
+
+val loss: 0.704908
+
+val loss: 0.770844
+
+val loss: 0.733287
+
+val loss: 0.809703
+
+val loss: 0.740606
+
+val loss: 0.719868
+
+val loss: 0.771458
+
+val loss: 0.782087
+
+val loss: 0.723992
+
+val loss: 0.698447
+
+val loss: 0.749485
+
+val loss: 0.734700
+
+val loss: 0.679962
+
+val loss: 0.775929
+
+val loss: 0.755888
+
+val loss: 0.802150
+
+val loss: 0.751300
+
+val loss: 0.769767
+
+val loss: 0.779685
+
+val loss: 0.726565
+
+val loss: 0.700725
+
+val loss: 0.766962
+
+val loss: 0.754000
+
+val loss: 0.768125
+
+val loss: 0.746332
+
+val loss: 0.733938
+
+val loss: 0.706165
+
+val loss: 0.694119
+
+val loss: 0.779823
+
+val loss: 0.764665
+
+val loss: 0.770546
+
+val loss: 0.719208
+
+val loss: 0.786154
+
+val loss: 0.781976
+
+val loss: 0.752231
+
+val loss: 0.739599
+
+val loss: 0.698569
+
+val loss: 0.725839
+
+val loss: 0.713166
+
+val loss: 0.734472
+
+val loss: 0.759422
+
+val loss: 0.779610
+
+val loss: 0.796635
+
+val loss: 0.784118
+
+val loss: 0.741700
+
+val loss: 0.756616
+
+val loss: 0.729549
+
+val loss: 0.721659
+
+val loss: 0.708800
+
+val loss: 0.721899
+
+val loss: 0.747195
+
+val loss: 0.815436
+
+val loss: 0.673056
+
+val loss: 0.754782
+
+val loss: 0.763279
+
+val loss: 0.699061
+
+val loss: 0.692858
+
+val loss: 0.725145
+
+val loss: 0.747562
+
+val loss: 0.767865
+
+val loss: 0.701451
+
+val loss: 0.769876
+
+val loss: 0.759497
+
+val loss: 0.801740
+
+val loss: 0.790297
+
+val loss: 0.804181
+
+val loss: 0.781530
+
+val loss: 0.751504
+
+val loss: 0.806289
+
+val loss: 0.749420
+
+val loss: 0.717738
+
+val loss: 0.721892
+
+val loss: 0.793588
+
+val loss: 0.667360
+
+val loss: 0.725881
+
+val loss: 0.701079
+
+val loss: 0.621885
+

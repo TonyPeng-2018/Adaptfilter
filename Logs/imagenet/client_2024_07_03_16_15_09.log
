@@ -1,0 +1,8 @@
+model: mobilenetV2, dataset: imagenet
+
+batch: 128, compressor: home, ranker: zeros
+
+weight: ./Weight/cifar-10/
+
+JPEG 25: 0.001, JPEG 50: 0.000, JPEG 75: 0.001, CJPEG: 0.001
+

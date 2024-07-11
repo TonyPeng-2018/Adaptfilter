@@ -528,6 +528,16 @@ def mobilenetv3_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Works
     c_model.load_state_dict(torch.load(cw_path, map_location=device))
     s_model.load_state_dict(torch.load(sw_path, map_location=device))
     return c_model, s_model
+
+def mobilenetv3_splitter_client (num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', 
+                         device = 'cuda:0', model_size = 'large'):
+    
+    inverted_residual_setting, last_channel = _mobilenet_v3_conf("mobilenet_v3_" + model_size, num_classes = num_classes)
+    c_model = MobileNetV3_client(inverted_residual_setting, last_channel)
+    cw_path = weight_root + '/client/mobilenetv3_'+ model_size+'.pth'    
+    c_model.load_state_dict(torch.load(cw_path, map_location=device))
+    return c_model
+
 # test
 if __name__ == '__main__':
     model = mobilenetV3()

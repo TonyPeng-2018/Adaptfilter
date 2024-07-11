@@ -71,7 +71,7 @@ class Dataloader_imagenet(Dataset):
         if transform:
             self.trans = self.transform()
         else:
-            self.trans = None
+            self.trans = self.default_transform()
 
     def __len__(self):  
         return len(self.sampler)
@@ -98,4 +98,30 @@ class Dataloader_imagenet(Dataset):
                     ]
                 )
         return transform
+
+    def default_transform(self):
+        transform = transforms.Compose(
+                    [
+                        transforms.Resize(256),
+                        transforms.CenterCrop(224),
+                        transforms.ToTensor(),
+                    ]
+                )
+        return transform
         
+def Dataloader_imagenet_integrated(device='home', seed=2024):
+    dataset = Dataset_imagenet(device=device)
+    tr_sampler, t_sampler, v_sampler = dataset.return_sampler()
+    tr_dict, t_dict, v_dict = dataset.return_dict()
+    class_index = dataset.return_class_index()
+    train = Dataloader_imagenet(tr_sampler, tr_dict, transform=True)
+    test = Dataloader_imagenet(t_sampler, t_dict, transform=True)
+    val = Dataloader_imagenet(v_sampler, v_dict, transform=True)
+    train = torch.utils.data.DataLoader(train, batch_size=128, shuffle=True)
+    test = torch.utils.data.DataLoader(test, batch_size=100, shuffle=True)
+    val = torch.utils.data.DataLoader(val, batch_size=128, shuffle=True)
+    return train, test, val, class_index
+
+if __name__ == '__main__':
+    train, test, val, class_index = Dataloader_imagenet_integrated()
+    print('done')

@@ -1,6 +1,7 @@
 # this is a simple model for the regression task
 import torch.nn as nn
 import torch
+import math
 
 # the first model is a simple regression model
 class GatedRegression(nn.Module):
@@ -14,22 +15,26 @@ class GatedRegression(nn.Module):
         self.input_size = input_size * width * height # 8, 32, 32 - 24, 32, 32
         self.output_size = output_size
         # 1280 = 5*16*16
-        self.structure = [self.input_size, self.input_size//32, self.output_size]
+        self.structure = [self.input_size, int(math.sqrt(self.input_size)), self.output_size]
         self.linear1 = nn.Linear(self.structure[0], self.structure[1])
         self.linear2 = nn.Linear(self.structure[1], self.structure[2], bias=False)
         # self.linear3 = nn.Linear(self.structure[2], self.structure[3])
         self.relu = nn.ReLU(inplace=True)
+        self.bn = nn.BatchNorm1d(self.structure[1])
         self.dropout = nn.Dropout(0.3)
         self.flatten = nn.Flatten(start_dim=1, end_dim=-1)
+        self.sigmoid = nn.Tanh()
 
     def forward(self, x):
         # need to change it to 0-1
         # flatten the input first
         out = self.flatten(x)
         out = self.linear1(out)
+        out = self.bn(out)
         out = self.relu(out)
         out = self.dropout(out)
         out = self.linear2(out)
+        out = self.sigmoid(out)
         return out
 
 # the second model is a simple regression model with 1 CNN layer
@@ -164,4 +169,50 @@ class GateMLP_POS(nn.Module):
         out = self.relu(out)
         out = self.dropout(out)
         out = self.linear2(out)
+        return out
+    
+class GateCNN_v2(nn.Module):
+    def __init__(self, input_size, width, height, output_size=1):
+        super().__init__()
+        self.conv0 = nn.Conv2d(input_size, 8*input_size, kernel_size=3, stride=2, padding=1, bias=True)
+        self.bn = nn.BatchNorm2d(8*input_size)
+        self.pool = nn.Conv2d(8*input_size, 8*input_size, kernel_size=3, stride=1, padding=1, bias=True)
+        self.bn0 = nn.BatchNorm2d(8*input_size)
+        self.relu = nn.ReLU()
+        self.linear = nn.Linear(8*input_size*width*height//4, output_size, bias=False)
+        self.tanh = nn.Sigmoid()
+
+    def forward(self, x):
+        out = self.conv0(x)
+        out = self.bn(out)
+        out = self.relu(out)
+        out = self.pool(out)
+        out = self.bn0(out)
+        out = self.relu(out)
+        out = torch.flatten(out, 1)
+        out = self.linear(out)
+        out = self.tanh(out)
+        return out
+    
+class GateCNN_v2(nn.Module):
+    def __init__(self, input_size, width, height, output_size=1):
+        super().__init__()
+        self.conv0 = nn.Conv2d(input_size, 8*input_size, kernel_size=3, stride=2, padding=1, bias=True)
+        self.bn = nn.BatchNorm2d(8*input_size)
+        self.pool = nn.Conv2d(8*input_size, 8*input_size, kernel_size=3, stride=1, padding=1, bias=True)
+        self.bn0 = nn.BatchNorm2d(8*input_size)
+        self.relu = nn.ReLU()
+        self.linear = nn.Linear(8*input_size*width*height//4, output_size, bias=False)
+        self.tanh = nn.Sigmoid()
+
+    def forward(self, x):
+        out = self.conv0(x)
+        out = self.bn(out)
+        out = self.relu(out)
+        out = self.pool(out)
+        out = self.bn0(out)
+        out = self.relu(out)
+        out = torch.flatten(out, 1)
+        out = self.linear(out)
+        out = self.tanh(out)
         return out

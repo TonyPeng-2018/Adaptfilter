@@ -132,6 +132,24 @@ def image_transform(dataset):
         std = (0.2675, 0.2565, 0.2761)
         return mean, std
 
+def gate_normal(a, x):
+    return a**(3*(1/x**3)) * (1/a)**3
+
+def gate_normal2(a, x):
+    return (a*x)**3/(a**3)
+
+def gate_normal3(a, x):
+    if type(x) == np.ndarray:
+        return 1-(-x+1)**(1/a)
+    elif type(x) == torch.Tensor:
+        return 1-torch.pow(1-x, 1/a)
+    
+def gate_renormal3(a, x):
+    if type(x) == np.ndarray:
+        return -(x-1)**a+1
+    elif type(x) == torch.Tensor:
+        return 1-torch.pow(x-1, a)
+
 if __name__ == '__main__':
     import torch
     # embs = torch.randn(2, 3, 32, 32)

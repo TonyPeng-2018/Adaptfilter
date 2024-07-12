@@ -10,3 +10,6 @@ checkpoint/
 __pycache__/
 
 # no trainning logger
+
+# no afs
+*afs*

@@ -495,10 +495,6 @@ def resnet_splitter_client(num_classes = 1000, weight_root = '/home/tonypeng/Wor
 class resnet_middle(nn.Module):
     def __init__(
         self,
-        groups: int = 1,
-        width_per_group: int = 64,
-        replace_stride_with_dilation: Optional[List[bool]] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
         middle = 8
     ):
         super().__init__()

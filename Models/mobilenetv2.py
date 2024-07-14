@@ -870,14 +870,9 @@ class MobileNetV2_together_n(nn.Module):
 class MobileNetV2_middle(nn.Module):
     def __init__(
         self,
-        num_classes: int = 1000,
-        width_mult: float = 1.0,
-        inverted_residual_setting: Optional[List[List[int]]] = None,
-        round_nearest: int = 8,
-        block: Optional[Callable[..., nn.Module]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
-        dropout: float = 0.2,
-        middle = 8
+        middle = 8,
+        input_channel = 32
     ) -> None:
         """
         MobileNet V2 main class
@@ -897,8 +892,6 @@ class MobileNetV2_middle(nn.Module):
 
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
-
-        input_channel = 32
 
         self.in_layer = nn.Sequential(*[Conv2dNormActivation(input_channel, middle, stride=1, norm_layer=norm_layer, activation_layer=nn.ReLU6)])
         self.out_layer = nn.Sequential(*[Conv2dNormActivation(middle, input_channel, stride=1, norm_layer=norm_layer, activation_layer=nn.ReLU6)])

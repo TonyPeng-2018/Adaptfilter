@@ -30,7 +30,7 @@ optimizer = optim.Adam(middle.parameters(), lr=0.001)
 
 from tqdm import tqdm
 
-epochs = 100
+epochs = 60
 min_val_loss = 1000000
 for epoch in tqdm(range(epochs)):
     middle.train()

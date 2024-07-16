@@ -1,21 +1,23 @@
 from Models import mobilenetv2
+import sys
 
-middle_size = 8
-dataset = 'imagenet'
-client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
-                                                  weight_root='./Weights/imagenet',
-                                                  device='cuda:0',partition=-1)
+middle_size = int(sys.argv[1])
+cuda = sys.argv[2]
+client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000, 
+                                        weight_root='./Weights/imagenet', 
+                                        device='cuda:0')
 
-from Dataloaders import dataloader_imagenet
+from Dataloaders import dataloader_image_20
 
-train, _, val = dataloader_imagenet.Dataloader_imagenet_integrated(
-    device='tintin', seed=2024)
+train, _, val, _ = dataloader_image_20.Dataloader_imagenet_20_integrated(device='tintin',
+                                                                         train_batch=64,
+                                                                         test_batch=50)
 
 import torch
 import torch.optim as optim
 import torch.nn as nn
 
-device = torch.device('cuda:3')
+device = torch.device('cuda:'+cuda+'')
 client = client.to(device)
 server = server.to(device)
 client = client.eval()
@@ -29,15 +31,15 @@ optimizer = optim.Adam(middle.parameters(), lr=0.001)
 
 from tqdm import tqdm
 
-epochs = 200
+epochs = 100
 min_val_loss = 1000000
 for epoch in tqdm(range(epochs)):
     middle.train()
     for i, data in enumerate(train):
-        inputs, labels = data
+        inputs, labels, newlabel = data
         inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
-        outputs = client(inputs)
+        outputs = client(inputs).detach()
         outputs = middle(outputs)
         outputs = server(outputs)
         # print(outputs.size(), labels.size())
@@ -47,9 +49,9 @@ for epoch in tqdm(range(epochs)):
     middle.eval()
     val_loss = 0.0
     for i, data in enumerate(val):
-        inputs, labels = data
+        inputs, labels, newlabel = data
         inputs, labels = inputs.to(device), labels.to(device)
-        outputs = client(inputs)
+        outputs = client(inputs).detach()
         outputs = middle(outputs)
         outputs = server(outputs)
         loss = criterion(outputs, labels)

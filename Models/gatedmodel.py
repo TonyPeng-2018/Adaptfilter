@@ -24,7 +24,8 @@ class GatedRegression(nn.Module):
         self.bn = nn.BatchNorm1d(self.structure[1])
         self.dropout = nn.Dropout(0.3)
         self.flatten = nn.Flatten(start_dim=1, end_dim=-1)
-        self.sigmoid = nn.Tanh()
+        self.sigmoid = nn.Sigmoid()
+        self.tanh = nn.Tanh()
 
     def forward(self, x):
         # need to change it to 0-1
@@ -33,8 +34,9 @@ class GatedRegression(nn.Module):
         out = self.linear1(out)
         out = self.bn(out)
         out = self.relu(out)
-        out = self.dropout(out)
+        # out = self.dropout(out)
         out = self.linear2(out)
+        # out = self.relu(out)
         out = self.sigmoid(out)
         return out
 
@@ -268,4 +270,56 @@ class GateCNN_v5(nn.Module):
         out = self.dropout(out)
         out = self.linear2(out)
         out = self.sigmoid(out)
+        return out
+    
+class Gated_MLP(nn.Module):
+    def __init__(self, in_size1, in_size2, width, height, output_size=10):
+        super().__init__()
+        # think about it 3*32*32 -> 1
+        # think about the classification of the mobile net
+        # the input size is b, c*p, h, w, the output size is b 
+        # how to make sure more features help the server model?
+
+        self.input_size = 2 * width * height # 8, 32, 32 - 24, 32, 32
+        self.output_size = output_size
+        self.conv1 = nn.Conv2d(in_size1, 1, kernel_size=3, stride=1, padding=1, bias=True)
+        self.conv2 = nn.Conv2d(in_size2, 1, kernel_size=3, stride=1, padding=1, bias=True)
+        self.linear1 = nn.Linear(self.input_size, self.output_size)
+        # self.linear3 = nn.Linear(self.structure[2], self.structure[3])
+        self.flatten = nn.Flatten(start_dim=1, end_dim=-1)
+        self.relu = nn.ReLU(inplace=True)
+        self.bn1 = nn.BatchNorm2d(1)
+        self.sigmoid = nn.Sigmoid()
+        self.tanh = nn.Tanh()
+
+    def forward(self, x1, x2):
+        # need to change it to 0-1
+        # flatten the input first
+        out1 = F.relu(self.bn1(self.conv1(x1)))
+        out2 = F.relu(self.bn1(self.conv2(x2)))
+        out1 = self.flatten(out1)
+        out2 = self.flatten(out2)
+        out = torch.cat([out1, out2], dim=1)
+        out = self.linear1(out)
+        out = self.sigmoid(out)
+        return out
+    
+class ExitGate(nn.Module):
+    def __init__(self, in_planes, height, width):
+        super().__init__()
+        self.pool = nn.AvgPool2d((int(height), int(width)))
+        self.bn0 = nn.BatchNorm2d(in_planes)
+        self.relu = nn.ReLU()
+        self.conv1 = nn.Conv2d(in_planes, 64, kernel_size=1, stride=1, bias=True)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.linear = nn.Linear(64, 1, bias=True)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = self.relu(self.bn0(self.pool(x)))
+        x = self.relu(self.bn1(self.conv1(x)))
+        x = torch.flatten(x, 1)
+        out = self.linear(x)
+        out = self.sigmoid(out)
+
         return out

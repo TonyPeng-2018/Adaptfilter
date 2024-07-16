@@ -112,9 +112,6 @@ for epoch in tqdm(range(epochs)):
         for j in range (len(middle_size)):
             middle = middles[j]
             gate = gates[j]
-            val_acc = val_accs[j]
-            gate_exit = gate_exits[j]
-            send_count = send_counts[j]
 
             middle_out = middle.in_layer(client_out).detach()
 
@@ -130,15 +127,15 @@ for epoch in tqdm(range(epochs)):
 
             # gate_out = torch.round(gate_out)
             gate_out = torch.gt(gate_out, 0.9).float()
-            gate_exit += torch.sum(gate_out).item()
+            gate_exits[j] += torch.sum(gate_out).item()
 
             # get ther server_out [ gate_out == 1]
             s = torch.where(gate_out == 1)[0]
             server_out = server_out[s]
             gate_out = gate_out[s]
             gate_acc = torch.eq(server_out, gate_out).float()
-            val_acc += torch.sum(gate_acc).item()
-            send_count += len(s)
+            val_accs[j] += torch.sum(gate_acc).item()
+            send_counts[j] += len(s)
 
             # print the rate of gate exit
     for j in range (len(middle_size)):

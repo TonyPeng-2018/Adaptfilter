@@ -14,8 +14,8 @@ from tqdm import tqdm
 from Utils import utils
 
 # load 100 image
-dataset = 'imagenet'
-batch = 10
+dataset = 'cifar-10'
+batch = 100
 imgpath_root = '../data/' + dataset + '-client/'
 imgpath = [imgpath_root +  str(i) + '.bmp' for i in range(batch)]
 out_imgpath = [imgpath_root + str(i) for i in range(batch)]
@@ -53,8 +53,3 @@ for ind, ip in tqdm(enumerate(imgpath)):
         
         latency_mat[ind, ind2] = time4-time3 + time2-time1
 np.save('client_latency_' + dataset, latency_mat)
-        
-        
-        
-    
-

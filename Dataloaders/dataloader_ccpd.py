@@ -11,17 +11,23 @@ from torch.utils.data import Dataset
 
 class Dataset_ccpd(Dataset):
     def __init__(self, device = 'home', size ='small'):
-        if size == 'small':
-            root_path = '/home/tonypeng/Workspace1/adaptfilter/data/CCPD_small/'
-        else:
-            root_path = '/home/tonypeng/Workspace1/adaptfilter/data/CCPD_large/'
+        if device == 'home':
+            if size == 'small':
+                self.root_path = '/home/tonypeng/Workspace1/adaptfilter/data/CCPD_small/'
+            else:
+                self.root_path = '/home/tonypeng/Workspace1/adaptfilter/data/CCPD_large/'
+        if device == 'tintin':
+            if size == 'small':
+                self.root_path = '/data/anp407/CCPD_small/'
+            else:
+                self.root_path = '/data/anp407/CCPD_large/'
 
         # load the json file
-        with open(root_path + 'train_label.json') as f:
+        with open(self.root_path + 'train_label.json') as f:
             self.trl = json.load(f)
-        with open(root_path + 'test_label.json') as f:
+        with open(self.root_path + 'test_label.json') as f:
             self.tl = json.load(f)
-        with open(root_path + 'val_label.json') as f:
+        with open(self.root_path + 'val_label.json') as f:
             self.vl = json.load(f)
 
     def __len__(self):
@@ -31,13 +37,21 @@ class Dataset_ccpd(Dataset):
         return self.trl, self.tl, self.vl
     
 class Dataloader_ccpd(Dataset):
-    def __init__(self, loader, size ='small', dtype = 'train'):
+    def __init__(self, loader, size ='small', dtype = 'train', device='home'):
         self.loader = loader
         self.size = size
-        if size == 'small':
-            self.root_path = '/home/tonypeng/Workspace1/adaptfilter/data/CCPD_small/'+dtype+'/'
-        else:
-            self.root_path = '/home/tonypeng/Workspace1/adaptfilter/data/CCPD_large/'+dtype+'/'
+        
+        if device == 'home':
+            if size == 'small':
+                self.root_path = '/home/tonypeng/Workspace1/adaptfilter/data/CCPD_small/'+dtype+'/'
+            else:
+                self.root_path = '/home/tonypeng/Workspace1/adaptfilter/data/CCPD_large/'+dtype+'/'
+        if device == 'tintin':
+            if size == 'small':
+                self.root_path = '/data/anp407/CCPD_small/'+dtype+'/'
+            else:
+                self.root_path = '/data/anp407/CCPD_large/'+dtype+'/'
+                
         # ind to loader key
         self.ind_to_key = {}
         for i, k in enumerate(self.loader.keys()):
@@ -62,11 +76,11 @@ class Dataloader_ccpd(Dataset):
         return img
     
 def Dataloader_ccpd_integrated(device = 'home', train_batch = 128, test_batch = 100, size = 'small'):
-    dataset = Dataset_ccpd(size=size)
+    dataset = Dataset_ccpd(size=size, device=device)
     trl, tl, vl = dataset.get_labels()
-    train = Dataloader_ccpd(trl, dtype = 'train', size=size)
-    test = Dataloader_ccpd(tl, dtype = 'test', size=size)
-    val = Dataloader_ccpd(vl, dtype = 'val', size=size)
+    train = Dataloader_ccpd(trl, dtype = 'train', size=size, device=device)
+    test = Dataloader_ccpd(tl, dtype = 'test', size=size, device=device)
+    val = Dataloader_ccpd(vl, dtype = 'val', size=size, device=device)
     train = torch.utils.data.DataLoader(train, batch_size=train_batch, shuffle=True)
     test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=True)
     val = torch.utils.data.DataLoader(val, batch_size=train_batch, shuffle=True)

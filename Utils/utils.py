@@ -150,6 +150,12 @@ def gate_renormal3(a, x):
     elif type(x) == torch.Tensor:
         return 1-torch.pow(x-1, a)
 
+def float_to_uint(x):
+    return torch.round(x * 255).int()
+
+def uint_to_float(x):
+    return x.float() / 255
+
 if __name__ == '__main__':
     import torch
     # embs = torch.randn(2, 3, 32, 32)

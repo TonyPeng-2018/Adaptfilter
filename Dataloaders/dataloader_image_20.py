@@ -86,7 +86,7 @@ class Dataloader_imagenet(Dataset):
             self.trans = self.default_transform()
 
     def __len__(self):  
-        return len(self.sampler)
+        return len(self.files)
 
     def __getitem__(self, idx):
 

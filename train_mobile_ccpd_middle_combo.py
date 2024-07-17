@@ -38,8 +38,8 @@ from tqdm import tqdm
 
 epochs = 60
 min_val_loss = [10000000] * len(middle_size)
-train_loss = [0] * len(middle_size)
 for epoch in tqdm(range(epochs)):
+    train_loss = [0] * len(middle_size)
     for j in range(len(middle_size)):
         middle_models[j].train()
     for i, data in enumerate(train):
@@ -58,7 +58,7 @@ for epoch in tqdm(range(epochs)):
             optimizer.step()
             train_loss[j] += loss.item()
     print('epoch: ', epoch)
-    print('train loss: ', train_loss)
+    print('train loss: ', train_loss/len(train))
     for j in range(len(middle_size)):
         middle_models[j].eval()
     val_loss = [0] * len(middle_size)

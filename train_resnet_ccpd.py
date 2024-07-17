@@ -1,17 +1,17 @@
 # get the mobile
-from Models import mobilenetv2 
+from Models import resnet 
 
-data_size = 'large'
+data_size = 'small'
 data_device = 'tintin'
 
-model = mobilenetv2.MobileNetV2(num_classes=34)
+model = resnet.resnet50(num_classes=34)
 
 import torch
-device = 'cuda:2'
+device = 'cuda:0'
 model = model.to(device)
 
 from Dataloaders import dataloader_ccpd
-train, val, test = dataloader_ccpd.Dataloader_ccpd_integrated(train_batch=8, test_batch=100, size=data_size, device=data_device)
+train, val, test = dataloader_ccpd.Dataloader_ccpd_integrated(train_batch=128, test_batch=100, size=data_size, device=data_device)
 
 import torch.optim as optim
 import torch.nn as nn
@@ -25,7 +25,7 @@ from Utils import utils
 import sys
 import numpy as np
 
-epochs = 100
+epochs = 50
 min_val_loss = 1000000
 correct = 0
 
@@ -58,7 +58,7 @@ for epoch in tqdm(range(epochs)):
     print('correct: ', correct/len(val))
     if val_loss < min_val_loss:
         min_val_loss = val_loss
-        torch.save(model.state_dict(), 'mobile_ccpd_'+size+'.pth')
+        torch.save(model.state_dict(), 'resnet_ccpd_'+size+'.pth')
     # accuracy
 
     print('min_val_loss: ', min_val_loss)

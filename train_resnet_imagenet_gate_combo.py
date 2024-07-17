@@ -1,18 +1,17 @@
-from Models import mobilenetv2
+from Models import resnet
 import sys
 
-# middle_size = [1,2,4,8,16]
-middle_size = [1,2]
-width = 112
-height = 112
+middle_size = [1,2,4,8,16,32]
+# middle_size = [1,2,16]
+width = 56
+height = 56
+device = 'cuda:0'
 
-client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
-                                                  weight_root='/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet',
-                                                  device='cuda:0',partition=-1)
+client, server = resnet.resnet_splitter(weight_root='./Weights/imagenet/', layers=50, device=device)
 
 from Dataloaders import dataloader_image_20
 
-train, _, val, _ = dataloader_image_20.Dataloader_imagenet_20_integrated(train_batch=64, test_batch=50)
+train, _, val, _ = dataloader_image_20.Dataloader_imagenet_20_integrated(train_batch=128, test_batch=50)
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -25,8 +24,8 @@ server = server.eval()
 
 middles = []
 for m in middle_size:
-    middle = mobilenetv2.MobileNetV2_middle(middle=m)
-    middle.load_state_dict(torch.load('mobile_imagenet_middle_'+str(m)+'.pth'))
+    middle = resnet.resnet_middle(middle=m)
+    middle.load_state_dict(torch.load('resnet_imagenet_middle_'+str(m)+'.pth'))
     middle = middle.to(device)
     middle = middle.eval()
     middles.append(middle)
@@ -55,7 +54,6 @@ for epoch in tqdm(range(epochs)):
     train_loss = 0.0
     for j in range(len(middle_size)):
         gates[j].train()
-
     for i, data in enumerate(train):
         inputs, labels, _ = data
         inputs, labels = inputs.to(device), labels.to(device)
@@ -150,5 +148,5 @@ for epoch in tqdm(range(epochs)):
         
         if val_accs[j] > max_val_acc[j]:
             max_val_acc[j] = val_accs[j]
-            torch.save(gate.state_dict(), 'mobile_imagenet_gate_'+str(middle_size[j])+'.pth')
+            torch.save(gate.state_dict(), 'resnet_imagenet_gate_'+str(middle_size[j])+'.pth')
             print('model saved')

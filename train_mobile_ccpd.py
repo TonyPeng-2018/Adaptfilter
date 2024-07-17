@@ -26,7 +26,6 @@ import numpy as np
 
 epochs = 100
 min_val_loss = 1000000
-correct = 0
 
 for epoch in tqdm(range(epochs)):
     train_loss = 0.0
@@ -42,6 +41,7 @@ for epoch in tqdm(range(epochs)):
         train_loss += loss.item()
     print('train_loss: ', train_loss)
     val_loss = 0.0
+    correct = 0
     model.eval()
     for i, data in enumerate(val):
         inputs, labels = data
@@ -49,7 +49,7 @@ for epoch in tqdm(range(epochs)):
         outputs = model(inputs)
         loss = criterion(outputs, labels)
         val_loss += loss.item()
-        
+
         out = torch.argmax(outputs, dim=1)
         correct += torch.sum(out == labels).item()
 

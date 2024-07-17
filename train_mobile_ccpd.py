@@ -25,9 +25,8 @@ from Utils import utils
 import sys
 import numpy as np
 
-epochs = 100
+epochs = 50
 min_val_loss = 1000000
-correct = 0
 
 for epoch in tqdm(range(epochs)):
     train_loss = 0.0
@@ -44,6 +43,7 @@ for epoch in tqdm(range(epochs)):
     print('train_loss: ', train_loss)
     val_loss = 0.0
     model.eval()
+    correct = 0
     for i, data in enumerate(val):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
@@ -58,7 +58,7 @@ for epoch in tqdm(range(epochs)):
     print('correct: ', correct/len(val))
     if val_loss < min_val_loss:
         min_val_loss = val_loss
-        torch.save(model.state_dict(), 'mobile_ccpd_'+size+'.pth')
+        torch.save(model.state_dict(), 'mobile_ccpd_'+data_size+'.pth')
     # accuracy
 
     print('min_val_loss: ', min_val_loss)

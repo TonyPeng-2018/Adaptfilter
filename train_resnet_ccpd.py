@@ -27,7 +27,6 @@ import numpy as np
 
 epochs = 50
 min_val_loss = 1000000
-correct = 0
 
 for epoch in tqdm(range(epochs)):
     train_loss = 0.0
@@ -43,6 +42,7 @@ for epoch in tqdm(range(epochs)):
         train_loss += loss.item()
     print('train_loss: ', train_loss)
     val_loss = 0.0
+    correct = 0
     model.eval()
     for i, data in enumerate(val):
         inputs, labels = data
@@ -58,7 +58,7 @@ for epoch in tqdm(range(epochs)):
     print('correct: ', correct/len(val))
     if val_loss < min_val_loss:
         min_val_loss = val_loss
-        torch.save(model.state_dict(), 'resnet_ccpd_'+size+'.pth')
+        torch.save(model.state_dict(), 'resnet_ccpd_'+data_size+'.pth')
     # accuracy
 
     print('min_val_loss: ', min_val_loss)

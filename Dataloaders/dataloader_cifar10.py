@@ -118,7 +118,7 @@ def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = Fal
     return trainloader, testloader
 
 def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set = True, 
-                           datasetpath = '/home/tonypeng/Workspace1/adaptfilter/data/',
+                           datasetpath = '../data/',
                            num_workers = 4,
                            normalize = True):
     # inputs: 

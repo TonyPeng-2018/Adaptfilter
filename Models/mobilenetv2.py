@@ -370,7 +370,7 @@ class MobileNetV2_server(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
 
-def mobilenetv2_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', device = 'cuda:0', partition = -1):
+def mobilenetv2_splitter(num_classes = 1000, weight_root = './Weights/imagenet', device = 'cuda:0', partition = -1):
     # here are have a very stupid splitter for 
     # the restnet101 mode
     # assert that they have at least the same length of models

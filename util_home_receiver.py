@@ -108,7 +108,51 @@ class Server:
             network_time += t2 - t1
         print('network time: ', network_time/10)
 
+    def receive_multiple_jpg(self, dataset, batch=10, cr=19):
+        client_socket, addr = self.s.accept()
+        network_time = np.zeros((batch, cr))
+        throughput = np.zeros((batch, cr))
+        print("Got a connection from %s" % str(addr))
+        for i in tqdm(range(batch)):
+            for j in range(cr):
+                data = client_socket.recv(8) # length of encoded img
+                t1 = time.time()
+                length = unpack('>Q', data)[0]
+                data = b''
+                while len(data) < length:
+                    to_read = length - len(data)
+                    data += client_socket.recv(4096 if to_read > 4096 else to_read)
+                data = base64.b64decode(data)
+                img = np.frombuffer(data, dtype=np.uint8)
+                img = cv2.imdecode(img, cv2.IMREAD_COLOR)
+                t2 = time.time()
+                
+                network_time[i][j] = t2 - t1
+        np.save('network_latency_' + dataset +'.npy', network_time)
+
+    def receive_bmp(self, batch, dataset):
+        network_time = 0
+        network_time = np.zeros((batch))
+        client_socket, addr = self.s.accept()
+        print("Got a connection from %s" % str(addr))
+        for i in range(batch):
+            data = client_socket.recv(8)
+            t1 = time.time()
+            length = unpack('>Q', data)[0]
+            data = b''
+            while len(data) < length:
+                to_read = length - len(data)
+                data += client_socket.recv(4096 if to_read > 4096 else to_read)
+            data = base64.b64decode(data)
+            img = np.frombuffer(data, dtype=np.uint8)
+            img = cv2.imdecode(img, cv2.IMREAD_COLOR)
+            img = base64.b64encode(cv2.imencode('.bmp', img)[1].tobytes())
+            t2 = time.time()
+            network_time[i] = t2 - t1
+        np.save('network_latency_bmp_' + dataset + '.npy', network_time)
 if __name__ == '__main__':
     server = Server()
     # server.receive_single_img()
-    server.receive_single_emb()
+    # server.receive_single_emb()
+    # server.receive_multiple_jpg(dataset='imagenet', batch=10, cr=19)
+    server.receive_bmp(dataset = 'cifar-10', batch = 100)

@@ -120,7 +120,7 @@ def Dataloader_imagenet_integrated(device='home', seed=2024):
     train = torch.utils.data.DataLoader(train, batch_size=128, shuffle=True)
     test = torch.utils.data.DataLoader(test, batch_size=100, shuffle=True)
     val = torch.utils.data.DataLoader(val, batch_size=128, shuffle=True)
-    return train, test, val, class_index
+    return train, test, val
 
 if __name__ == '__main__':
     train, test, val, class_index = Dataloader_imagenet_integrated()

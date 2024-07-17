@@ -492,7 +492,31 @@ def resnet_splitter_client(num_classes = 1000, weight_root = '/home/tonypeng/Wor
     c_model.load_state_dict(torch.load(cw_path, map_location=device))
     return c_model
 
-    
+class resnet_middle(nn.Module):
+    def __init__(
+        self,
+        middle = 8
+    ):
+        super().__init__()
+        
+        self.in_layer = nn.Sequential(
+            nn.Conv2d(64, middle, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(middle),
+            nn.ReLU(inplace=True),
+        )
+        self.out_layer = nn.Sequential(
+            nn.Conv2d(middle, 64, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+        )
+
+    def _forward_impl(self, x: Tensor) -> Tensor:
+        x = self.in_layer(x)
+        x = self.out_layer(x)
+        return x
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self._forward_impl(x)
 # test the model
 if __name__ == '__main__':
     model = resnet50(1000)

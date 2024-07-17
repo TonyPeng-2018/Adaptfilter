@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats 
 import os 
 import torch
+import torchvision.transforms as transforms
 import time
 
 def calculate_entropy(embs, percentage):
@@ -116,6 +117,38 @@ def remover_zeros(emb, zero_rank, cutoff, per):
             chosen = zero_rank[i,:chosen]
             n_emb[i] = emb[i,chosen,:,:]
         return n_emb
+
+def image_transform(dataset):
+    if dataset == 'cifar-10':
+        mean = (0.4914, 0.4822, 0.4465)
+        std = (0.2023, 0.1994, 0.2010)
+        return mean, std
+    elif dataset == 'imagenet':
+        mean = (0.485, 0.456, 0.406)
+        std = (0.229, 0.224, 0.225)
+        return mean, std
+    elif dataset == 'cifar-100':
+        mean = (0.5071, 0.4867, 0.4408)
+        std = (0.2675, 0.2565, 0.2761)
+        return mean, std
+
+def gate_normal(a, x):
+    return a**(3*(1/x**3)) * (1/a)**3
+
+def gate_normal2(a, x):
+    return (a*x)**3/(a**3)
+
+def gate_normal3(a, x):
+    if type(x) == np.ndarray:
+        return 1-(-x+1)**(1/a)
+    elif type(x) == torch.Tensor:
+        return 1-torch.pow(1-x, 1/a)
+    
+def gate_renormal3(a, x):
+    if type(x) == np.ndarray:
+        return -(x-1)**a+1
+    elif type(x) == torch.Tensor:
+        return 1-torch.pow(x-1, a)
 
 if __name__ == '__main__':
     import torch

@@ -1,17 +1,19 @@
-from Models import resnet
+from Models import mobilenetv2
 import sys
 
-middle_size = [1,2,4,8,16,32]
-# middle_size = [1,2,16]
-width = 56
-height = 56
-device = 'cuda:0'
+model_size = 'small'
+middle_size = [1,2,4,8,16]
+# middle_size = [1,2]
+width = 112
+height = 112
 
-client, server = resnet.resnet_splitter(weight_root='./Weights/imagenet/', layers=50, device=device)
+client, server = mobilenetv2.mobilenetv2_splitter(num_classes=34, 
+                                        weight_root='/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/ccpd-small', 
+                                        device='cuda:0')
 
-from Dataloaders import dataloader_image_20
+from Dataloaders import dataloader_ccpd
 
-train, _, val, _ = dataloader_image_20.Dataloader_imagenet_20_integrated(train_batch=32, test_batch=50)
+train, _, val = dataloader_ccpd.Dataloader_ccpd_integrated()
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -24,8 +26,8 @@ server = server.eval()
 
 middles = []
 for m in middle_size:
-    middle = resnet.resnet_middle(middle=m)
-    middle.load_state_dict(torch.load('resnet_imagenet_middle_'+str(m)+'.pth'))
+    middle = mobilenetv2.MobileNetV2_middle(middle=m)
+    middle.load_state_dict(torch.load('mobile_imagenet_middle_'+str(m)+'.pth'))
     middle = middle.to(device)
     middle = middle.eval()
     middles.append(middle)
@@ -54,15 +56,17 @@ for epoch in tqdm(range(epochs)):
     train_loss = 0.0
     for j in range(len(middle_size)):
         gates[j].train()
+
     for i, data in enumerate(train):
-        inputs, labels, _ = data
+        inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
-        optimizer.zero_grad()
+        
         client_out = client(inputs).detach()
         for j in range(len(middle_size)):
             middle = middles[j]
             gate = gates[j]
             optimizer = ops[j]
+            optimizer.zero_grad()
             middle_out = middle.in_layer(client_out).detach()
             gate_out = gate(middle_out).squeeze()
             middle_out2 = middle.out_layer(middle_out).detach()
@@ -71,29 +75,6 @@ for epoch in tqdm(range(epochs)):
             server_out = torch.softmax(server_out, dim=1)
             server_out = torch.argmax(server_out, dim=1)
             server_out = torch.eq(server_out, labels).float()
-
-            # n_zero = torch.sum(server_out == 0).item()
-            # n_one = torch.sum(server_out == 1).item()
-            # # randomly select some ones equal to number of 0
-            # if n_one > n_zero:
-            #     n_one = n_zero
-            # else:
-            #     n_zero = n_one
-            # s_one_cpu = torch.where(server_out == 1)[0].cpu().numpy()
-            # s_zero_cpu = torch.where(server_out == 0)[0].cpu().numpy()
-            # s_one = np.random.choice(s_one_cpu, n_one, replace=False)
-            # s_zero = np.random.choice(s_zero_cpu, n_zero, replace=False)
-
-            # s = np.concatenate((s_one, s_zero))
-            # # s to torch
-            # s = torch.from_numpy(s).to(device)
-            # server_out = server_out[s]
-            # gate_out = gate_out[s]        
-            # print('gate_out: ', gate_out)
-            # print('server_out: ', server_out)
-            
-            # gate_out = torch.round(gate_out)
-            # print('gate_out', gate_out)
 
             loss = criterion(gate_out, server_out)
             train_loss += loss.item()
@@ -106,7 +87,7 @@ for epoch in tqdm(range(epochs)):
     gate_exits = [0] * len(middle_size)
     send_counts = [0] * len(middle_size)
     for i, data in enumerate(val):
-        inputs, labels, _ = data
+        inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
         client_out = client(inputs).detach()
@@ -127,7 +108,7 @@ for epoch in tqdm(range(epochs)):
             # print('gate_out: ', torch.where(gate_out>0.5, torch.tensor(1).to(device), torch.tensor(0).to(device)))
 
             # gate_out = torch.round(gate_out)
-            gate_out = torch.gt(gate_out, 0.8).float()
+            gate_out = torch.gt(gate_out, 0.9).float()
             gate_exits[j] += torch.sum(gate_out).item()
 
             # get ther server_out [ gate_out == 1]
@@ -148,5 +129,5 @@ for epoch in tqdm(range(epochs)):
         
         if val_accs[j] > max_val_acc[j]:
             max_val_acc[j] = val_accs[j]
-            torch.save(gate[j].state_dict(), 'resnet_imagenet_gate_'+str(middle_size[j])+'.pth')
+            torch.save(gate[j].state_dict(), 'mobile_ccpd_gate_'+str(middle_size[j])+'.pth')
             print('model saved')

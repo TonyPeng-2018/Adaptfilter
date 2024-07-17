@@ -147,5 +147,5 @@ for epoch in tqdm(range(epochs)):
         
         if val_accs[j] > max_val_acc[j]:
             max_val_acc[j] = val_accs[j]
-            torch.save(gate.state_dict(), 'mobile_imagenet_gate_'+str(middle_size[j])+'.pth')
+            torch.save(gate[j].state_dict(), 'mobile_imagenet_gate_'+str(middle_size[j])+'.pth')
             print('model saved')

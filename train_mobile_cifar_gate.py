@@ -111,7 +111,7 @@ for epoch in tqdm(range(epochs)):
         # print('gate_out: ', torch.where(gate_out>0.5, torch.tensor(1).to(device), torch.tensor(0).to(device)))
 
         # gate_out = torch.round(gate_out)
-        gate_out = torch.gt(gate_out, 0.9).float()
+        gate_out = torch.gt(gate_out, 0.8).float()
         gate_exit += torch.sum(gate_out).item()
 
         # get ther server_out [ gate_out == 1]

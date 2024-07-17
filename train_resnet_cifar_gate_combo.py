@@ -3,15 +3,16 @@ import sys
 
 middle_size = [1,2,4,8,16,32]
 # middle_size = [1,2,16]
-width = 56
-height = 56
+width = 8
+height = 8
 device = 'cuda:0'
 
-client, server = resnet.resnet_splitter(weight_root='./Weights/imagenet/', layers=50, device=device)
+client, server = resnet.resnet_splitter(num_classes=10,
+    weight_root='./Weights/cifar-10/', layers=50, device=device)
 
-from Dataloaders import dataloader_image_20
+from Dataloaders import dataloader_cifar10
 
-train, _, val, _ = dataloader_image_20.Dataloader_imagenet_20_integrated(train_batch=32, test_batch=50)
+train, _, val = dataloader_cifar10.Dataloader_cifar10_val()
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -25,7 +26,7 @@ server = server.eval()
 middles = []
 for m in middle_size:
     middle = resnet.resnet_middle(middle=m)
-    middle.load_state_dict(torch.load('resnet_imagenet_middle_'+str(m)+'.pth'))
+    middle.load_state_dict(torch.load('resnet_cifar-10_middle_'+str(m)+'.pth'))
     middle = middle.to(device)
     middle = middle.eval()
     middles.append(middle)
@@ -36,7 +37,8 @@ for m in middle_size:
     gate = gatedmodel.ExitGate(in_planes=m, height=height, width=width) # sigmoid
     gate = gate.to(device)
     gates.append(gate)
-
+# import torchsummary
+# torchsummary.summary(gates[0], (1, height, width))
 criterion = nn.MSELoss()
 ops = []
 for gate in gates:
@@ -48,21 +50,22 @@ from Utils import utils
 
 import sys
 import numpy as np
-epochs = 50
+epochs = 100
 max_val_acc = [0] * len(middle_size)
 for epoch in tqdm(range(epochs)):
     train_loss = 0.0
     for j in range(len(middle_size)):
         gates[j].train()
     for i, data in enumerate(train):
-        inputs, labels, _ = data
+        inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
-        optimizer.zero_grad()
+        
         client_out = client(inputs).detach()
         for j in range(len(middle_size)):
             middle = middles[j]
             gate = gates[j]
             optimizer = ops[j]
+            optimizer.zero_grad()
             middle_out = middle.in_layer(client_out).detach()
             gate_out = gate(middle_out).squeeze()
             middle_out2 = middle.out_layer(middle_out).detach()
@@ -106,9 +109,9 @@ for epoch in tqdm(range(epochs)):
     gate_exits = [0] * len(middle_size)
     send_counts = [0] * len(middle_size)
     for i, data in enumerate(val):
-        inputs, labels, _ = data
+        inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
-        optimizer.zero_grad()
+        
         client_out = client(inputs).detach()
         for j in range (len(middle_size)):
             middle = middles[j]
@@ -148,5 +151,5 @@ for epoch in tqdm(range(epochs)):
         
         if val_accs[j] > max_val_acc[j]:
             max_val_acc[j] = val_accs[j]
-            torch.save(gate[j].state_dict(), 'resnet_imagenet_gate_'+str(middle_size[j])+'.pth')
+            torch.save(gate[j].state_dict(), 'resnet_cifar-10_gate_'+str(middle_size[j])+'.pth')
             print('model saved')

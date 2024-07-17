@@ -1,8 +1,8 @@
 from Models import mobilenetv2
 import sys
 
-# middle_size = [1,2,4,8,16]
-middle_size = [1,2]
+middle_size = [1,2,4,8,16]
+# middle_size = [1,2]
 width = 112
 height = 112
 
@@ -49,7 +49,7 @@ from Utils import utils
 
 import sys
 import numpy as np
-epochs = 100
+epochs = 50
 max_val_acc = [0] * len(middle_size)
 for epoch in tqdm(range(epochs)):
     train_loss = 0.0
@@ -59,12 +59,12 @@ for epoch in tqdm(range(epochs)):
     for i, data in enumerate(train):
         inputs, labels, _ = data
         inputs, labels = inputs.to(device), labels.to(device)
-        optimizer.zero_grad()
         client_out = client(inputs).detach()
         for j in range(len(middle_size)):
             middle = middles[j]
             gate = gates[j]
             optimizer = ops[j]
+            optimizer.zero_grad()
             middle_out = middle.in_layer(client_out).detach()
             gate_out = gate(middle_out).squeeze()
             middle_out2 = middle.out_layer(middle_out).detach()
@@ -129,7 +129,7 @@ for epoch in tqdm(range(epochs)):
             # print('gate_out: ', torch.where(gate_out>0.5, torch.tensor(1).to(device), torch.tensor(0).to(device)))
 
             # gate_out = torch.round(gate_out)
-            gate_out = torch.gt(gate_out, 0.9).float()
+            gate_out = torch.gt(gate_out, 0.8).float()
             gate_exits[j] += torch.sum(gate_out).item()
 
             # get ther server_out [ gate_out == 1]
@@ -150,5 +150,5 @@ for epoch in tqdm(range(epochs)):
         
         if val_accs[j] > max_val_acc[j]:
             max_val_acc[j] = val_accs[j]
-            torch.save(gate.state_dict(), 'mobile_imagenet_gate_'+str(middle_size[j])+'.pth')
+            torch.save(gates[j].state_dict(), 'mobile_imagenet_gate_'+str(middle_size[j])+'.pth')
             print('model saved')

@@ -23,12 +23,12 @@ from Utils import utils, encoder
 gate_confidence = 0.85
 batch_size = 60
 
-middle_sizes = {'mobile': [1,2,4,8,16], 'resnet': [1,2,3,8,16,32]}
+middle_sizes = {'mobile': [1,2,4,8,16], 'resnet': [1,2,4,8,16,32]}
 reduced_sizes = {'cifar-10': (32,32), 'imagenet': (224,224)}
 reduced_rates = {'mobile': 2, 'resnet': 4}
 
-dataset = 'cifar-10'
-model = 'mobile'
+dataset = 'imagenet'
+model = 'resnet'
 i_stop = 10
 
 width, height = reduced_sizes[dataset][0]/reduced_rates[model], \
@@ -81,7 +81,10 @@ for i in range(len(middle_size)):
 
 # 2. dataset
 # directly read bmp image from the storage
-data_root = '../data/'+dataset+'-client/'
+if dataset == 'cifar-10':
+    data_root = '../data/'+dataset+'-client/'
+elif dataset == 'imagenet':
+    data_root = '../data/'+dataset+'-20-client/'
 images_list = os.listdir(data_root)
 images_list.remove('labels.txt')
 # remove ending with jpg

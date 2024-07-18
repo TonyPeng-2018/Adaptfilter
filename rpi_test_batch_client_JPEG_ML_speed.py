@@ -21,9 +21,9 @@ from tqdm import tqdm
 from Utils import utils, encoder
 
 gate_confidence = 0.85
-batch_size = 60
+batch_size = 6
 
-dataset = 'cifar-10'
+dataset = 'imagenet-20'
 i_stop = 10
 
 quality = '25'
@@ -60,10 +60,16 @@ import os
 JPEG_time_25 = [0] * batch_size * i_stop
 JPEG_time_75 = [0] * batch_size * i_stop
 CJPEG_time = [0] * batch_size * i_stop  
+print(len(images_list))
 for i, i_path in tqdm(enumerate(images_list)):
+    if i >= i_stop*batch_size:
+        break
     image_path = data_root + i_path
     image = Image.open(image_path).convert('RGB')
-    image = image.resize((32, 32))
+    if dataset == 'cifar-10':
+        image = image.resize((32, 32))
+    elif dataset == 'imagenet-20':
+        image = image.resize((224, 224))
     image = np.array(image)
     # 3. compress the image
     # 3.1 JPEG 25
@@ -113,6 +119,7 @@ for i, i_path in tqdm(enumerate(images_list)):
     # 3.4 progressive JPEG
     s_time = time.time()
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 25]
+    # print(image.shape)
     qtable = main_no_store(image)
     result, encimg = cv2.imencode('.jpg', image, encode_param)
     np.savetxt('qt.txt', qtable, fmt='%d')
@@ -143,5 +150,5 @@ for i in range(i_stop):
     avg_cjpeg[i] = sum(CJPEG_time[i*batch_size:(i+1)*batch_size])/batch_size*1000
 # print average time
 print('avg_jpeg25:', avg_jpeg25)
-print('avg_jpeg75:', avg_jpeg25)
+print('avg_jpeg75:', avg_jpeg75)
 print('avg_cjpeg:', avg_cjpeg)

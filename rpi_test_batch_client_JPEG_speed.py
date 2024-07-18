@@ -23,10 +23,8 @@ from Utils import utils, encoder
 gate_confidence = 0.85
 batch_size = 60
 
-dataset = 'cifar-10'
+dataset = 'imagenet-20'
 i_stop = 10
-
-quality = '25'
 
 # 2. dataset
 # directly read bmp image from the storage
@@ -59,7 +57,10 @@ CJPEG_time = [0] * batch_size * i_stop
 for i, i_path in tqdm(enumerate(images_list)):
     image_path = data_root + i_path
     image = Image.open(image_path).convert('RGB')
-    image = image.resize((32, 32))
+    if dataset == 'cifar-10':
+        image = image.resize((32, 32))
+    elif dataset == 'imagenet':
+        image = image.resize((224, 224))
     image = np.array(image)
     # 3. compress the image
     # 3.1 JPEG 25
@@ -111,5 +112,5 @@ for i in range(i_stop):
     avg_cjpeg[i] = sum(CJPEG_time[i*batch_size:(i+1)*batch_size])/batch_size*100
 # print average time
 print('avg_jpeg25:', avg_jpeg25)
-print('avg_jpeg75:', avg_jpeg25)
+print('avg_jpeg75:', avg_jpeg75)
 print('avg_cjpeg:', avg_cjpeg)

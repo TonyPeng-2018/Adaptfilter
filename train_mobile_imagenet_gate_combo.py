@@ -1,8 +1,8 @@
 from Models import mobilenetv2
 import sys
 
-# middle_size = [1,2,4,8,16]
-middle_size = [1]
+middle_size = [1,2,4,8,16]
+# middle_size = [1]
 width = 112
 height = 112
 

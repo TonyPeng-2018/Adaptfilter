@@ -120,7 +120,8 @@ def Dataloader_cifar10(train_batch=128, test_batch=100, seed=2024, val_set = Fal
 def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set = True, 
                            datasetpath = '../data/',
                            num_workers = 4,
-                           normalize = True):
+                           normalize = True,
+                           test_shuffle = False):
     # inputs: 
     # train_batch: the batch size for training
     # test_batch: the batch size for testing
@@ -166,7 +167,7 @@ def Dataloader_cifar10_val(train_batch=128, test_batch=100, seed=2024, val_set =
     testset = torchvision.datasets.CIFAR10(
         root=datasetpath, train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=test_batch, shuffle=False, num_workers=num_workers)
+        testset, batch_size=test_batch, shuffle=test_shuffle, num_workers=num_workers)
 
 
     return trainloader, testloader, valloader

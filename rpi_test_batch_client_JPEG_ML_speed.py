@@ -21,12 +21,10 @@ from tqdm import tqdm
 from Utils import utils, encoder
 
 gate_confidence = 0.85
-batch_size = 6
+batch_size = 60
 
-dataset = 'imagenet-20'
+dataset = ''
 i_stop = 10
-
-quality = '25'
 
 # 2. dataset
 # directly read bmp image from the storage
@@ -76,7 +74,6 @@ for i, i_path in tqdm(enumerate(images_list)):
     s_time = time.time()
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 25]
     qtable = main_no_store(image)
-    result, encimg = cv2.imencode('.jpg', image, encode_param)
     np.savetxt('qt.txt', qtable, fmt='%d')
     command = 'cjpeg -dct int -qtable qt.txt -baseline'
     command += ' -quality ' + str(25)
@@ -85,6 +82,9 @@ for i, i_path in tqdm(enumerate(images_list)):
     command += ' ' + str(image_path)
     os.system(command)
     new_image = Image.open(jpeg25_folder+ i_path[:-4]+'.jpg')
+    new_image = new_image.convert('RGB')
+    new_image = np.array(new_image)
+    result, encimg = cv2.imencode('.jpg', new_image, encode_param)
     # encode
     encimg = new_image.tobytes()
     encimg = base64.b64encode(encimg)
@@ -96,9 +96,8 @@ for i, i_path in tqdm(enumerate(images_list)):
 
     # 3.3 JPEG 75
     s_time = time.time()
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 25]
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 75]
     qtable = main_no_store(image)
-    result, encimg = cv2.imencode('.jpg', image, encode_param)
     np.savetxt('qt.txt', qtable, fmt='%d')
     command = 'cjpeg -dct int -qtable qt.txt -baseline'
     command += ' -quality ' + str(75)
@@ -107,6 +106,9 @@ for i, i_path in tqdm(enumerate(images_list)):
     command += ' ' + str(image_path)
     os.system(command)
     new_image = Image.open(jpeg75_folder+ i_path[:-4]+'.jpg')
+    new_image = new_image.convert('RGB')
+    new_image = np.array(new_image)
+    result, encimg = cv2.imencode('.jpg', new_image, encode_param)
     # encode
     encimg = new_image.tobytes()
     encimg = base64.b64encode(encimg)
@@ -118,10 +120,9 @@ for i, i_path in tqdm(enumerate(images_list)):
 
     # 3.4 progressive JPEG
     s_time = time.time()
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 25]
+    encode_param = [int(cv2.IMWRITE_JPEG_PROGRESSIVE), 1]
     # print(image.shape)
     qtable = main_no_store(image)
-    result, encimg = cv2.imencode('.jpg', image, encode_param)
     np.savetxt('qt.txt', qtable, fmt='%d')
     command = 'cjpeg -dct int -qtable qt.txt -baseline'
     command += ' -progressive'
@@ -130,6 +131,9 @@ for i, i_path in tqdm(enumerate(images_list)):
     command += ' ' + str(image_path)
     os.system(command)
     new_image = Image.open(cjpeg_folder+ i_path[:-4]+'.jpg')
+    new_image = new_image.convert('RGB')
+    new_image = np.array(new_image)
+    result, encimg = cv2.imencode('.jpg', new_image, encode_param)
     # encode
     encimg = new_image.tobytes()
     encimg = base64.b64encode(encimg)

@@ -27,8 +27,8 @@ middle_sizes = {'mobile': [1,2,4,8,16], 'resnet': [1,2,4,8,16,32]}
 reduced_sizes = {'cifar-10': (32,32), 'imagenet': (224,224)}
 reduced_rates = {'mobile': 2, 'resnet': 4}
 
-dataset = 'imagenet'
-model = 'resnet'
+dataset = 'cifar-10'
+model = 'mobile'
 i_stop = 10
 
 width, height = reduced_sizes[dataset][0]/reduced_rates[model], \

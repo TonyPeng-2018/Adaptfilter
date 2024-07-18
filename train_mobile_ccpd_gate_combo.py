@@ -2,6 +2,7 @@ from Models import mobilenetv2
 import sys
 
 model_size = 'small'
+# middle_size = [1,2,4,8,16]
 middle_size = [1,2,4,8,16]
 # middle_size = [1,2]
 width = 112
@@ -13,7 +14,7 @@ client, server = mobilenetv2.mobilenetv2_splitter(num_classes=34,
 
 from Dataloaders import dataloader_ccpd
 
-train, _, val = dataloader_ccpd.Dataloader_ccpd_integrated()
+train, _, val = dataloader_ccpd.Dataloader_ccpd_integrated(train_batch=64)
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -27,7 +28,7 @@ server = server.eval()
 middles = []
 for m in middle_size:
     middle = mobilenetv2.MobileNetV2_middle(middle=m)
-    middle.load_state_dict(torch.load('mobile_imagenet_middle_'+str(m)+'.pth'))
+    middle.load_state_dict(torch.load('./Weights/ccpd-small/middle/mobile_ccpd_small_middle_'+str(m)+'.pth'))
     middle = middle.to(device)
     middle = middle.eval()
     middles.append(middle)
@@ -127,7 +128,7 @@ for epoch in tqdm(range(epochs)):
         print('gate_exit: ', gate_exits[j])
         print('val_acc: ', val_accs[j])
         
-        if val_accs[j] > max_val_acc[j]:
+        if val_accs[j] >= max_val_acc[j]:
             max_val_acc[j] = val_accs[j]
-            torch.save(gate[j].state_dict(), 'mobile_ccpd_gate_'+str(middle_size[j])+'.pth')
+            torch.save(gates[j].state_dict(), 'mobile_ccpd_gate_'+str(middle_size[j])+'.pth')
             print('model saved')

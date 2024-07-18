@@ -47,6 +47,7 @@ for epoch in tqdm(range(epochs)):
         optimizer.step()
     middle.eval()
     val_loss = 0.0
+    correct = 0
     for i, data in enumerate(val):
         inputs, labels, newlabel = data
         inputs, labels = inputs.to(device), labels.to(device)
@@ -55,7 +56,10 @@ for epoch in tqdm(range(epochs)):
         outputs = server(outputs)
         loss = criterion(outputs, labels)
         val_loss += loss.item()
+        correct = correct + (outputs.max(1)[1] == labels).sum().item()
+
     print('val loss: ', val_loss)
+    print('val accuracy: ', correct/len(val.dataset))
     if val_loss < min_val_loss:
         min_val_loss = val_loss
         torch.save(middle.state_dict(), 'mobile_imagenet_middle_'+str(middle_size)+'.pth')

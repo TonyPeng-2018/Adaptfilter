@@ -61,7 +61,9 @@ class Dataset_imagenet_20():
         self.v_sampler = np.random.choice(self.len, int(self.len*0.2), replace=False)
         self.tr_sampler = np.delete(np.arange(self.len), self.v_sampler)
         self.t_sampler = np.random.choice(len(self.tr_sampler), int(len(self.tr_sampler)*0.25), replace=False)
+        self.temp_sampler = self.tr_sampler[self.t_sampler]
         self.tr_sampler = np.delete(self.tr_sampler, self.t_sampler)
+        self.t_sampler = self.temp_sampler
         self.tr_dict = {str(k): self.a_dict[k] for k in self.tr_sampler}
         self.v_dict = {str(k): self.a_dict[k] for k in self.v_sampler}
         self.t_dict = {str(k): self.a_dict[k] for k in self.t_sampler}
@@ -121,14 +123,14 @@ class Dataloader_imagenet(Dataset):
                 )
         return transform
         
-def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 100, device='home', seed=2024):
+def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 100, device='home', seed=2024, transform=True):
     dataset = Dataset_imagenet_20(device=device)
     tr_sampler, t_sampler, v_sampler = dataset.return_sampler()
     tr_dict, t_dict, v_dict = dataset.return_dict()
     class_index = dataset.return_class_index()
-    train = Dataloader_imagenet(tr_sampler, tr_dict, transform=True)
-    test = Dataloader_imagenet(t_sampler, t_dict, transform=False)
-    val = Dataloader_imagenet(v_sampler, v_dict, transform=True)
+    train = Dataloader_imagenet(tr_sampler, tr_dict, transform=transform)
+    test = Dataloader_imagenet(t_sampler, t_dict, transform=transform)
+    val = Dataloader_imagenet(v_sampler, v_dict, transform=transform)
     train = torch.utils.data.DataLoader(train, batch_size=train_batch, shuffle=True)
     test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=False)
     val = torch.utils.data.DataLoader(val, batch_size=train_batch, shuffle=True)

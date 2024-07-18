@@ -1,8 +1,8 @@
 from Models import resnet
 import sys
 
-middle_size = [1,2,4,8,16,32]
-# middle_size = [1,2,16]
+# middle_size = [1,2,4,8,16,32]
+middle_size = [1]
 width = 56
 height = 56
 device = 'cuda:0'
@@ -127,7 +127,7 @@ for epoch in tqdm(range(epochs)):
             # print('gate_out: ', torch.where(gate_out>0.5, torch.tensor(1).to(device), torch.tensor(0).to(device)))
 
             # gate_out = torch.round(gate_out)
-            gate_out = torch.gt(gate_out, 0.8).float()
+            gate_out = torch.gt(gate_out, 0.5).float()
             gate_exits[j] += torch.sum(gate_out).item()
 
             # get ther server_out [ gate_out == 1]
@@ -146,7 +146,7 @@ for epoch in tqdm(range(epochs)):
         print('gate_exit: ', gate_exits[j])
         print('val_acc: ', val_accs[j])
         
-        if val_accs[j] > max_val_acc[j]:
+        if val_accs[j] >= max_val_acc[j]:
             max_val_acc[j] = val_accs[j]
-            torch.save(gate[j].state_dict(), 'resnet_imagenet_gate_'+str(middle_size[j])+'.pth')
+            torch.save(gates[j].state_dict(), 'resnet_imagenet_gate_'+str(middle_size[j])+'.pth')
             print('model saved')

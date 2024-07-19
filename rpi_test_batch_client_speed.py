@@ -27,8 +27,8 @@ middle_sizes = {'mobile': [1,2,4,8,16], 'resnet': [1,2,4,8,16,32]}
 reduced_sizes = {'cifar-10': (32,32), 'imagenet': (224,224)}
 reduced_rates = {'mobile': 2, 'resnet': 4}
 
-dataset = 'cifar-10'
-model = 'mobile'
+dataset = 'imagenet'
+model = 'resnet'
 i_stop = 10
 
 width, height = reduced_sizes[dataset][0]/reduced_rates[model], \
@@ -38,7 +38,6 @@ middle_size = middle_sizes[model]
 # client include client, middle and gate
 if model == 'mobile':
     client = mobilenetv2.mobilenetv2_splitter_client(
-                        num_classes = 10, 
                         weight_root='./Weights/'+dataset+'/', 
                         device='cpu')
     middle_models = []
@@ -50,7 +49,7 @@ if model == 'mobile':
                                           )
 
 elif model == 'resnet':
-    client = resnet.resnet_splitter_client(num_classes=10, weight_root='./Weights/'+dataset+'/', device='cpu', layers=50)
+    client = resnet.resnet_splitter_client(weight_root='./Weights/'+dataset+'/', device='cpu', layers=50)
 
     middle_models = []
     for i in range(len(middle_size)):
@@ -128,10 +127,12 @@ with torch.no_grad():
         gate_exit_flag = -1
         
         client_out = client(image).detach()
+    
         for j in range(len(middle_size)):
             middle_in = middle_models[j].in_layer(client_out)
             gate_out = gate_models[j](middle_in)
             if gate_out > gate_confidence:
+                middle_in, mmin, mmax = utils.normalize_return(middle_in)
                 middle_int = utils.float_to_uint(middle_in)
                 middle_int = middle_int.numpy().copy(order='C')
                 middle_int = middle_int.astype(np.uint8)
@@ -139,6 +140,7 @@ with torch.no_grad():
                 gate_exit_flag = j
                 break
         if gate_exit_flag == -1: # send all
+            client_out, mmin, mmax = utils.normalize_return(client_out)
             middle_int = utils.float_to_uint(client_out)
             middle_int = middle_int.numpy().copy(order='C')
             middle_int = middle_int.astype(np.uint8)
@@ -151,6 +153,8 @@ with torch.no_grad():
         f2 = open(gate_emb_folder+i_path[:-4], 'wb')
         f2.write(send_in)
         f2.close()
+        f2 = open(gate_emb_folder+i_path[:-4]+'_helper', 'w')
+        f2.write(str(mmax.item()) + ',' + str(mmin.item()) + '\n')
         f.write('client_time[%d]: %f\n' % (j, client_time[j]))
     for j in range(len(gate_frequency)):
         f.write('gate_frequency[%d]: %d\n' % (j, gate_frequency[j]))

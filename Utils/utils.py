@@ -156,6 +156,22 @@ def float_to_uint(x):
 def uint_to_float(x):
     return x.float() / 255
 
+def return_max_min(x):
+    return torch.max(x), torch.min(x)
+
+def normalize(x):
+    x_min = torch.min(x)
+    x_max = torch.max(x)
+    return (x - x_min)/(x_max - x_min)
+
+def normalize_return(x):
+    x_min = torch.min(x)
+    x_max = torch.max(x)
+    return (x - x_min)/(x_max - x_min), x_min, x_max
+
+def renormalize(x, x_min, x_max):
+    return x * (x_max - x_min) + x_min
+
 if __name__ == '__main__':
     import torch
     # embs = torch.randn(2, 3, 32, 32)

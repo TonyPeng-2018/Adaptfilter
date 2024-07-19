@@ -116,8 +116,6 @@ class Dataloader_imagenet(Dataset):
     def default_transform(self):
         transform = transforms.Compose(
                     [
-                        transforms.Resize(256),
-                        transforms.CenterCrop(224),
                         transforms.ToTensor(),
                     ]
                 )

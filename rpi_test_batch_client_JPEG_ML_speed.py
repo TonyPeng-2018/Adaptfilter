@@ -23,7 +23,7 @@ from Utils import utils, encoder
 gate_confidence = 0.85
 batch_size = 60
 
-dataset = ''
+dataset = 'imagenet-20'
 i_stop = 10
 
 # 2. dataset
@@ -86,7 +86,7 @@ for i, i_path in tqdm(enumerate(images_list)):
     new_image = np.array(new_image)
     result, encimg = cv2.imencode('.jpg', new_image, encode_param)
     # encode
-    encimg = new_image.tobytes()
+    encimg = encimg.tobytes()
     encimg = base64.b64encode(encimg)
     e_time = time.time()
     with open(jpeg25_folder + i_path[:-4], 'wb') as f2:
@@ -110,7 +110,7 @@ for i, i_path in tqdm(enumerate(images_list)):
     new_image = np.array(new_image)
     result, encimg = cv2.imencode('.jpg', new_image, encode_param)
     # encode
-    encimg = new_image.tobytes()
+    encimg = encimg.tobytes()
     encimg = base64.b64encode(encimg)
     e_time = time.time()
     with open(jpeg75_folder + i_path[:-4], 'wb') as f2:
@@ -135,7 +135,7 @@ for i, i_path in tqdm(enumerate(images_list)):
     new_image = np.array(new_image)
     result, encimg = cv2.imencode('.jpg', new_image, encode_param)
     # encode
-    encimg = new_image.tobytes()
+    encimg = encimg.tobytes()
     encimg = base64.b64encode(encimg)
     e_time = time.time()
     with open(cjpeg_folder + i_path[:-4], 'wb') as f2:

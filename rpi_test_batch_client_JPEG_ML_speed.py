@@ -21,7 +21,7 @@ from tqdm import tqdm
 from Utils import utils, encoder
 
 gate_confidence = 0.85
-batch_size = 60
+batch_size = 6
 
 dataset = 'imagenet-20'
 i_stop = 10

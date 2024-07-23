@@ -41,8 +41,7 @@ jpeg_folders = []
 for i in jpeg_folders_quality:
     jpeg_folders.append('../data/last-'+dataset+'-jpeg'+str(i)+'/')
     if not os.path.exists('../data/last-'+dataset+'-jpeg'+str(i)+'/'):
-        os.makedirs('../data/last-'+dataset+'-jpeg'+str(i)+'/')
-
+        os.makedirs('../data/last-'+dataset+'-jpeg'+str(i)+'/')1.5
 from PIL import Image
 
 for i, i_path in tqdm(enumerate(images_list)):

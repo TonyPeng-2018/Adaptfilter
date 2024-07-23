@@ -56,7 +56,7 @@ normal = transforms.Compose([
             ])
 with torch.no_grad():
     for i, img_folder in tqdm(enumerate(img_folders)):
-        img_list = [str(x) + '.jpg' for x in range(600)]
+        img_list = [str(x) + '.jpg' for x in range(100)]
         for j, img in enumerate(img_list):
             image_path = img_folder + img
             image = Image.open(image_path).convert('RGB')

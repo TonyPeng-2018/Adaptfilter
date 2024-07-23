@@ -14,7 +14,7 @@ class Sender:
         # host = 'localhost'
         # host = '100.64.0.2'
         # host = '100.64.0.4'
-        host = '100.64.0.1'
+        host = '127.0.0.1'
         port = 5566
         self.host = host
         self.port = port
@@ -29,16 +29,23 @@ class Sender:
             #                    'cifar-10-jpeg25/', 'cifar-10-jpeg75/', 'cifar-10-cjpeg/',
             #                     'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
             #                     'imagenet-resnet-gate-emb/', 'cifar-10-mobile-gate-emb/']
-            dataset_subroot = ['cifar-10-mobile-gate-emb/']
-            dataset_subroot = [
-                               'cifar-10-jpeg25/', 'cifar-10-jpeg75/', 'cifar-10-cjpeg/',
-                                'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
-                                'cifar-10-mobile-gate-emb/']
+            # dataset_subroot = ['cifar-10-mobile-gate-emb/']
+            # dataset_subroot = [
+            #                    'cifar-10-jpeg25/', 'cifar-10-jpeg75/', 'cifar-10-cjpeg/',
+            #                     'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
+            #                     'cifar-10-mobile-gate-emb/']
+            # dataset_subroot = ['imagenet-resnet-gate-emb-0.55/', 'imagenet-resnet-gate-emb-0.65/',
+            #                    'imagenet-resnet-gate-emb-0.75/', 'imagenet-resnet-gate-emb-0.85/',
+            #                    'imagenet-resnet-gate-emb-0.95/', 'imagenet-resnet-gate-emb-0.99/']
+            # dataset_subroot = ['imagenet-resnet-gate-emb-99/']
+            dataset_subroot = ['ccpd-jpeg25/', 'ccpd-jpeg75/', 'ccpd-cjpeg/',
+                               'ccpd-jpeg25-ML/', 'ccpd-jpeg75-ML/', 'ccpd-cjpeg-ML/']
+                            #    'ccpd-resnet-gate-emb/']
             for dataset in dataset_subroot:
                 dataset = dataset_root + dataset
                 print(dataset)
 
-                file_names = [str(i) for i in range(600)]
+                file_names = [str(i) for i in range(100)]
                 files = [open(dataset + '/' + file_name, 'rb') for file_name in file_names]
                 files = [file.read() for file in files]
                 
@@ -47,9 +54,7 @@ class Sender:
                     # file = open(dataset + '/' + str(i), 'rb')
                     # file = file.read()
                     msg_length = pack('>Q', len(file))
-                    time.sleep(0.01)
                     self.s.sendall(msg_length)
-                    time.sleep(0.01)
                     
                     self.s.sendall(file)
                     ttime1 = time.time()
@@ -57,7 +62,6 @@ class Sender:
                     
                     # wait for the done from the server
                     done = self.s.recv(1)
-                    time.sleep(0.01)
                     # print('send time: ', time.time() - ttime1)
 
                 time.sleep(3)

@@ -22,7 +22,7 @@ from Utils import utils, encoder
 
 batch_size = 600
 
-dataset = 'imagenet-20'
+dataset = 'ccpd-'
 i_stop = 1
 
 # 2. dataset
@@ -41,7 +41,7 @@ jpeg_folders = []
 for i in jpeg_folders_quality:
     jpeg_folders.append('../data/last-'+dataset+'-jpeg'+str(i)+'/')
     if not os.path.exists('../data/last-'+dataset+'-jpeg'+str(i)+'/'):
-        os.makedirs('../data/last-'+dataset+'-jpeg'+str(i)+'/')1.5
+        os.makedirs('../data/last-'+dataset+'-jpeg'+str(i)+'/')
 from PIL import Image
 
 for i, i_path in tqdm(enumerate(images_list)):

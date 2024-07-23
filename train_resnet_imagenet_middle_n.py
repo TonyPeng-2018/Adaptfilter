@@ -9,7 +9,7 @@ client, server = resnet.resnet_splitter(num_classes=1000,
 
 from Dataloaders import dataloader_image_20
 
-train, _, val, _ = dataloader_image_20.Dataloader_imagenet_20_integrated(device='home',
+train, _, val = dataloader_image_20.Dataloader_imagenet_20_integrated(device='home',
                                                                          train_batch=64,
                                                                          test_batch=50)
 
@@ -31,12 +31,12 @@ optimizer = optim.Adam(middle.parameters(), lr=0.001)
 
 from tqdm import tqdm
 
-epochs = 60
+epochs = 100
 min_val_loss = 1000000
 for epoch in tqdm(range(epochs)):
     middle.train()
     for i, data in enumerate(train):
-        inputs, labels, newlabel = data
+        inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
         outputs = client(inputs).detach()
@@ -49,7 +49,7 @@ for epoch in tqdm(range(epochs)):
     middle.eval()
     val_loss = 0.0
     for i, data in enumerate(val):
-        inputs, labels, newlabel = data
+        inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
         outputs = client(inputs).detach()
         outputs = middle(outputs)

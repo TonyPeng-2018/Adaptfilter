@@ -10,115 +10,62 @@ import time
 from tqdm import tqdm
 
 class Sender:
-    def __init__(self, host, port):
-        # host = 'home server'
-        # port = '5566'
+    def __init__(self):
+        # host = 'localhost'
+        # host = '100.64.0.2'
+        # host = '100.64.0.4'
+        host = '100.64.0.1'
+        port = 5566
         self.host = host
         self.port = port
-        # self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.s.connect((self.host, self.port))
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.connect((self.host, self.port))
         
-    def send_jpeg(self, fp):
-        img = cv2.imread(fp)
-        t1 = time.time()
-        msg = base64.b64encode(cv2.imencode('.jpg', img)[1].tobytes())
-        t2 = time.time()
-        # print('img encode time: ', t2 - t1)
-        # calculate the size of the message
-        # self.s.connect((self.host, self.port))
-        length = pack('>Q', len(msg))
-        # send the size of the message
-        self.s.sendall(length)
-        # send the message
-        self.s.sendall(msg)
+    def sender(self):
+        try:
+            dataset_root = '/home/tonypeng/Workspace1/adaptfilter/data/'
+            # dataset_subroot = ['imagenet-20-jpeg25/', 'imagenet-20-jpeg75/', 'imagenet-20-cjpeg/',
+            #                    'imagenet-20-jpeg25-ML/', 'imagenet-20-jpeg75-ML/', 'imagenet-20-cjpeg-ML/',
+            #                    'cifar-10-jpeg25/', 'cifar-10-jpeg75/', 'cifar-10-cjpeg/',
+            #                     'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
+            #                     'imagenet-resnet-gate-emb/', 'cifar-10-mobile-gate-emb/']
+            dataset_subroot = ['cifar-10-mobile-gate-emb/']
+            dataset_subroot = [
+                               'cifar-10-jpeg25/', 'cifar-10-jpeg75/', 'cifar-10-cjpeg/',
+                                'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
+                                'cifar-10-mobile-gate-emb/']
+            for dataset in dataset_subroot:
+                dataset = dataset_root + dataset
+                print(dataset)
 
-    def send_bmp(self, batch, dataset):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect((self.host, self.port))
-        for i in tqdm(range(batch)):
-            fp = '../data/' + dataset + '-client/%s.bmp' % str(i)
-            img = cv2.imread(fp)
-            t1 = time.time()
-            msg = base64.b64encode(cv2.imencode('.bmp', img)[1].tobytes())
-            
-            # print('img encode time: ', t2 - t1)
-            # calculate the size of the message
-            # self.s.connect((self.host, self.port))
-            length = pack('>Q', len(msg))
-            # send the size of the message
-            self.s.sendall(length)
-            # send the message
-            self.s.sendall(msg)
-            t2 = time.time()
-            time.sleep(0.1)
+                file_names = [str(i) for i in range(600)]
+                files = [open(dataset + '/' + file_name, 'rb') for file_name in file_names]
+                files = [file.read() for file in files]
+                
+                for i, file in enumerate(files):
+                    # print(len(file))
+                    # file = open(dataset + '/' + str(i), 'rb')
+                    # file = file.read()
+                    msg_length = pack('>Q', len(file))
+                    time.sleep(0.01)
+                    self.s.sendall(msg_length)
+                    time.sleep(0.01)
+                    
+                    self.s.sendall(file)
+                    ttime1 = time.time()
+                    
+                    
+                    # wait for the done from the server
+                    done = self.s.recv(1)
+                    time.sleep(0.01)
+                    # print('send time: ', time.time() - ttime1)
 
-    def send_emb(self, fp1, fp2):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect((self.host, self.port))
-
-        for i in tqdm(range(10)):
-            with open(fp1, 'rb') as f:
-                msg = f.readline()
-            length = pack('>Q', len(msg))
-            # send the size of the message
-            self.s.sendall(length)
-            # send the message
-            self.s.sendall(msg)
-            with open(fp2, 'rb') as f:
-                msg = f.readline()
-            length = pack('>Q', len(msg))
-            # send the size of the message
-            self.s.sendall(length)
-            # send the message
-            self.s.sendall(msg)
-            time.sleep(0.1)
-
-    # def send_emb(self, message, channel=None):
-    #     # send an image to the server
-    #     # send the channel if 
-    #     # encode channel
-    #     msg1 = base64.b64encode(channel)
-    #     msg2 = base64.b64encode(message)
-    #     # calculate the size of the message
-    #     length1 = pack('>Q', len(msg1))
-    #     length2 = pack('>Q', len(msg2))
-    #     # send the size of the message
-    #     self.s.sendall(length1)
-    #     self.s.sendall(length2)
-    #     self.s.sendall(msg1)
-    #     self.s.sendall(msg2)
-
-    def close(self):
-        self.s.close()
-
-    def send_multiple_imgs(self, dataset, batch=100, cr=19):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect((self.host, self.port))
-
-        for i in tqdm(range(batch)):
-            for j in range(cr):
-                fp = '../data/' + dataset + '-client/%s_%s.jpg' % (str(i), str((j+1)*5))
-                img = cv2.imread(fp)
-                t1 = time.time()
-                msg = base64.b64encode(cv2.imencode('.jpg', img)[1].tobytes())
-
-                # print('img encode time: ', t2 - t1)
-                # calculate the size of the message
-                # self.s.connect((self.host, self.port))
-                length = pack('>Q', len(msg))
-                # send the size of the message
-                self.s.sendall(length)
-                # send the message
-                self.s.sendall(msg)
-                t2 = time.time()
-                time.sleep(0.1)
+                time.sleep(3)
+        except Exception as e:
+            print(e)
+            self.s.close()
 
 if __name__ == '__main__':
-    # sender = Sender('192.168.1.164', 8080)
-    sender = Sender('100.64.0.2', 5566)
-    #sender.send_jpeg('cifar_c.jpg')
-    #sender.send_emb('c1_gate2_cifar-10_uint8', 'c2_gate2_cifar-10')
-    # sender.send_multiple_imgs(dataset = 'imagenet', batch = 10)
-    sender.send_bmp(batch = 100, dataset = 'cifar-10')
-    sender.close()
+    sender = Sender()
+    sender.sender()                                        
     

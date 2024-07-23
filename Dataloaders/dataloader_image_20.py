@@ -98,7 +98,7 @@ class Dataloader_imagenet(Dataset):
 
         if self.trans != None:
             img = self.trans(img)
-        return img, torch.tensor(label), torch.tensor(new_label)
+        return img, torch.tensor(label)
 
     def transform(self):
         mean = (0.485, 0.456, 0.406)
@@ -132,25 +132,25 @@ def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 100, devic
     train = torch.utils.data.DataLoader(train, batch_size=train_batch, shuffle=True)
     test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=False)
     val = torch.utils.data.DataLoader(val, batch_size=train_batch, shuffle=True)
-    return train, test, val, class_index
+    return train, test, val
 
 if __name__ == '__main__':
-    train, test, val, classes = Dataloader_imagenet_20_integrated('home')
-    for i, data in enumerate(train):
-        inputs, labels, new_labels = data
-        print(inputs.size(), labels.size(), new_labels.size())
-        # show image 0 and labels
+    train, test, val, classes = Dataloader_imagenet_20_integrated()
+    # for i, data in enumerate(train):
+    #     inputs, labels, new_labels = data
+    #     print(inputs.size(), labels.size(), new_labels.size())
+    #     # show image 0 and labels
 
-        break
-    import matplotlib.pyplot as plt
-    import numpy as np
-    # functions to show an image
-    def imshow(img):
-        npimg = img.numpy()
-        plt.imshow(np.transpose(npimg, (1, 2, 0)))
-        plt.show()
-    print(classes[str(labels[0].item())], new_labels[0])
-    imshow(inputs[0])
+    #     break
+    # import matplotlib.pyplot as plt
+    # import numpy as np
+    # # functions to show an image
+    # def imshow(img):
+    #     npimg = img.numpy()
+    #     plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    #     plt.show()
+    # print(classes[str(labels[0].item())], new_labels[0])
+    # imshow(inputs[0])
                
     #     self.t_v_sampler = np.random.choice(self.len, int(self.len*0.4), replace=False)
     #     self.tr_sampler = np.delete(np.arange(self.len), self.t_v_sampler)

@@ -21,19 +21,20 @@ from tqdm import tqdm
 from Utils import utils, encoder
 
 gate_confidence = 0.85
-batch_size = 60
+batch_size = 100
 
-dataset = 'imagenet-20'
-i_stop = 10
+dataset = 'ccpd'
+i_stop = 1
 
 # 2. dataset
 # directly read bmp image from the storage
 data_root = '../data/'+dataset+'-client/'
-images_list = os.listdir(data_root)
-images_list.remove('labels.txt')
-# remove ending with jpg
-images_list = [x for x in images_list if x.endswith('.bmp')]
-images_list = sorted(images_list)
+# images_list = os.listdir(data_root)
+# images_list.remove('labels.txt')
+# # remove ending with jpg
+# images_list = [x for x in images_list if x.endswith('.bmp')]
+# images_list = sorted(images_list)
+images_list = [str(x)+'.bmp' for x in range(batch_size)]
 
 client_time = [0] * batch_size * i_stop
 

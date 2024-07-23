@@ -15,7 +15,7 @@ class Sender:
         # host = 'localhost'
         # host = '100.64.0.2'
         # host = '100.64.0.4'
-        host = '192.168.1.164'
+        host = '127.0.0.1'
         port = 5566
         self.host = host
         self.port = port
@@ -36,9 +36,10 @@ class Sender:
             #                     'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
             #                     'cifar-10-mobile-gate-emb/']
             dataset_subroot = 'imagenet-20-client/'
-            ind = [str(x)+'.bmp' for x in range(600)]
+            ind = [str(x)+'.bmp' for x in range(100)]
             quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
             for i in range(len(quality)):
+                print('quality: ', quality[i])
                 for j in range(len(ind)):
                     image_path = dataset_root + dataset_subroot + ind[j]
                     image = cv2.imread(image_path)

@@ -15,7 +15,7 @@ class Sender:
         # host = '100.64.0.2'
         # host = '100.64.0.4'
         host = '127.0.0.1'
-        port = 5566
+        port = 5568
         self.host = host
         self.port = port
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,7 +24,7 @@ class Sender:
     def sender(self):
         try:
             dataset_root = '/home/tonypeng/Workspace1/adaptfilter/data/'
-            # dataset_subroot = ['imagenet-20-jpeg25/', 'imagenet-20-jpeg75/', 'imagenet-20-cjpeg/',
+            dataset_subroot = ['imagenet-20-jpeg25/', 'imagenet-20-jpeg75/', 'imagenet-20-cjpeg/']
             #                    'imagenet-20-jpeg25-ML/', 'imagenet-20-jpeg75-ML/', 'imagenet-20-cjpeg-ML/',
             #                    'cifar-10-jpeg25/', 'cifar-10-jpeg75/', 'cifar-10-cjpeg/',
             #                     'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
@@ -38,8 +38,9 @@ class Sender:
             #                    'imagenet-resnet-gate-emb-0.75/', 'imagenet-resnet-gate-emb-0.85/',
             #                    'imagenet-resnet-gate-emb-0.95/', 'imagenet-resnet-gate-emb-0.99/']
             # dataset_subroot = ['imagenet-resnet-gate-emb-99/']
-            dataset_subroot = ['ccpd-jpeg25/', 'ccpd-jpeg75/', 'ccpd-cjpeg/',
-                               'ccpd-jpeg25-ML/', 'ccpd-jpeg75-ML/', 'ccpd-cjpeg-ML/']
+            # dataset_subroot = ['ccpd-jpeg25/', 'ccpd-jpeg75/', 'ccpd-cjpeg/',
+            #                    'ccpd-jpeg25-ML/', 'ccpd-jpeg75-ML/', 'ccpd-cjpeg-ML/']
+            # dataset_subroot = ['ccpd-client']
                             #    'ccpd-resnet-gate-emb/']
             for dataset in dataset_subroot:
                 dataset = dataset_root + dataset

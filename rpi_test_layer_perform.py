@@ -31,8 +31,8 @@ r_imagenet_bw_total = 224*224*3*4/1024
 # subplots
 
 fig, axs = plt.subplots(2,1)
-m_x = np.arange(len(m_cifar_lat))
-r_x = np.arange(len(r_imagenet_lat))
+m_x = np.arange(len(m_cifar_lat))+1
+r_x = np.arange(len(r_imagenet_lat))+1
 
 axs[0].bar(m_x-0.2, m_cifar_lat, color='b',width=0.4,alpha=0.5, label='Latency')
 # plot a line for the total latency
@@ -40,7 +40,6 @@ axs[0].axhline(y=m_cifar_lat_total, color='g', linestyle='--',label='Total laten
 axs[0].set_xlabel('Layer')
 axs[0].set_ylabel('Latency(ms)')
 axs[0].set_xticks(m_x)
-axs[0].set_xticklabels(m_x)
 axs_t = axs[0].twinx()
 axs_t.bar(m_x+0.2, m_cifar_bw, color='orange',width=0.4,alpha=0.5, label='Intermediate size')
 axs_t.axhline(y=m_cifar_bw_total, color='r', linestyle='-.',label='Image size')
@@ -54,7 +53,6 @@ axs[1].axhline(y=r_imagenet_lat_total, color='g', linestyle='--',label='Total la
 axs[1].set_xlabel('Layer')
 axs[1].set_ylabel('Latency(ms)')
 axs[1].set_xticks(r_x)
-axs[1].set_xticklabels(r_x)
 axs_t = axs[1].twinx()
 axs_t.bar(r_x+0.2, r_imagenet_bw, color='orange',width=0.4,alpha=0.5, label='Intermediate size')
 axs_t.axhline(y=r_imagenet_bw_total, color='r', linestyle='-.',label='Image size')
@@ -64,3 +62,38 @@ axs_t.legend()
 
 # save the plot
 plt.savefig('./Plots/layer_latency_bandwidth.pdf')
+
+# plot the latency + bandwidth
+network_speed = [100/8, 250/8, 1024/8]
+m_cifar_overall_lats = []
+for i in range(3):
+    m_cifar_overall_lats.append(m_cifar_lat + m_cifar_bw / network_speed[i])
+m_cifar_overall_lats = np.array(m_cifar_overall_lats)
+
+r_imagenet_overall_lats = []
+for i in range(3):
+    r_imagenet_overall_lats.append(r_imagenet_lat + r_imagenet_bw / network_speed[i])
+r_imagenet_overall_lats = np.array(r_imagenet_overall_lats)
+
+fig, axs = plt.subplots(2,1)
+m_x = np.arange(len(m_cifar_lat))+1
+r_x = np.arange(len(r_imagenet_lat))+1
+
+axs[0].plot(m_x, m_cifar_overall_lats[0], color='b', label='100Kbps', marker='o',alpha=0.5)
+axs[0].plot(m_x, m_cifar_overall_lats[1], color='g', label='250Kbps', marker='*',alpha=0.5)
+axs[0].plot(m_x, m_cifar_overall_lats[2], color='r', label='1Mbps', marker='+',alpha=0.5)
+axs[0].set_xlabel('Layer')
+axs[0].set_ylabel('Latency(ms)')
+axs[0].set_xticks(m_x)
+axs[0].legend()
+
+axs[1].plot(r_x, r_imagenet_overall_lats[0], color='b', label='100Kbps', marker='o',alpha=0.5)
+axs[1].plot(r_x, r_imagenet_overall_lats[1], color='g', label='250Kbps', marker='*',alpha=0.5)
+axs[1].plot(r_x, r_imagenet_overall_lats[2], color='r', label='1Mbps', marker='+',alpha=0.5)
+axs[1].set_xlabel('Layer')
+axs[1].set_ylabel('Latency(ms)')
+axs[1].set_xticks(r_x)
+axs[1].legend()
+
+# save the plot
+plt.savefig('./Plots/layer_latency_bandwidth_overall.pdf')

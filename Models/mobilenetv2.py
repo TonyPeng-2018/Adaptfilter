@@ -1005,17 +1005,15 @@ class MobileNetV2_layers(nn.Module):
                 self.infertime[i] += self.infertime[i-1]
             self.infertime[i] += t2 - t1
             self.infermemory[i] += (x.element_size() * x.nelement())
-        print(self.infertime)
-        print(self.infermemory)
         return x
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
 if __name__ == '__main__':
-    client, server = mobilenetv2_splitter(weight_root= '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', num_classes=1000, device = 'cuda:0')
-    client, server = mobilenetv2_splitter(weight_root= '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/cifar-10', num_classes=10, device = 'cuda:0')
+    # client, server = mobilenetv2_splitter(weight_root= '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', num_classes=1000, device = 'cuda:0')
+    # client, server = mobilenetv2_splitter(weight_root= '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/cifar-10', num_classes=10, device = 'cuda:0')
     m = MobileNetV2_layers()
     import torchsummary
-    print(torchsummary.summary(m, (3, 224, 224), device='cpu'))
+    torchsummary.summary(m, (3, 224, 224), device='cpu')
 

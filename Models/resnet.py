@@ -519,11 +519,11 @@ class resnet_middle(nn.Module):
         return self._forward_impl(x)
 # test the model
 
-class ResNet_layers(nn.Module):
+class resnet_layers(nn.Module):
     def __init__(
         self,
-        block: Type[Union[BasicBlock, Bottleneck]],
-        layers: List[int],
+        block: Type[Union[BasicBlock, Bottleneck]] = Bottleneck,
+        layers: List[int] = [3, 4, 6, 3],
         num_classes: int = 1000,
         zero_init_residual: bool = False,
         groups: int = 1,
@@ -662,7 +662,7 @@ if __name__ == '__main__':
     # client, server = resnet_client()
     # print(model)
     # client = resnet50_client()
-    model = ResNet_layers(Bottleneck, [3, 4, 6, 3], num_classes = 1000)
+    model = resnet_layers(Bottleneck, [3, 4, 6, 3], num_classes = 1000)
     import torchsummary
     torchsummary.summary(model, (3, 224, 224), device='cpu')
     

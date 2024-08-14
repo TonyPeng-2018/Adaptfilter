@@ -594,7 +594,7 @@ class resnet_layers(nn.Module):
         self.sections.append(self.fc)
 
         self.infertime = [0]*len(self.sections)
-        self.infermem = [0]*len(self.sections)
+        self.infermemory = [0]*len(self.sections)
 
 
     def _make_layer(
@@ -647,14 +647,14 @@ class resnet_layers(nn.Module):
             if i > 0:
                 self.infertime[i] += self.infertime[i-1]
             self.infertime[i] += t2 - t1
-            self.infermem[i] = x.element_size() * x.nelement()
+            self.infermemory[i] = x.element_size() * x.nelement()
         return x
 
     def forward(self, x: Tensor) -> Tensor:
     
         result = self._forward_impl(x)
         print('Time:', self.infertime)
-        print('Memory:', self.infermem)
+        print('Memory:', self.infermemory)
         return result
     
 if __name__ == '__main__':

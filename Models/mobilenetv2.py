@@ -980,6 +980,8 @@ class MobileNetV2_layers(nn.Module):
         self.sections.append(avg_pool)
         self.sections.append(flatten)
         self.sections.append(self.classifier)
+        for i in range(len(self.sections)):
+            print('section', i, self.sections[i])
 
         # weight initialization
         for m in self.modules():

@@ -131,6 +131,10 @@ def image_transform(dataset):
         mean = (0.5071, 0.4867, 0.4408)
         std = (0.2675, 0.2565, 0.2761)
         return mean, std
+    elif dataset == 'ccpd':
+        mean = (0, 0, 0)
+        std = (1, 1, 1)
+        return mean, std
 
 def gate_normal(a, x):
     return a**(3*(1/x**3)) * (1/a)**3

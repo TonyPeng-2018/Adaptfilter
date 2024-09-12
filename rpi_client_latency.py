@@ -21,6 +21,7 @@ from tqdm import tqdm
 from Utils import utils, encoder
 from torchvision import transforms
 import torchsummary
+from PIL import Image
 
 m_s_mobile = [1,2,4,8,16]
 m_s_resnet = [1,2,4,8,16,32]
@@ -38,7 +39,7 @@ dataset = sys.argv[1]
 model = sys.argv[2]
 confidence = float(sys.argv[3])
 weight = weight_root[dataset]
-i_stop = 100
+i_stop = 600
 
 width, height = r_sizes[dataset][0]//r_rates[model], \
                 r_sizes[dataset][1]//r_rates[model]
@@ -103,26 +104,31 @@ if dataset == 'imagenet':
 else:
     data_set = dataset
 data_root = '../data/'+data_set+'-client/'
-n_images = 100
+n_images = i_stop
 images_list = [data_root + str(x)+'.bmp' for x in range(n_images)]
 
 client_time = 0
 
 frequency = np.zeros(len(middle_size)+1)
-mean, std = utils.image_transform(dataset)
-transform = transforms.Compose([
+if dataset == 'cifar-10':
+        normal = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean, std),
-            transforms.Resize((r_sizes[dataset][0], r_sizes[dataset][1])),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            ])
+elif dataset == 'imagenet':
+    normal = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
 
 with torch.no_grad():
     for i, i_path in tqdm(enumerate(images_list)):
         if i >= i_stop:
             break
-        image = cv2.imread(i_path, cv2.IMREAD_COLOR)
-        image = image.astype(np.float32)/255.0
-        image = transform(image)
+        image = Image.open(i_path).convert('RGB')
+        image = normal(image)
         image = image.unsqueeze(0)
         
         s_time = time.time()

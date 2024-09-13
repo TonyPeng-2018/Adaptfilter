@@ -11,9 +11,8 @@ from tqdm import tqdm
 from PIL import Image
 
 class Sender:
-    def __init__(self):
+    def __init__(self, port):
         host = '127.0.0.1'
-        port = 5566
         self.host = host
         self.port = port
         self.i_stop = 600
@@ -58,11 +57,18 @@ class Sender:
                 for j in range(i_stop):
                     f_path = d_path + ds + str(j)
                     f = open(f_path, 'rb')
+                    f_path2 = d_path + ds + str(j) + '_h'
+                    f2 = open(f_path2, 'rb')
                     msg = f.read()
+                    msg2 = f2.read()
 
                     msg_l = pack('>Q', len(msg))
                     self.s.sendall(msg_l)
                     self.s.sendall(msg)
+
+                    msg_l2 = pack('>Q', len(msg2))
+                    self.s.sendall(msg_l2)
+                    self.s.sendall(msg2)
                     done = self.s.recv(1)
                     time.sleep(0.01)
 
@@ -115,6 +121,7 @@ class Sender:
             self.s.close()
 
 if __name__ == '__main__':
-    sender = Sender()
+    port = int(sys.argv[1])
+    sender = Sender(port)
     sender.sender()                                        
     

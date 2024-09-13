@@ -7,13 +7,13 @@ from tqdm import tqdm
 import sys
 
 class Server:
-    def __init__(self):
+    def __init__(self, port):
         # host = 'localhost'
         # host = '100.64.0.2'
         # host = '100.64.0.4'
         host = '127.0.0.1'
-        port = 5566
         self.i_stop = 600
+        self.port = port
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.s.bind((host, port))
@@ -59,31 +59,37 @@ class Server:
                 packet_receive_time = 0
                 received_bytes = 0
                 print("Got a connection from %s" % str(addr))
-                for i in tqdm(range(100)):
+                for i in tqdm(range(i_stop)):
                     data = client_socket.recv(8) # length of encoded img
                     t1 = time.time()
                     length = unpack('>Q', data)[0]
                     data = b''
                     while len(data) < length:
                         data += client_socket.recv(1024 if length - len(data) > 1024 else length - len(data))
-                    t2 = time.time()
                     received_bytes += len(data)
                     # send received to the client
+
+                    data = client_socket.recv(8) # length of encoded img
+                    length = unpack('>Q', data)[0]
+                    data = b''
+                    while len(data) < length:
+                        data += client_socket.recv(1024 if length - len(data) > 1024 else length - len(data))
+                    t2 = time.time()
+                    received_bytes += len(data)
                     client_socket.sendall(b'1')
                     packet_receive_time += t2 - t1
-                    print(t2-t1)
                 #
                 packet_receive_time = packet_receive_time * 1000 / i_stop
                 received_bytes = received_bytes / i_stop
                 received_bytes = np.round(received_bytes, 2)
                 packet_receive_time = np.round(packet_receive_time, 2)
-                print('Average received bytes:', received_bytes)
-                print('Average packet receive time:', packet_receive_time)
+                print(ds, ' avg received bytes:', received_bytes, ' avg receive time:', packet_receive_time)
                 self.s.close()
         except Exception as e:
             print(e)
             self.s.close()
 
 if __name__ == '__main__':
-    server = Server()
+    port = int(sys.argv[1])
+    server = Server(port)
     server.receiver()

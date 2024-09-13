@@ -1,7 +1,0 @@
-gate_frequency[0]: 0
-gate_frequency[1]: 6
-gate_frequency[2]: 45
-gate_frequency[3]: 492
-gate_frequency[4]: 56
-gate_frequency[5]: 1
-gate_frequency[6]: 0

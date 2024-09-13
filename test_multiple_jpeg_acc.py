@@ -21,23 +21,28 @@ import time
 import torch
 from tqdm import tqdm
 from Utils import utils, encoder
+import Utils.utils as utils
+from torchvision import transforms
+from PIL import Image
 
-batch_size = 600
-
-dataset = 'imagenet-20'
+i_stop = 600
+dataset = sys.argv[1]
+data_set = dataset if dataset != 'imagenet' else 'imagenet-20'
+model = sys.argv[2]
+weight_root = './Weights/'+dataset+'/'
 
 # 2. dataset
 # directly read bmp image from the storage
 
-data_root = '../data/'+dataset+'-client/'
+data_root = '../data/'+dataset+'-raw-image/'
 label = open(data_root + 'labels.txt', 'r')
 label = label.read()
 label = label.split('\n')
 
-jpeg_folders_quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+jpeg_folders_quality = [10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 25, 75]
 img_folders = ['../data/last-'+dataset+'-jpeg'+str(x)+'/' for x in jpeg_folders_quality]
 
-client, server = resnet.resnet_splitter(weight_root='./Weights/imagenet/', layers=50, device='cuda:0')
+client, server = resnet.resnet_splitter(weight_root='./Weights/'+dataset+'/', layers=50, device='cuda:0')
 client = client.eval()
 server = server.eval()
 client = client.to('cuda:0')
@@ -46,14 +51,24 @@ server = server.to('cuda:0')
 accuracies = [0]*len(jpeg_folders_quality)
 server_time = [0]*len(jpeg_folders_quality)
 
-import Utils.utils as utils
-from torchvision import transforms
-from PIL import Image
-mean, std = utils.image_transform('imagenet')
-normal = transforms.Compose([
+if dataset == 'cifar-10':
+    normal = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean, std),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
             ])
+elif dataset == 'imagenet':
+    normal = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+elif dataset == 'ccpd':
+    normal = transforms.Compose([
+        transforms.Resize((224,224)),
+        transforms.ToTensor(),
+        ])
+    
 with torch.no_grad():
     for i, img_folder in tqdm(enumerate(img_folders)):
         img_list = [str(x) + '.jpg' for x in range(100)]
@@ -63,6 +78,8 @@ with torch.no_grad():
             if dataset == 'cifar-10':
                 image = image.resize((32, 32))
             elif dataset == 'imagenet-20':
+                image = image.resize((224, 224))
+            elif dataset == 'ccpd':
                 image = image.resize((224, 224))
             image = np.array(image)
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)

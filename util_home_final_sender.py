@@ -12,57 +12,69 @@ from PIL import Image
 
 class Sender:
     def __init__(self):
-        # host = 'localhost'
-        # host = '100.64.0.2'
-        # host = '100.64.0.4'
         host = '127.0.0.1'
         port = 5566
         self.host = host
         self.port = port
+        self.i_stop = 600
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
         
     def sender(self):
         try:
-            dataset_root = '/home/tonypeng/Workspace1/adaptfilter/data/'
-            # dataset_subroot = ['imagenet-20-jpeg25/', 'imagenet-20-jpeg75/', 'imagenet-20-cjpeg/',
-            #                    'imagenet-20-jpeg25-ML/', 'imagenet-20-jpeg75-ML/', 'imagenet-20-cjpeg-ML/',
-            #                    'cifar-10-jpeg25/', 'cifar-10-jpeg75/', 'cifar-10-cjpeg/',
-            #                     'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
-            #                     'imagenet-resnet-gate-emb/', 'cifar-10-mobile-gate-emb/']
-            # dataset_subroot = ['cifar-10-mobile-gate-emb/']
-            # dataset_subroot = [
-            #                    'cifar-10-jpeg25/', 'cifar-10-jpeg75/', 'cifar-10-cjpeg/',
-            #                     'cifar-10-jpeg25-ML/', 'cifar-10-jpeg75-ML/', 'cifar-10-cjpeg-ML/',
-            #                     'cifar-10-mobile-gate-emb/']
-            dataset_subroot = 'imagenet-20-client/'
-            ind = [str(x)+'.bmp' for x in range(100)]
-            quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-            for i in range(len(quality)):
-                print('quality: ', quality[i])
-                for j in range(len(ind)):
-                    image_path = dataset_root + dataset_subroot + ind[j]
-                    image = cv2.imread(image_path)
-                    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality[i]]
-                    result, img_code = cv2.imencode('.jpg', image, encode_param)
-                    img_code = img_code.tobytes()
-                    img_code = base64.b64encode(img_code)
-                    msg_length = pack('>Q', len(img_code))
-                    self.s.sendall(msg_length)
-                    self.s.sendall(img_code)
+            d_path = '/home/tonypeng/Workspace1/adaptfilter/data/'
+            d_subpath = []
+
+            # d_subpath.append('imagenet-20-jpeg25/')
+            # d_subpath.append('imagenet-20-jpeg75/')
+            # d_subpath.append('imagenet-20-cjpeg/')
+            # d_subpath.append('imagenet-20-jpeg25-ML/')
+            # d_subpath.append('imagenet-20-jpeg75-ML/')
+            # d_subpath.append('imagenet-20-cjpeg-ML/')
+            d_subpath.append('imagenet-20-mobile-gate-emb/')
+            d_subpath.append('imagenet-20-resnet-gate-emb/')
+
+            # d_subpath.append('cifar-10-jpeg25/')
+            # d_subpath.append('cifar-10-jpeg75/')
+            # d_subpath.append('cifar-10-cjpeg/')
+            # d_subpath.append('cifar-10-jpeg25-ML/')
+            # d_subpath.append('cifar-10-jpeg75-ML/')
+            # d_subpath.append('cifar-10-cjpeg-ML/')
+            d_subpath.append('cifar-10-mobile-gate-emb/')
+            d_subpath.append('cifar-10-resnet-gate-emb/')
+
+            # d_subpath.append('ccpd-jpeg25/')
+            # d_subpath.append('ccpd-jpeg75/')
+            # d_subpath.append('ccpd-cjpeg/')
+            # d_subpath.append('ccpd-jpeg25-ML/')
+            # d_subpath.append('ccpd-jpeg75-ML/')
+            # d_subpath.append('ccpd-cjpeg-ML/')
+            d_subpath.append('ccpd-mobile-gate-emb/')
+            d_subpath.append('ccpd-resnet-gate-emb/')
+            
+            i_stop = self.i_stop
+            # quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+            for ds in d_subpath:
+                for j in range(i_stop):
+                    f_path = d_path + ds + str(j)
+                    f = open(f_path, 'rb')
+                    msg = f.read()
+
+                    msg_l = pack('>Q', len(msg))
+                    self.s.sendall(msg_l)
+                    self.s.sendall(msg)
                     done = self.s.recv(1)
                     time.sleep(0.01)
-                time.sleep(3)
 
-            # dataset_subroot = ['last-imagenet-20-jpeg'+str(x) for x in range(10, 100, 10)]
-            # for dataset in dataset_subroot:
-            #     dataset = dataset_root + dataset
-            #     print('dataset: ', dataset)
+            # d_subpath = ['last-imagenet-20-jpeg'+str(x) for x in range(10, 100, 10)]
+            # for d in d_subpath:
+            #     d = d_path + d
+            #     print('d: ', d)
 
             #     file_names = [str(i) for i in range(100)]
             #     files = []
                 # for i in range(len(file_names)):
-                #     # file_names[i] = Image.open(dataset + '/' + str(i)+'.jpg')
+                #     # file_names[i] = Image.open(d + '/' + str(i)+'.jpg')
                 #     # file_names[i] = file_names[i].convert('RGB')
                 #     # # encode
                 #     # # file_names[i] = file_names[i].resize((224, 224))
@@ -70,18 +82,18 @@ class Sender:
                 #     # # encode
                 #     # file_names[i] = base64.b64encode(file_names[i])
                 #     # files.append(file_names[i])
-                #     file_names[i] = dataset + '/' + str(i)+'.jpg'
+                #     file_names[i] = d + '/' + str(i)+'.jpg'
 
-                #     file_names[i] = cv2.imread(dataset + '/' + str(i)+'.jpg')
+                #     file_names[i] = cv2.imread(d + '/' + str(i)+'.jpg')
                 #     result, img_code = cv2.imencode('.jpg', file_names[i])
                 #     file_names[i] = img_code.tobytes()
                 #     files.append(file_names[i])
                 
                 # for i, file in enumerate(files):
                 #     # print(len(file))
-                #     # file = open(dataset + '/' + str(i), 'rb')
+                #     # file = open(d + '/' + str(i), 'rb')
                 #     # file = file.read()
-                #     f = cv2.imread(dataset + '/' + str(i)+'.jpg')
+                #     f = cv2.imread(d + '/' + str(i)+'.jpg')
                 #     result, f = cv2.imencode('.jpg', f[i])
                 #     f = f.tobytes()
                 #     msg_length = pack('>Q', len(f))

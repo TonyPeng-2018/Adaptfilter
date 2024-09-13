@@ -22,6 +22,7 @@ from Utils import utils, encoder
 from torchvision import transforms
 import torchsummary
 from PIL import Image
+import gzip
 
 m_s_mobile = [1,2,4,8,16]
 m_s_resnet = [1,2,4,8,16,32]
@@ -38,16 +39,20 @@ weight_root = {'cifar-10': './Weights/cifar-10/',
 dataset = sys.argv[1]
 model = sys.argv[2]
 confidence = float(sys.argv[3])
+data_set = dataset if dataset != 'imagenet' else 'imagenet-20'
 weight = weight_root[dataset]
 i_stop = 600
 
 width, height = r_sizes[dataset][0]//r_rates[model], \
                 r_sizes[dataset][1]//r_rates[model]
 middle_size = m_sizes[model]
+
+l_time = time.time()
 if model == 'resnet':
     client,server = resnet.resnet_splitter(num_classes=classes[dataset], weight_root=weight+'/', device='cpu', layers=50)
 if model == 'mobile':
     client,server = mobilenetv2.mobilenetv2_splitter(num_classes=classes[dataset], weight_root=weight+'/', device='cpu')
+l_time = time.time() - l_time
 
 middle_models = []
 middle_models2 = []
@@ -101,10 +106,11 @@ for i in range(len(middle_size)):
 server.eval()
 
 # cuda
+l2_time = time.time()
 for i in range(len(middle_size)):
     middle_models2[i].to('cuda:0')
 server.to('cuda:0')
-
+l2_time = time.time() - l2_time
 # quantize
 client = torch.ao.quantization.quantize_dynamic(client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8)
 for i in range(len(middle_size)):
@@ -113,17 +119,13 @@ for i in range(len(middle_size)):
 
 # 2. dataset
 # directly read bmp image from the storage
-if dataset == 'imagenet':
-    data_set = 'imagenet-20'
-else:
-    data_set = dataset
 data_root = '../data/'+data_set+'-raw-image/'
 n_images = i_stop
 images_list = [data_root + str(x)+'.bmp' for x in range(n_images)]
 
 frequency = np.zeros(len(middle_size)+1)
 if dataset == 'cifar-10':
-        normal = transforms.Compose([
+    normal = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
             ])
@@ -133,6 +135,11 @@ elif dataset == 'imagenet':
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+elif dataset == 'ccpd':
+    normal = transforms.Compose([
+        transforms.Resize((224,224)),
+        transforms.ToTensor(),
         ])
 
 gate_folder = '../data/'+data_set+'-'+model+'-gate-emb/'
@@ -145,6 +152,7 @@ with open ('../data/'+data_set+'-raw-image/labels.txt', 'r') as f:
     labels = f.readlines()
 
 result = []
+server_time = 0
 with torch.no_grad():
     for i, i_path in tqdm(enumerate(images_list)):
         exit_flag = -1
@@ -168,25 +176,42 @@ with torch.no_grad():
                 middle_int = utils.float_to_uint(middle_in)
                 middle_int = middle_int.numpy().copy(order='C')
                 middle_int = middle_int.astype(np.uint8)
+                # gzip
+                middle_int = middle_int.tobytes()
+                middle_int = gzip.compress(middle_int)
+                # print('middle_int:', middle_int)
                 send_msg = base64.b64encode(middle_int)
                 # write the send_msg to the fodler
                 with open(gate_folder+str(i), 'wb') as f:
                     f.write(send_msg)
+                with open(gate_folder+str(i)+'_h', 'wb') as f:
+                    # dataset, model, max, min
+                    msg = data_set + ',' + model + ',' + str(mmax) + ',' + str(mmin)
+                    msg = msg.encode()
+                    f.write(msg)
                 break
                 
         if exit_flag == -1:
-            middle_in, mmin, mmax = utils.normalize_return(client_out)
+            client_out, mmin, mmax = utils.normalize_return(client_out)
             middle_int = utils.float_to_uint(client_out)
             middle_int = middle_int.numpy().copy(order='C')
             middle_int = middle_int.astype(np.uint8)
+            middle_int = middle_int.tobytes()
+            middle_int = gzip.compress(middle_int)
             send_msg = base64.b64encode(middle_int)
             # write the send_msg to the fodler
             with open(gate_folder+str(i), 'wb') as f:
                 f.write(send_msg)
+            with open(gate_folder+str(i)+'_h', 'wb') as f:
+                 # dataset, model, max, min
+                msg = data_set + ',' + model + ',' + str(mmax) + ',' + str(mmin)
+                msg = msg.encode()
+                f.write(msg)
 
-        
+        s_time = time.time()
         rec_msg = send_msg
         rec_msg = base64.b64decode(rec_msg)
+        rec_msg = gzip.decompress(rec_msg)
         rec_msg = np.frombuffer(rec_msg, dtype=np.uint8)
         rec_msg = rec_msg.astype(np.float32)
         rec_msg = rec_msg / 255.0
@@ -206,11 +231,12 @@ with torch.no_grad():
         if pred == int(labels[i]):
             accuracy += 1
         frequency[exit_flag] += 1
+        server_time += time.time() - s_time 
 
 # print the list without [ and ]
-print(dataset, model)
+print('dataset:', dataset, 'model:', model)
 # print numpy frequency with comma
 frequency = str(frequency.astype(int)).replace('[','').replace(']','').replace('  ',',')
-print(frequency)
-print(accuracy/i_stop)
-
+print('frequency:', frequency)
+print('accuracy:%.4f'%(accuracy/i_stop))
+print('server_time: %.4f'%(server_time*1000/i_stop))

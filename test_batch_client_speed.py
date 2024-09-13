@@ -32,6 +32,7 @@ for gate_confidence in confidence:
 
     dataset = 'imagenet'
     model = 'resnet'
+    data_set = 'imagenet-20'
     i_stop = 1
 
     width, height = reduced_sizes[dataset][0]/reduced_rates[model], \
@@ -106,7 +107,7 @@ for gate_confidence in confidence:
 
     gate_frequency = [0] * (len(middle_size) + 1)
 
-    gate_emb_folder = '../data/'+dataset+'-'+model+'-gate-emb-' + str(gate_confidence)+'/'
+    gate_emb_folder = '../data/'+data_set+'-'+model+'-gate-emb-' + str(gate_confidence)+'/'
     if not os.path.exists(gate_emb_folder):
         os.makedirs(gate_emb_folder)
     f = open('rpi-gate-emb.txt', 'w')

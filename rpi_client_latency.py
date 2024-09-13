@@ -4,24 +4,17 @@
 
 # This file is for trainning
 # Run this on the server, or as we called offline. 
-
-import argparse
 import base64
-import cv2
-import datetime
 from Models import gatedmodel,mobilenetv2, resnet
 import numpy as np
-import os
-import PIL
-import psutil
 import sys
 import time
 import torch
 from tqdm import tqdm
-from Utils import utils, encoder
+from Utils import utils
 from torchvision import transforms
-import torchsummary
 from PIL import Image
+import gzip
 
 m_s_mobile = [1,2,4,8,16]
 m_s_resnet = [1,2,4,8,16,32]
@@ -141,6 +134,8 @@ with torch.no_grad():
                 middle_int = utils.float_to_uint(middle_in)
                 middle_int = middle_int.numpy().copy(order='C')
                 middle_int = middle_int.astype(np.uint8)
+                middle_int = middle_int.tobytes()
+                middle_int = gzip.compress(middle_int)
                 send_in = base64.b64encode(middle_int)
                 frequency[j] += 1
                 break
@@ -149,7 +144,7 @@ with torch.no_grad():
         s1_time = time.time()
         client_time += s1_time - s_time
 
-client_time = client_time * 1000 / 100
+client_time = client_time * 1000 / i_stop
 
 # print the list without [ and ]
 out_string = str(client_time).replace('[','').replace(']','')

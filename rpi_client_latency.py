@@ -115,6 +115,11 @@ elif dataset == 'imagenet':
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
+elif dataset == 'ccpd':
+    normal = transforms.Compose([
+        transforms.Resize((224,224)),
+        transforms.ToTensor(),
+        ])
 
 with torch.no_grad():
     for i, i_path in tqdm(enumerate(images_list)):
@@ -139,17 +144,16 @@ with torch.no_grad():
                 send_in = base64.b64encode(middle_int)
                 frequency[j] += 1
                 break
-        if j == len(middle_size):
-            frequency[j] += 1
         s1_time = time.time()
         client_time += s1_time - s_time
+        if j == len(middle_size):
+            frequency[j] += 1
 
 client_time = client_time * 1000 / i_stop
 
 # print the list without [ and ]
-out_string = str(client_time).replace('[','').replace(']','')
-print(dataset, model)
-print(out_string)
+print('dataset:', dataset, 'model:', model, 'confidence:', confidence)
+print('client time: %.4f'%client_time)
 # print numpy frequency with comma
 frequency = str(frequency.astype(int)).replace('[','').replace(']','').replace('  ',',')
 print(frequency)

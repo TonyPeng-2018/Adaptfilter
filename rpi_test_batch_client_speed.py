@@ -30,7 +30,7 @@ for gate_confidence in gate_confidences:
     dataset = "imagenet"
     model = "resnet"
     # i_stop = 10
-    i_stop = 1
+    i_stop = 600
 
     width, height = (
         reduced_sizes[dataset][0] / reduced_rates[model],

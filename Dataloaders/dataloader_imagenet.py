@@ -108,8 +108,9 @@ class Dataloader_imagenet(Dataset):
                     ]
                 )
         return transform
-        
-def Dataloader_imagenet_integrated(device='home', seed=2024):
+
+#return, train, test, val
+def Dataloader_imagenet_integrated(train_batch=128, test_batch=100, device='home', seed=2024):
     dataset = Dataset_imagenet(device=device)
     tr_sampler, t_sampler, v_sampler = dataset.return_sampler()
     tr_dict, t_dict, v_dict = dataset.return_dict()
@@ -117,9 +118,9 @@ def Dataloader_imagenet_integrated(device='home', seed=2024):
     train = Dataloader_imagenet(tr_sampler, tr_dict, transform=True)
     test = Dataloader_imagenet(t_sampler, t_dict, transform=True)
     val = Dataloader_imagenet(v_sampler, v_dict, transform=True)
-    train = torch.utils.data.DataLoader(train, batch_size=128, shuffle=True)
-    test = torch.utils.data.DataLoader(test, batch_size=100, shuffle=True)
-    val = torch.utils.data.DataLoader(val, batch_size=128, shuffle=True)
+    train = torch.utils.data.DataLoader(train, batch_size=train_batch, shuffle=True)
+    test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=True)
+    val = torch.utils.data.DataLoader(val, batch_size=train_batch, shuffle=True)
     return train, test, val
 
 if __name__ == '__main__':

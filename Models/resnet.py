@@ -656,6 +656,18 @@ class resnet_layers(nn.Module):
         print('Time:', self.infertime)
         print('Memory:', self.infermemory)
         return result
+
+class resnet_end_linear(nn.Module):
+    def __init__(
+        self,
+        in_class: int = 1000,
+        num_classes: int = 10,
+    ) -> None:
+        super().__init__()
+        self.fc = nn.Linear(512 * 4, num_classes)
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.fc(x)
     
 if __name__ == '__main__':
     # model = resnet50(1000)

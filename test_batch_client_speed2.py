@@ -20,17 +20,19 @@ import torch
 from tqdm import tqdm
 from Utils import utils, encoder
 
-gate_confidences = [0.55, 0.65, 0.75, 0.85, 0.95, 0.99]
-for gate_confidence in gate_confidences:
+confidence = [0.55, 0.65, 0.75, 0.85, 0.95, 0.99]
+# confidence = [0.85]
+
+for gate_confidence in confidence:
     # gate_confidence = 0.85
+    batch_size = 600
+
     middle_sizes = {"mobile": [1, 2, 4, 8, 16], "resnet": [1, 2, 4, 8, 16, 32]}
     reduced_sizes = {"cifar-10": (32, 32), "imagenet": (224, 224)}
     reduced_rates = {"mobile": 2, "resnet": 4}
 
     dataset = "imagenet"
     model = "resnet"
-    # i_stop = 10
-    i_stop = 1
 
     width, height = (
         reduced_sizes[dataset][0] / reduced_rates[model],
@@ -40,8 +42,8 @@ for gate_confidence in gate_confidences:
 
     # client include client, middle and gate
     if model == "mobile":
-        client = mobilenetv2.mobilenetv2_splitter_client(
-            weight_root="./Weights/" + dataset + "/", device="cpu"
+        client, server = mobilenetv2.MobileNetV2_splitter(
+            weight_root="./Weights/" + dataset + "/"
         )
         middle_models = []
         for i in range(len(middle_size)):
@@ -62,9 +64,11 @@ for gate_confidence in gate_confidences:
             )
 
     elif model == "resnet":
-        client = resnet.resnet_splitter_client(
-            weight_root="./Weights/" + dataset + "/", device="cpu", layers=50
+        client, server = resnet.resnet_splitter(
+            weight_root="./Weights/" + dataset + "/", layers=50, device="cpu"
         )
+        server = server.to("cuda:0")
+        server.eval()
 
         middle_models = []
         for i in range(len(middle_size)):
@@ -83,6 +87,25 @@ for gate_confidence in gate_confidences:
                     map_location=torch.device("cpu"),
                 )
             )
+
+        middle_models2 = []
+        for i in range(len(middle_size)):
+            middle_models2.append(resnet.resnet_middle(middle=middle_size[i]))
+            middle_models2[i].load_state_dict(
+                torch.load(
+                    "./Weights/"
+                    + dataset
+                    + "/middle/"
+                    + model
+                    + "_"
+                    + dataset
+                    + "_middle_"
+                    + str(middle_size[i])
+                    + ".pth",
+                    map_location=torch.device("cpu"),
+                )
+            )
+            middle_models2[i] = middle_models2[i].to("cuda:0")
 
     gate_models = []
     for i in range(len(middle_size)):
@@ -109,6 +132,7 @@ for gate_confidence in gate_confidences:
     for i in range(len(middle_size)):
         middle_models[i].eval()
         gate_models[i].eval()
+        middle_models2[i].eval()
 
     # quantize
     client = torch.ao.quantization.quantize_dynamic(
@@ -121,25 +145,25 @@ for gate_confidence in gate_confidences:
         gate_models[i] = torch.ao.quantization.quantize_dynamic(
             gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
         )
-
+        # middle_models2[i] = torch.ao.quantization.quantize_dynamic(middle_models2[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8)
     # 2. dataset
     # directly read bmp image from the storage
     if dataset == "cifar-10":
-        data_root = "../data/" + dataset + "-client/"
+        data_root = "../data/" + dataset + "-raw-image/"
     elif dataset == "imagenet":
-        data_root = "../data/" + dataset + "-20-client/"
+        data_root = "../data/" + dataset + "-20-raw-image/"
     # images_list = os.listdir(data_root)
     # images_list.remove('labels.txt')
     # # remove ending with jpg
     # images_list = [x for x in images_list if x.endswith('.bmp')]
     # images_list = sorted(images_list)
-    images_list = [str(x) + ".bmp" for x in range(i_stop)]
-
-    client_time = 0
+    images_list = [str(x) + ".bmp" for x in range(600)]
 
     gate_frequency = [0] * (len(middle_size) + 1)
 
-    gate_emb_folder = "../data/" + dataset + "-" + model + "-gate-emb/"
+    gate_emb_folder = (
+        "../data/" + dataset + "-" + model + "-gate-emb-" + str(gate_confidence) + "/"
+    )
     if not os.path.exists(gate_emb_folder):
         os.makedirs(gate_emb_folder)
     f = open("rpi-gate-emb.txt", "w")
@@ -167,8 +191,14 @@ for gate_confidence in gate_confidences:
                 ),
             ]
         )
+
+    labelfile = open(data_root + "labels.txt", "r")
+    label = labelfile.read()
+    label = label.split("\n")
+    label = label[:600]
     # this is test the overspeed, so we don't need to load the models
     with torch.no_grad():
+        accu = 0
         for i, i_path in tqdm(enumerate(images_list)):
             image_path = data_root + i_path
             image = Image.open(image_path).convert("RGB")
@@ -199,7 +229,22 @@ for gate_confidence in gate_confidences:
                 send_in = base64.b64encode(middle_int)
 
             s1_time = time.time()
-            client_time += s1_time - s_time
+            # accuracy
+            middle_int = torch.from_numpy(middle_int).float()
+            middle_int = middle_int / 255
+            middle_int = utils.renormalize(middle_int, mmin, mmax)
+            middle_int = middle_int.to("cuda:0")
+            middle_int = middle_int.to(dtype=torch.float32)
+            if gate_exit_flag != -1:
+                middle_int = middle_models2[gate_exit_flag].out_layer(middle_int)
+            # print(client_out[0][0][0])
+            # print(middle_int[0][0][0])
+            # sys.exit()
+            output = server(middle_int)
+            _, predicted = torch.max(output, 1)
+            if predicted.item() == int(label[i]):
+                accu += 1
+
             gate_frequency[gate_exit_flag] += 1
 
             f2 = open(gate_emb_folder + i_path[:-4], "wb")
@@ -207,16 +252,11 @@ for gate_confidence in gate_confidences:
             f2.close()
             f2 = open(gate_emb_folder + i_path[:-4] + "_helper", "w")
             f2.write(str(mmax.item()) + "," + str(mmin.item()) + "\n")
-            # f.write('client_time[%d]: %f\n' % (j, client_time[j]))
         for j in range(len(gate_frequency)):
             f.write("gate_frequency[%d]: %d\n" % (j, gate_frequency[j]))
-        # avg_client_time = [0] * (len(client_time)//60)
-        # for i in range (0, len(client_time), 60):
-        #     avg_client_time[i//60] = sum(client_time[i:i+60]) / 60 * 1000
-        #     f.write('avg_client_time[%d]: %f\n' % (i, avg_client_time[i//60]))
+        print("accuracy:", accu / 600)
+
     f.close()
-    avg_client_time = client_time / len(images_list) * 1000
 
     # print average time
-    print("avg_client_time:", avg_client_time)
     print("gate_frequency:", gate_frequency)

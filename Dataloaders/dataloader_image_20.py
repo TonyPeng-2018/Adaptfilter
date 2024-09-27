@@ -120,8 +120,12 @@ class Dataloader_imagenet(Dataset):
                     ]
                 )
         return transform
-        
+
+# input train_batch, test_batch, device, seed
+# output train, test, val
 def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 100, device='home', seed=2024, transform=True):
+    # input train_batch, test_batch, device, seed
+    # output train, test, val
     dataset = Dataset_imagenet_20(device=device)
     tr_sampler, t_sampler, v_sampler = dataset.return_sampler()
     tr_dict, t_dict, v_dict = dataset.return_dict()
@@ -174,6 +178,7 @@ if __name__ == '__main__':
     # def return_class_index(self):
     #     return self.class_index
 
+'''
 # class Dataloader_imagenet(Dataset):
 #     def __init__(self, sampler, files, transform):
 #         self.sampler = sampler
@@ -209,4 +214,4 @@ if __name__ == '__main__':
 #                     ]
 #                 )
 #         return transform
-        
+'''        

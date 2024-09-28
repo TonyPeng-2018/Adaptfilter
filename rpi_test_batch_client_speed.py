@@ -19,104 +19,92 @@ import time
 import torch
 from tqdm import tqdm
 from Utils import utils, encoder
+from torchvision import transforms
+import torchsummary
+from PIL import Image
+import gzip
 
 gate_confidences = [0.55, 0.65, 0.75, 0.85, 0.95, 0.99]
-for gate_confidence in gate_confidences:
-    # gate_confidence = 0.85
-    middle_sizes = {"mobile": [1, 2, 4, 8, 16], "resnet": [1, 2, 4, 8, 16, 32]}
-    reduced_sizes = {"cifar-10": (32, 32), "imagenet": (224, 224)}
-    reduced_rates = {"mobile": 2, "resnet": 4}
+for g_conf in gate_confidences:
+    m_s_mobile = [1, 2, 4, 8, 16]
+    m_s_resnet = [1, 2, 4, 8, 16, 32]
 
-    dataset = "imagenet"
-    model = "resnet"
-    # i_stop = 10
+    m_sizes = {"mobile": m_s_mobile, "resnet": m_s_resnet}
+    r_sizes = {"cifar-10": (32, 32), "imagenet": (224, 224), "ccpd": (224, 224)}
+    r_rates = {"mobile": 2, "resnet": 4}
+    classes = {"cifar-10": 10, "imagenet": 1000, "ccpd": 34}
+    weight_root = {
+        "cifar-10": "./Weights/cifar-10/",
+        "imagenet": "./Weights/imagenet/",
+        "ccpd": "./Weights/ccpd/",
+    }
+
+    # if sys args > 1
+    dataset = sys.argv[1]
+    model = sys.argv[2]
+    data_set = dataset if dataset != "imagenet" else "imagenet-20"
+    weight = weight_root[dataset]
     i_stop = 600
 
     width, height = (
-        reduced_sizes[dataset][0] / reduced_rates[model],
-        reduced_sizes[dataset][1] / reduced_rates[model],
+        r_sizes[dataset][0] // r_rates[model],
+        r_sizes[dataset][1] // r_rates[model],
     )
-    middle_size = middle_sizes[model]
-
-    # client include client, middle and gate
+    middle_size = m_sizes[model]
+    if model == "resnet":
+        client, server = resnet.resnet_splitter(
+            num_classes=classes[dataset], weight_root=weight + "/", device="cpu", layers=50
+        )
     if model == "mobile":
-        client = mobilenetv2.mobilenetv2_splitter_client(
-            weight_root="./Weights/" + dataset + "/", device="cpu"
+        client, server = mobilenetv2.mobilenetv2_splitter(
+            num_classes=classes[dataset], weight_root=weight + "/", device="cpu"
         )
-        middle_models = []
+    del(server)
+    middle_models = []
+    if model == "resnet":
         for i in range(len(middle_size)):
-            middle_models.append(mobilenetv2.MobileNetV2_middle(middle=middle_size[i]))
-            middle_models[i].load_state_dict(
-                torch.load(
-                    "./Weights/"
-                    + dataset
-                    + "/middle/"
-                    + model
-                    + "_"
-                    + dataset
-                    + "_middle_"
-                    + str(middle_size[i])
-                    + ".pth",
-                    map_location=torch.device("cpu"),
-                )
+            m_model = resnet.resnet_middle(middle=middle_size[i])
+            # load weights
+            m_model.load_state_dict(
+                torch.load(weight+ "middle/"+ model+ "_"+ dataset+ "_"+ "middle_"+ str(middle_size[i])+ ".pth",
+                map_location=torch.device("cpu"))
             )
+            middle_models.append(m_model)
 
-    elif model == "resnet":
-        client = resnet.resnet_splitter_client(
-            weight_root="./Weights/" + dataset + "/", device="cpu", layers=50
-        )
-
-        middle_models = []
+    if model == "mobile":
         for i in range(len(middle_size)):
-            middle_models.append(resnet.resnet_middle(middle=middle_size[i]))
-            middle_models[i].load_state_dict(
-                torch.load(
-                    "./Weights/"
-                    + dataset
-                    + "/middle/"
-                    + model
-                    + "_"
-                    + dataset
-                    + "_middle_"
-                    + str(middle_size[i])
-                    + ".pth",
-                    map_location=torch.device("cpu"),
-                )
+            m_model = mobilenetv2.MobileNetV2_middle(middle=middle_size[i])
+            # load weights
+            m_model.load_state_dict(
+                torch.load(weight+ "middle/"+ model+ "_"+ dataset+ "_"+ "middle_"+ str(middle_size[i])+ ".pth",
+                map_location=torch.device("cpu"))
             )
+            middle_models.append(m_model)
 
     gate_models = []
     for i in range(len(middle_size)):
-        gate_models.append(
-            gatedmodel.ExitGate(in_planes=middle_size[i], height=height, width=width)
+        g_model = gatedmodel.ExitGate(
+            in_planes=middle_size[i], height=height, width=width
         )
-        gate_models[i].load_state_dict(
-            torch.load(
-                "./Weights/"
-                + dataset
-                + "/gate/"
-                + model
-                + "_"
-                + dataset
-                + "_gate_"
-                + str(middle_size[i])
-                + ".pth",
-                map_location=torch.device("cpu"),
-            )
+        # load weights
+        g_model.load_state_dict(
+            torch.load(weight+ "gate/"+ model+ "_"+ dataset+ "_"+ "gate_"+ str(middle_size[i])+ ".pth",
+            map_location=torch.device("cpu"))
         )
+        gate_models.append(g_model)
 
     # eval
     client.eval()
     for i in range(len(middle_size)):
         middle_models[i].eval()
         gate_models[i].eval()
-
     # quantize
     client = torch.ao.quantization.quantize_dynamic(
         client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
     )
     for i in range(len(middle_size)):
         middle_models[i] = torch.ao.quantization.quantize_dynamic(
-            middle_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+            middle_models[i], {torch.nn.Conv2d}, dtype=torch.qint8
         )
         gate_models[i] = torch.ao.quantization.quantize_dynamic(
             gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
@@ -124,36 +112,15 @@ for gate_confidence in gate_confidences:
 
     # 2. dataset
     # directly read bmp image from the storage
-    if dataset == "cifar-10":
-        data_root = "../data/" + dataset + "-client/"
-    elif dataset == "imagenet":
-        data_root = "../data/" + dataset + "-20-client/"
-    # images_list = os.listdir(data_root)
-    # images_list.remove('labels.txt')
-    # # remove ending with jpg
-    # images_list = [x for x in images_list if x.endswith('.bmp')]
-    # images_list = sorted(images_list)
-    images_list = [str(x) + ".bmp" for x in range(i_stop)]
-
-    client_time = 0
-
-    gate_frequency = [0] * (len(middle_size) + 1)
-
-    gate_emb_folder = "../data/" + dataset + "-" + model + "-gate-emb/"
-    if not os.path.exists(gate_emb_folder):
-        os.makedirs(gate_emb_folder)
-    f = open("rpi-gate-emb.txt", "w")
-
-    import torchvision.transforms as transforms
-    from PIL import Image
+    data_root = "../data/" + data_set + "-raw-image/"
+    n_images = i_stop
+    images_list = [data_root + str(x) + ".bmp" for x in range(n_images)]
 
     if dataset == "cifar-10":
         normal = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-                ),
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
             ]
         )
     elif dataset == "imagenet":
@@ -162,61 +129,81 @@ for gate_confidence in gate_confidences:
                 transforms.Resize(256),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                ),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ]
         )
-    # this is test the overspeed, so we don't need to load the models
+    elif dataset == "ccpd":
+        normal = transforms.Compose(
+            [
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+            ]
+        )
+
+    gate_folder = "../data/" + data_set + "-" + model + "-gate-emb/"
+    if not os.path.exists(gate_folder):
+        os.makedirs(gate_folder)
+
+    with open("../data/" + data_set + "-raw-image/labels.txt", "r") as f:
+        labels = f.readlines()
+
+    frequency = np.zeros(len(middle_size) + 1)
+    client_time = 0
     with torch.no_grad():
         for i, i_path in tqdm(enumerate(images_list)):
-            image_path = data_root + i_path
-            image = Image.open(image_path).convert("RGB")
+            exit_flag = -1
 
-            s_time = time.time()
+            if i >= i_stop:
+                break
+            image = Image.open(i_path).convert("RGB")
             image = normal(image)
             image = image.unsqueeze(0)
-            gate_exit_flag = -1
 
+            c_time = time.time()
             client_out = client(image).detach()
-
             for j in range(len(middle_size)):
                 middle_in = middle_models[j].in_layer(client_out)
                 gate_out = gate_models[j](middle_in)
-                if gate_out > gate_confidence:
+
+                if gate_out.max() > g_conf:
+                    exit_flag = j
+
+                if exit_flag > -1:
                     middle_in, mmin, mmax = utils.normalize_return(middle_in)
                     middle_int = utils.float_to_uint(middle_in)
                     middle_int = middle_int.numpy().copy(order="C")
                     middle_int = middle_int.astype(np.uint8)
-                    send_in = base64.b64encode(middle_int)
-                    gate_exit_flag = j
+                    # gzip
+                    middle_int = middle_int.tobytes()
+                    middle_int = gzip.compress(middle_int)
+                    # print('middle_int:', middle_int)
+                    send_msg = base64.b64encode(middle_int)
                     break
-            if gate_exit_flag == -1:  # send all
+
+            if exit_flag == -1:
                 client_out, mmin, mmax = utils.normalize_return(client_out)
                 middle_int = utils.float_to_uint(client_out)
                 middle_int = middle_int.numpy().copy(order="C")
                 middle_int = middle_int.astype(np.uint8)
-                send_in = base64.b64encode(middle_int)
+                middle_int = middle_int.tobytes()
+                middle_int = gzip.compress(middle_int)
+                send_msg = base64.b64encode(middle_int)
+                # write the send_msg to the fodler
+            client_time += time.time() - c_time
+            frequency[exit_flag] += 1
+            with open(gate_folder + str(i), "wb") as f:
+                f.write(send_msg)
+            with open(gate_folder + str(i) + "_h", "wb") as f:
+                # dataset, model, max, min
+                msg = data_set + "," + model + "," + str(mmax) + "," + str(mmin)
+                msg = msg.encode()
+                f.write(msg)
 
-            s1_time = time.time()
-            client_time += s1_time - s_time
-            gate_frequency[gate_exit_flag] += 1
-
-            f2 = open(gate_emb_folder + i_path[:-4], "wb")
-            f2.write(send_in)
-            f2.close()
-            f2 = open(gate_emb_folder + i_path[:-4] + "_helper", "w")
-            f2.write(str(mmax.item()) + "," + str(mmin.item()) + "\n")
-            # f.write('client_time[%d]: %f\n' % (j, client_time[j]))
-        for j in range(len(gate_frequency)):
-            f.write("gate_frequency[%d]: %d\n" % (j, gate_frequency[j]))
-        # avg_client_time = [0] * (len(client_time)//60)
-        # for i in range (0, len(client_time), 60):
-        #     avg_client_time[i//60] = sum(client_time[i:i+60]) / 60 * 1000
-        #     f.write('avg_client_time[%d]: %f\n' % (i, avg_client_time[i//60]))
-    f.close()
-    avg_client_time = client_time / len(images_list) * 1000
-
-    # print average time
-    print("avg_client_time:", avg_client_time)
-    print("gate_frequency:", gate_frequency)
+    # print the list without [ and ]
+    print("dataset:", dataset, "model:", model, "confidence:", g_conf)
+    # print numpy frequency with comma
+    frequency = (
+        str(frequency.astype(int)).replace("[", "").replace("]", "").replace("  ", ",")
+    )
+    print("frequency:", frequency)
+    print("client_time: %.2f" % (client_time * 1000 / i_stop))

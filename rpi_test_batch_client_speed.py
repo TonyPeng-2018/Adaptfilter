@@ -140,7 +140,7 @@ for g_conf in gate_confidences:
             ]
         )
 
-    gate_folder = "../data/" + data_set + "-" + model + "-gate-emb/"
+    gate_folder = "../data/" + data_set + "-" + model + "-conf-" +str(g_conf)+ "/"
     if not os.path.exists(gate_folder):
         os.makedirs(gate_folder)
 

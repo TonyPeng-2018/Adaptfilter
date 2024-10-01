@@ -13,7 +13,7 @@ class Server:
         # host = '100.64.0.2'
         # host = '100.64.0.4'
         host = "127.0.0.1"
-        self.i_stop = 10
+        self.i_stop = 600
         self.port = port
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -54,6 +54,20 @@ class Server:
             # d_subpath.append('ccpd-mobile-gate-emb/')
             # d_subpath.append('ccpd-resnet-gate-emb/')
             # d_subpath.append('ccpd-raw-encode/')
+
+            d_subpath.append("imagenet-20-mobile-conf-0.55/")
+            d_subpath.append("imagenet-20-mobile-conf-0.65/")
+            d_subpath.append("imagenet-20-mobile-conf-0.75/")
+            d_subpath.append("imagenet-20-mobile-conf-0.85/")
+            d_subpath.append("imagenet-20-mobile-conf-0.95/")
+            d_subpath.append("imagenet-20-mobile-conf-0.99/")
+
+            d_subpath.append("imagenet-20-resnet-conf-0.55/")
+            d_subpath.append("imagenet-20-resnet-conf-0.65/")
+            d_subpath.append("imagenet-20-resnet-conf-0.75/")
+            d_subpath.append("imagenet-20-resnet-conf-0.85/")
+            d_subpath.append("imagenet-20-resnet-conf-0.95/")
+            d_subpath.append("imagenet-20-resnet-conf-0.99/")
 
             i_stop = self.i_stop
 

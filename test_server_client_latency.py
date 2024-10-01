@@ -252,7 +252,7 @@ with torch.no_grad():
 
         if i >= i_stop:
             break
-        image = Image.open(i_path).convert("RGB")
+        image = Image.open(i_path)
         image = normal(image)
         image = image.unsqueeze(0)
 

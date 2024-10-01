@@ -34,19 +34,20 @@ weight_root = "./Weights/" + dataset + "/"
 # 2. dataset
 # directly read bmp image from the storage
 
-data_root = "../data/" + dataset + "-raw-image/"
+data_root = "../data/" + data_set + "-raw-image/"
 label = open(data_root + "labels.txt", "r")
 label = label.read()
 label = label.split("\n")
 
-jpeg_folders_quality = [10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 25, 75]
-img_folders = [
-    "../data/last-" + dataset + "-jpeg" + str(x) + "/" for x in jpeg_folders_quality
-]
-
-client, server = resnet.resnet_splitter(
-    weight_root="./Weights/" + dataset + "/", layers=50, device="cuda:0"
-)
+jpeg_folders_quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+if model == "resnet":
+    client, server = resnet.resnet_splitter(
+        weight_root="./Weights/" + dataset + "/", layers=50, device="cuda:0"
+    )
+elif model == "mobile":
+    client, server = mobilenetv2.mobilenetv2_splitter(
+        weight_root="./Weights/" + dataset + "/", device="cuda:0"
+    )
 client = client.eval()
 server = server.eval()
 client = client.to("cuda:0")
@@ -80,20 +81,21 @@ elif dataset == "ccpd":
     )
 
 with torch.no_grad():
-    for i, img_folder in tqdm(enumerate(img_folders)):
-        img_list = [str(x) + ".jpg" for x in range(100)]
-        for j, img in enumerate(img_list):
-            image_path = img_folder + img
-            image = Image.open(image_path).convert("RGB")
-            if dataset == "cifar-10":
-                image = image.resize((32, 32))
-            elif dataset == "imagenet-20":
-                image = image.resize((224, 224))
-            elif dataset == "ccpd":
-                image = image.resize((224, 224))
-            image = np.array(image)
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    for i, quality in tqdm(enumerate(jpeg_folders_quality)):
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+
+        for j, img in enumerate(range(i_stop)):
+            if j ==0:
+                continue
+            image_path = data_root + str(img) + ".bmp"
+            image = cv2.imread(image_path)
+            result, image = cv2.imencode(".jpg", image, encode_param)
+            image = cv2.imdecode(image, 1)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(image)
+            # show image            
             image = normal(image)
+            # print image
             # transform using mean and std
             image = image.unsqueeze(0)
             image = image.to("cuda:0")
@@ -107,8 +109,8 @@ with torch.no_grad():
             _, predicted = torch.max(output, 1)
             if str(predicted.item()) == label[j]:
                 accuracies[i] += 1
-        accuracies[i] = accuracies[i] / len(img_list)
-        server_time[i] = server_time[i] / len(img_list) * 1000
+        accuracies[i] = accuracies[i] / i_stop
+        server_time[i] = server_time[i] / i_stop * 1000
 
 # change to 2 dicimal
 

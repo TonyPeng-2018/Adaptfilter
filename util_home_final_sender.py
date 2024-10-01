@@ -16,7 +16,7 @@ class Sender:
         host = "127.0.0.1"
         self.host = host
         self.port = port
-        self.i_stop = 10
+        self.i_stop = 600
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
 
@@ -54,6 +54,20 @@ class Sender:
             # d_subpath.append('ccpd-mobile-gate-emb/')
             # d_subpath.append('ccpd-resnet-gate-emb/')
             # d_subpath.append('ccpd-raw-encode/')
+
+            d_subpath.append("imagenet-20-mobile-conf-0.55/")
+            d_subpath.append("imagenet-20-mobile-conf-0.65/")
+            d_subpath.append("imagenet-20-mobile-conf-0.75/")
+            d_subpath.append("imagenet-20-mobile-conf-0.85/")
+            d_subpath.append("imagenet-20-mobile-conf-0.95/")
+            d_subpath.append("imagenet-20-mobile-conf-0.99/")
+
+            d_subpath.append("imagenet-20-resnet-conf-0.55/")
+            d_subpath.append("imagenet-20-resnet-conf-0.65/")
+            d_subpath.append("imagenet-20-resnet-conf-0.75/")
+            d_subpath.append("imagenet-20-resnet-conf-0.85/")
+            d_subpath.append("imagenet-20-resnet-conf-0.95/")
+            d_subpath.append("imagenet-20-resnet-conf-0.99/")
 
             i_stop = self.i_stop
             # quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]

@@ -188,3 +188,9 @@ with torch.no_grad():
 test_name_list = ["org", "1", "2", "4", "8", "16", "32", "gate"]
 for i, acc in enumerate(accu):
     print(test_name_list[i], "accuracy:", acc / 100/400)
+
+
+
+
+
+

@@ -55,19 +55,19 @@ class Server:
             # d_subpath.append('ccpd-resnet-gate-emb/')
             # d_subpath.append('ccpd-raw-encode/')
 
-            d_subpath.append("imagenet-20-mobile-conf-0.55/")
-            d_subpath.append("imagenet-20-mobile-conf-0.65/")
-            d_subpath.append("imagenet-20-mobile-conf-0.75/")
-            d_subpath.append("imagenet-20-mobile-conf-0.85/")
-            d_subpath.append("imagenet-20-mobile-conf-0.95/")
-            d_subpath.append("imagenet-20-mobile-conf-0.99/")
+            # d_subpath.append("imagenet-20-mobile-conf-0.55/")
+            # d_subpath.append("imagenet-20-mobile-conf-0.65/")
+            # d_subpath.append("imagenet-20-mobile-conf-0.75/")
+            # d_subpath.append("imagenet-20-mobile-conf-0.85/")
+            # d_subpath.append("imagenet-20-mobile-conf-0.95/")
+            # d_subpath.append("imagenet-20-mobile-conf-0.99/")
 
-            d_subpath.append("imagenet-20-resnet-conf-0.55/")
-            d_subpath.append("imagenet-20-resnet-conf-0.65/")
-            d_subpath.append("imagenet-20-resnet-conf-0.75/")
-            d_subpath.append("imagenet-20-resnet-conf-0.85/")
-            d_subpath.append("imagenet-20-resnet-conf-0.95/")
-            d_subpath.append("imagenet-20-resnet-conf-0.99/")
+            # d_subpath.append("imagenet-20-resnet-conf-0.55/")
+            # d_subpath.append("imagenet-20-resnet-conf-0.65/")
+            # d_subpath.append("imagenet-20-resnet-conf-0.75/")
+            # d_subpath.append("imagenet-20-resnet-conf-0.85/")
+            # d_subpath.append("imagenet-20-resnet-conf-0.95/")
+            # d_subpath.append("imagenet-20-resnet-conf-0.99/")
 
             i_stop = self.i_stop
 

@@ -23,14 +23,16 @@ class Sender:
         try:
             d_path = "/home/tonypeng/Workspace1/adaptfilter/data/"
             d_subpath = []
-            
 
-            d_subpath = "split_gate_folder/"
+
+            d_subpath = "split_gate_folder2/"
             # quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
             m1 = 'mobile'
             m2 = 'resnet'
 
-            for i in range(5):
+            for i in range(6):
+                if i <5 :
+                    continue
                 m_f = m1+"_"+str(i)
                 f = open(d_path+d_subpath+m_f, "rb")
                 msg = f.read()
@@ -40,7 +42,9 @@ class Sender:
                 done = self.s.recv(1)
                 time.sleep(0.01)
 
-            for i in range(6):
+            for i in range(7):
+                if i <6 :
+                    continue
                 m_f = m2+"_"+str(i)
                 f = open(d_path+d_subpath+m_f, "rb")
                 msg = f.read()

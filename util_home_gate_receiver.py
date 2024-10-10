@@ -24,14 +24,16 @@ class Server:
             d_path = "/home/tonypeng/Workspace1/adaptfilter/data/"
             d_subpath = []
 
-            d_subpath = "split_gate_folder/"
+            d_subpath = "split_gate_folder2/"
 
             client_socket, addr = self.s.accept()
             m1 = 'mobile'
             m2 = 'resnet'
             r_time_list = []
 
-            for i in range(5):
+            for i in range(6):
+                if i <5 :
+                    continue
                 m_f = m1+"_"+str(i)
                 packet_receive_time = 0
                 received_bytes = 0
@@ -51,7 +53,9 @@ class Server:
                 r_time_list.append(packet_receive_time)
                 print(m_f , "Packet receive time: ", packet_receive_time, "Received bytes: ", received_bytes)
             
-            for i in range(6):
+            for i in range(7):
+                if i <6 :
+                    continue
                 m_f = m2+"_"+str(i)
                 packet_receive_time = 0
                 received_bytes = 0

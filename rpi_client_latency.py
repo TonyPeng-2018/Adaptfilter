@@ -201,23 +201,24 @@ with torch.no_grad():
 
         s_time = time.time()
         client_out = client(image).detach()
-        for j in range(len(middle_size)):
-            middle_in = middle_models[j].in_layer(client_out)
-            gate_out = gate_models[j](middle_in)
+        client_time += time.time() - s_time
+        # for j in range(len(middle_size)):
+        #     middle_in = middle_models[j].in_layer(client_out)
+        #     gate_out = gate_models[j](middle_in)
 
-            if gate_out.max() > confidence:
-                middle_int = utils.float_to_uint(middle_in)
-                middle_int = middle_int.numpy().copy(order="C")
-                middle_int = middle_int.astype(np.uint8)
-                middle_int = middle_int.tobytes()
-                middle_int = gzip.compress(middle_int)
-                send_in = base64.b64encode(middle_int)
-                frequency[j] += 1
-                break
-        s1_time = time.time()
-        client_time += s1_time - s_time
-        if j == len(middle_size):
-            frequency[j] += 1
+        #     if gate_out.max() > confidence:
+        #         middle_int = utils.float_to_uint(middle_in)
+        #         middle_int = middle_int.numpy().copy(order="C")
+        #         middle_int = middle_int.astype(np.uint8)
+        #         middle_int = middle_int.tobytes()
+        #         middle_int = gzip.compress(middle_int)
+        #         send_in = base64.b64encode(middle_int)
+        #         frequency[j] += 1
+        #         break
+        # s1_time = time.time()
+        # client_time += s1_time - s_time
+        # if j == len(middle_size):
+        #     frequency[j] += 1
 
 client_time = client_time * 1000 / i_stop
 

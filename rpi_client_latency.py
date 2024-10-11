@@ -32,9 +32,8 @@ weight_root = {
 # if sys args > 1
 dataset = sys.argv[1]
 model = sys.argv[2]
-confidence = float(sys.argv[3])
 weight = weight_root[dataset]
-i_stop = 600
+i_stop = 100
 
 width, height = (
     r_sizes[dataset][0] // r_rates[model],
@@ -42,11 +41,11 @@ width, height = (
 )
 middle_size = m_sizes[model]
 if model == "resnet":
-    client = resnet.resnet_splitter_client(
+    client, server = resnet.resnet_splitter(
         num_classes=classes[dataset], weight_root=weight + "/", device="cpu", layers=50
     )
 if model == "mobile":
-    client = mobilenetv2.mobilenetv2_splitter_client(
+    client, server = mobilenetv2.mobilenetv2_splitter(
         num_classes=classes[dataset], weight_root=weight + "/", device="cpu"
     )
 
@@ -57,16 +56,16 @@ if model == "resnet":
         # load weights
         m_model.load_state_dict(
             torch.load(
-                weight
-                + "middle/"
-                + model
-                + "_"
-                + dataset
-                + "_"
-                + "middle_"
-                + str(middle_size[i])
-                + ".pth",
-                map_location=torch.device("cpu"),
+weight
++ "middle/"
++ model
++ "_"
++ dataset
++ "_"
++ "middle_"
++ str(middle_size[i])
++ ".pth",
+map_location=torch.device("cpu"),
             )
         )
         middle_models.append(m_model)
@@ -77,16 +76,16 @@ if model == "mobile":
         # load weights
         m_model.load_state_dict(
             torch.load(
-                weight
-                + "middle/"
-                + model
-                + "_"
-                + dataset
-                + "_"
-                + "middle_"
-                + str(middle_size[i])
-                + ".pth",
-                map_location=torch.device("cpu"),
+weight
++ "middle/"
++ model
++ "_"
++ dataset
++ "_"
++ "middle_"
++ str(middle_size[i])
++ ".pth",
+map_location=torch.device("cpu"),
             )
         )
         middle_models.append(m_model)
@@ -99,17 +98,8 @@ if model == "resnet":
         )
         # load weights
         g_model.load_state_dict(
-            torch.load(
-                weight
-                + "gate/"
-                + model
-                + "_"
-                + dataset
-                + "_"
-                + "gate_"
-                + str(middle_size[i])
-                + ".pth",
-                map_location=torch.device("cpu"),
+            torch.load(weight+ "gate/"+ model+ "_"+ dataset+ "_"+ "gate_"+ str(middle_size[i])+ ".pth",
+                       map_location=torch.device("cpu"),
             )
         )
         gate_models.append(g_model)
@@ -121,17 +111,8 @@ if model == "mobile":
         )
         # load weights
         g_model.load_state_dict(
-            torch.load(
-                weight
-                + "gate/"
-                + model
-                + "_"
-                + dataset
-                + "_"
-                + "gate_"
-                + str(middle_size[i])
-                + ".pth",
-                map_location=torch.device("cpu"),
+            torch.load(weight+ "gate/"+ model+ "_"+ dataset+ "_"+ "gate_"+ str(middle_size[i])+ ".pth",
+                       map_location=torch.device("cpu"),
             )
         )
         gate_models.append(g_model)
@@ -141,11 +122,12 @@ client.eval()
 for i in range(len(middle_size)):
     middle_models[i].eval()
     gate_models[i].eval()
+    server.eval()
 
 # quantize
-client = torch.ao.quantization.quantize_dynamic(
-    client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-)
+# client = torch.ao.quantization.quantize_dynamic(
+#     client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+# )
 for i in range(len(middle_size)):
     middle_models[i] = torch.ao.quantization.quantize_dynamic(
         middle_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
@@ -153,7 +135,9 @@ for i in range(len(middle_size)):
     gate_models[i] = torch.ao.quantization.quantize_dynamic(
         gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
     )
-
+# server = torch.ao.quantization.quantize_dynamic(
+#     server, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+# )
 # 2. dataset
 # directly read bmp image from the storage
 if dataset == "imagenet":
@@ -163,8 +147,6 @@ else:
 data_root = "../data/" + data_set + "-client/"
 n_images = i_stop
 images_list = [data_root + str(x) + ".bmp" for x in range(n_images)]
-
-client_time = 0
 
 frequency = np.zeros(len(middle_size) + 1)
 if dataset == "cifar-10":
@@ -190,7 +172,8 @@ elif dataset == "ccpd":
             transforms.ToTensor(),
         ]
     )
-
+client_time = 0
+server_time = 0
 with torch.no_grad():
     for i, i_path in tqdm(enumerate(images_list)):
         if i >= i_stop:
@@ -219,14 +202,13 @@ with torch.no_grad():
         # client_time += s1_time - s_time
         # if j == len(middle_size):
         #     frequency[j] += 1
+        server_out = server(client_out)
+        server_time += time.time() - s_time
 
 client_time = client_time * 1000 / i_stop
-
+server_time = server_time * 1000 / i_stop
 # print the list without [ and ]
-print("dataset:", dataset, "model:", model, "confidence:", confidence)
+print("dataset:", dataset, "model:", model)
 print("client time: %.4f" % client_time)
+print("server time: %.4f" % server_time)
 # print numpy frequency with comma
-frequency = (
-    str(frequency.astype(int)).replace("[", "").replace("]", "").replace("  ", ",")
-)
-print(frequency)

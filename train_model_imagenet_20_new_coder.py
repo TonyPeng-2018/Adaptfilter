@@ -77,8 +77,8 @@ import os
 epochs = 100
 max_val_acc = 0
 
-if not os.path.exists(f'Weights/training/{model_type}_coder_{model_time}/'):
-    os.mkdir(f'Weights/training/{model_type}_coder_{model_time}/')
+if not os.path.exists(f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/'):
+    os.mkdir(f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/')
 
 for epoch in range(epochs):
     train_loss = 0.0
@@ -146,4 +146,4 @@ for epoch in range(epochs):
         'optimizer': optimizer.state_dict(),
         'epoch': epoch,
         'val_acc': val_acc
-    }, f'Weights/training/{model_type}_coder_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
+    }, f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')

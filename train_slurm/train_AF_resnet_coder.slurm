@@ -3,9 +3,9 @@
 #SBATCH --nodes=1
 #SBATCH --time=144:00:00
 #SBATCH --cluster=gpu
-#SBATCH --partition=a100
+#SBATCH --partition=l40s
 #SBATCH --gres=gpu:1
-#SBATCH --output=./logs/train_AF_resnet_coder_2
+#SBATCH --output=./logs/train_AF_resnet_coder_1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
  

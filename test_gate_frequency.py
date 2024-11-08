@@ -40,9 +40,10 @@ weight_root = {
 # if sys args > 1
 dataset = sys.argv[1]
 model = sys.argv[2]
+confidence = float(sys.argv[3])
 data_set = dataset if dataset != "imagenet" else "imagenet-20"
 weight = weight_root[dataset]
-i_stop = 3
+i_stop = 600
 
 width, height = (
     r_sizes[dataset][0] // r_rates[model],
@@ -210,7 +211,6 @@ data_root = "../data/" + data_set + "-raw-image/"
 n_images = i_stop
 images_list = [data_root + str(x) + ".bmp" for x in range(n_images)]
 
-frequency = np.zeros(len(middle_size) + 1)
 if dataset == "cifar-10":
     normal = transforms.Compose(
         [
@@ -234,18 +234,33 @@ elif dataset == "ccpd":
             transforms.ToTensor(),
         ]
     )
-split_gate_folder = "../data/split_gate_folder2/"
-if not os.path.exists(split_gate_folder):
-    os.makedirs(split_gate_folder)
-accuracy = 0
+
+gate_folder = "../data/" + data_set + "-" + model + "-gate-emb/"
+if not os.path.exists(gate_folder):
+    os.makedirs(gate_folder)
+
 
 with open("../data/" + data_set + "-raw-image/labels.txt", "r") as f:
     labels = f.readlines()
-
-result = []
+    # remove '\n
+    labels = [x.strip() for x in labels]
 server_time = 0
+accuracy = 0
+frequency = np.zeros(len(middle_size) + 1)
+
+# from Models import last_classifier
+# last_class_model = last_classifier.last_layer_classifier(in_channel=1000, out_channel=20)
+# last_class_model.load_state_dict(torch.load("./Weights/imagenet/last_layer_model.pth"))
+# last_class_model.eval()
+# last_class_model.to("cuda:0")
+# import last_classifier_mapping as lcm
+# last_layer_mapping = lcm.last_layer_mapping
+# labels = [last_layer_mapping[int(x)] for x in labels]
+
 with torch.no_grad():
     for i, i_path in tqdm(enumerate(images_list)):
+        exit_flag = -1
+
         if i >= i_stop:
             break
         image = Image.open(i_path)
@@ -255,39 +270,63 @@ with torch.no_grad():
         client_out = client(image).detach()
         for j in range(len(middle_size)):
             middle_in = middle_models[j].in_layer(client_out)
-            middle_in, mmin, mmax = utils.normalize_return(middle_in)
-            middle_int = utils.float_to_uint(middle_in)
+            gate_out = gate_models[j](middle_in)
+
+            if gate_out.max() > confidence:
+                exit_flag = j
+
+            if exit_flag > -1:
+                middle_in, mmin, mmax = utils.normalize_return(middle_in)
+                middle_int = utils.float_to_uint(middle_in)
+                middle_int = middle_int.numpy().copy(order="C")
+                middle_int = middle_int.astype(np.uint8)
+                # gzip
+                middle_int = middle_int.tobytes()
+                middle_int = gzip.compress(middle_int)
+                # print('middle_int:', middle_int)
+                send_msg = base64.b64encode(middle_int)
+                break
+
+        if exit_flag == -1:
+            client_out, mmin, mmax = utils.normalize_return(client_out)
+            middle_int = utils.float_to_uint(client_out)
             middle_int = middle_int.numpy().copy(order="C")
             middle_int = middle_int.astype(np.uint8)
-            # gzip
             middle_int = middle_int.tobytes()
             middle_int = gzip.compress(middle_int)
-            # print('middle_int:', middle_int)
             send_msg = base64.b64encode(middle_int)
-            # write the send_msg to the fodler
-            with open(split_gate_folder + model+'_'+str(j), "wb") as f:
-                f.write(send_msg)
-            with open(split_gate_folder + model+'_'+str(j) + "_h", "wb") as f:
-                # dataset, model, max, min
-                msg = data_set + "," + model + "," + str(mmax) + "," + str(mmin)
-                msg = msg.encode()
-                f.write(msg)
-        # store client_out
-        middle_in, mmin, mmax = utils.normalize_return(client_out)
-        middle_int = utils.float_to_uint(middle_in)
-        middle_int = middle_int.numpy().copy(order="C")
-        middle_int = middle_int.astype(np.uint8)
-        # gzip
-        middle_int = middle_int.tobytes()
-        middle_int = gzip.compress(middle_int)
-        # print('middle_int:', middle_int)
-        send_msg = base64.b64encode(middle_int)
-        # write the send_msg to the fodler
-        with open(split_gate_folder + model+'_'+str(j+1), "wb") as f:
-            f.write(send_msg)
-        with open(split_gate_folder + model+'_'+str(j+1) + "_h", "wb") as f:
-            # dataset, model, max, min
-            msg = data_set + "," + model + "," + str(mmax) + "," + str(mmin)
-            msg = msg.encode()
-            f.write(msg)
+
+        rec_msg = send_msg
+        rec_msg = base64.b64decode(rec_msg)
+        rec_msg = gzip.decompress(rec_msg)
+        rec_msg = np.frombuffer(rec_msg, dtype=np.uint8)
+        rec_msg = rec_msg.astype(np.float32)
+        rec_msg = rec_msg / 255.0
+        rec_msg = torch.from_numpy(rec_msg)
+        rec_msg = rec_msg.view(-1, height, width)
+        rec_msg = rec_msg.unsqueeze(0)
+        rec_msg = utils.renormalize(rec_msg, mmin, mmax)
+        rec_msg = rec_msg.to("cuda:0")
+
+        if exit_flag > -1:
+            rec_msg = middle_models2[j].out_layer(rec_msg)
+
+        server_out = server(rec_msg)
+        # if dataset == "imagenet":
+        #     server_out = last_class_model(server_out)
+        pred = torch.argmax(server_out, 1)
+            
+        if pred == int(labels[i]):
+            accuracy += 1
+        frequency[exit_flag] += 1
+
+# print the list without [ and ]
+print("dataset:", dataset, "model:", model, "confidence:", confidence)
+# print numpy frequency with commas
+frequency = frequency.astype(int)
+frequency = frequency.tolist()
+# remove [ and ] from the list
+frequency = str(frequency).replace("[", "").replace("]", "")
+print("frequency:", frequency)
+print("accuracy:%.4f" % (accuracy / i_stop))
 

@@ -2,13 +2,13 @@
 
 # not files in the Weights
 checkpoint/
-*.pth
 *.zip
 *.pyc
 *.tar
 # no pycache
 __pycache__/
 data/
+Weights/
 
 # no trainning logger
 

@@ -12,7 +12,7 @@ if 'mobilenet' in model_type:
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
     class_weight = torch.load('Weights/imagenet-new/lastlayer/resnet.pth')
     new_classifier.load_state_dict(class_weight['model'])
-    
+
 elif 'resnet' in model_type:
     client, server = resnet.resnet_splitter(num_classes=1000,
                                                   weight_root='Weights/imagenet/',
@@ -20,7 +20,6 @@ elif 'resnet' in model_type:
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
     class_weight = torch.load('Weights/imagenet-new/lastlayer/mobilenet.pth')
     new_classifier.load_state_dict(class_weight['model'])
-new_classifier = last_classifier.last_layer_classifier(1000, 20)
 
 if 'mobilenet' in model_type:
     enc = encoder.Encoder(in_ch=32, num_of_layers=num_of_layers)

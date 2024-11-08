@@ -15,7 +15,7 @@ if 'mobilenet' in model_type:
 
 elif 'resnet' in model_type:
     client, server = resnet.resnet_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagene-20/',
+                                                  weight_root='Weights/imagenet-new/',
                                                   device='cuda:0', layers=50)
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
     class_weight = torch.load('Weights/imagenet-new/lastlayer/mobilenet.pth')
@@ -62,7 +62,9 @@ for param in new_classifier.parameters():
 criterion = nn.CrossEntropyLoss()
 # optimizer_client = optim.adam(client.parameters(), lr=0.001)
 # optimizer_server = optim.adam(server.parameters(), lr=0.001)
-optimizer = optim.Adam(list(enc.parameters()) + list(dec.parameters()), lr=0.001)
+# optimizer = optim.Adam(list(enc.parameters()) + list(dec.parameters()), lr=0.001)
+optimizer_enc = optim.Adam(enc.parameters(), lr=0.001)
+optimizer_dec = optim.Adam(dec.parameters(), lr=0.001)
 
 from tqdm import tqdm
 from Utils import utils
@@ -86,22 +88,24 @@ for epoch in range(epochs):
     enc.train()
     dec.train()
 
-    # for i, (data, labels) in tqdm(enumerate(train)):
+    for i, (data, labels) in tqdm(enumerate(train)):
 
-    #     data, labels = data.to(device), labels['label'].to(device)
+        data, labels = data.to(device), labels['label'].to(device)
 
-    #     client_out = client(data)
-    #     enc_out = enc(client_out)
-    #     dec_out = dec(enc_out)
-    #     pred = server(dec_out)
-    #     pred = new_classifier(pred)
+        client_out = client(data)
+        enc_out = enc(client_out)
+        dec_out = dec(enc_out)
+        pred = server(dec_out)
+        pred = new_classifier(pred)
 
-    #     optimizer.zero_grad()
-    #     loss = criterion(pred, labels)
-    #     train_loss += loss.item()
-    #     loss.backward()
-    #     optimizer.step()
-    # print('train loss: ', train_loss/len(train.dataset))
+        optimizer_enc.zero_grad()
+        optimizer_dec.zero_grad()
+        loss = criterion(pred, labels)
+        train_loss += loss.item()
+        loss.backward()
+        optimizer_enc.step()
+        optimizer_dec.step()
+    print('train loss: ', train_loss/len(train.dataset))
 
     val_acc = 0
 

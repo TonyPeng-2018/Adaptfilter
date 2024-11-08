@@ -9,6 +9,7 @@ checkpoint/
 __pycache__/
 data/
 Weights/
+Additional/
 
 # no trainning logger
 

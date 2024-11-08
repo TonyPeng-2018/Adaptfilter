@@ -62,9 +62,10 @@ dec = dec.to(device)
 criterion = nn.CrossEntropyLoss()
 # optimizer_client = optim.adam(client.parameters(), lr=0.001)
 # optimizer_server = optim.adam(server.parameters(), lr=0.001)
-# optimizer = optim.Adam(list(enc.parameters()) + list(dec.parameters()), lr=0.001)
-optimizer_enc = optim.Adam(enc.parameters(), lr=0.001)
-optimizer_dec = optim.Adam(dec.parameters(), lr=0.001)
+list_params = list(client.parameters()) + list(server.parameters()) + list(new_classifier.parameters() + list(enc.parameters()) + list(dec.parameters()))
+optimizer = optim.Adam(list_params, lr=0.001)
+# optimizer_enc = optim.Adam(enc.parameters(), lr=0.001)
+# optimizer_dec = optim.Adam(dec.parameters(), lr=0.001)
 
 from tqdm import tqdm
 from Utils import utils

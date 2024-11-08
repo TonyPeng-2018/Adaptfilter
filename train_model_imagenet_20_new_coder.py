@@ -122,8 +122,8 @@ for epoch in range(epochs):
 
         data, labels = data.to(device), labels['label'].to(device)
         client_out = client(data)
-        # enc_out = enc(client_out)
-        # dec_out = dec(enc_out)
+        enc_out = enc(client_out)
+        dec_out = dec(enc_out)
         pred = server(client_out)
         pred = new_classifier(pred)
 

@@ -134,16 +134,16 @@ for epoch in range(epochs):
     val_acc = val_acc/len(val.dataset)
     print('val acc: ', val_acc)
 
-    # torch.save({
-    #     'model': enc.state_dict(),
-    #     'optimizer': optimizer.state_dict(),
-    #     'epoch': epoch,
-    #     'val_acc': val_acc
-    # }, f'Weights/training/{model_type}_coder_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
+    torch.save({
+        'model': enc.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'epoch': epoch,
+        'val_acc': val_acc
+    }, f'Weights/training/{model_type}_coder_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
 
-    # torch.save({
-    #     'model': dec.state_dict(),
-    #     'optimizer': optimizer.state_dict(),
-    #     'epoch': epoch,
-    #     'val_acc': val_acc
-    # }, f'Weights/training/{model_type}_coder_{model_time}/decoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
+    torch.save({
+        'model': dec.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'epoch': epoch,
+        'val_acc': val_acc
+    }, f'Weights/training/{model_type}_coder_{model_time}/decoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')

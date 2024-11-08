@@ -110,7 +110,7 @@ class Dataloader_imagenet_20(Dataset):
         return transform
 
 
-def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 100, transform=True):
+def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 64, transform=True):
 
     trainset = Dataset_imagenet_20(path = 'data/imagenet-20-new/train/')
     testset = Dataset_imagenet_20(path = 'data/imagenet-20-new/test/')

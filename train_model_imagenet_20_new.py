@@ -21,7 +21,7 @@ model_time = datetime.datetime.now().strftime("%m%d%H%M%S")
 
 from Dataloaders import dataloader_image_20_new
 
-train, _, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=64, test_batch=32)
+train, _, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=128, test_batch=64)
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -66,7 +66,7 @@ for epoch in range(epochs):
 
     val_acc = 0
 
-    for i, (data, labels) in tqdm(enumerate(train)):
+    for i, (data, labels) in tqdm(enumerate(val)):
         data, labels = data.to(device), labels['label'].to(device)
         pred = model(data)
         # get the number of 0 and 1
@@ -81,11 +81,9 @@ for epoch in range(epochs):
     if f'Weights/training/{model_type}_{model_time}/' not in os.listdir('Weights/training/'):
         os.mkdir(f'Weights/training/{model_type}_{model_time}/')
 
-    if val_acc > max_val_acc:
-        max_val_acc = val_acc
-        torch.save({
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-            'epoch': epoch,
-            'val_acc': val_acc
-        }, f'Weights/training/{model_type}_{model_time}/epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
+    torch.save({
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'epoch': epoch,
+        'val_acc': val_acc
+    }, f'Weights/training/{model_type}_{model_time}/epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')

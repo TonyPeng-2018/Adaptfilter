@@ -424,7 +424,7 @@ class resnet_server(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
     
-def resnet_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', device = 'cuda:0', layers = 18, partition = -1):
+def resnet_splitter(num_classes = 1000, weight_root = None, device = 'cuda:0', layers = 18, partition = -1):
     # here are have a very stupid splitter for 
     # the restnet101 mode
         
@@ -439,39 +439,40 @@ def resnet_splitter(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1
         resnetname = 'resnet152'
         s_model = resnet_server(Bottleneck, [3, 8, 36, 3], num_classes = num_classes)
 
-    c_weight = c_model.state_dict()
-    s_weight = s_model.state_dict()
-    c_weight_key = list(c_weight.keys())
-    s_weight_key = list(s_weight.keys())
+    if weight_root is not None:
+        c_weight = c_model.state_dict()
+        s_weight = s_model.state_dict()
+        c_weight_key = list(c_weight.keys())
+        s_weight_key = list(s_weight.keys())
 
-    if partition == -1:
-        partition = len(c_weight_key)
+        if partition == -1:
+            partition = len(c_weight_key)
 
-    cw_path = weight_root + '/client/'+resnetname+'.pth'
-    sw_path = weight_root + '/server/'+resnetname+'.pth'
-    if not os.path.exists(cw_path):
-        pw_path = weight_root + '/pretrained/'+resnetname+'.pth'
-        in_weight = torch.load(pw_path, map_location=device)
-        assert (len(c_weight_key) + len(s_weight_key) == len(in_weight))
+        cw_path = weight_root + '/client/'+resnetname+'.pth'
+        sw_path = weight_root + '/server/'+resnetname+'.pth'
+        if not os.path.exists(cw_path):
+            pw_path = weight_root + '/pretrained/'+resnetname+'.pth'
+            in_weight = torch.load(pw_path, map_location=device)
+            assert (len(c_weight_key) + len(s_weight_key) == len(in_weight))
 
-        # reivese the key of weights
-        in_weight_keys = list(in_weight.keys())
-        for i in range(len(in_weight_keys)):
-            if i < partition:
-                c_weight[c_weight_key[i]] = in_weight[in_weight_keys[i]]
-            else:
-                s_weight[s_weight_key[i-partition]] = in_weight[in_weight_keys[i]]
-        # store the weights
-        if not os.path.exists(weight_root + '/client/'):
-            os.makedirs(weight_root + '/client/')
-        if not os.path.exists(weight_root + '/server/'):
-            os.makedirs(weight_root + '/server/')
+            # reivese the key of weights
+            in_weight_keys = list(in_weight.keys())
+            for i in range(len(in_weight_keys)):
+                if i < partition:
+                    c_weight[c_weight_key[i]] = in_weight[in_weight_keys[i]]
+                else:
+                    s_weight[s_weight_key[i-partition]] = in_weight[in_weight_keys[i]]
+            # store the weights
+            if not os.path.exists(weight_root + '/client/'):
+                os.makedirs(weight_root + '/client/')
+            if not os.path.exists(weight_root + '/server/'):
+                os.makedirs(weight_root + '/server/')
 
-        torch.save(c_weight, cw_path)
-        torch.save(s_weight, sw_path)
-    
-    c_model.load_state_dict(torch.load(cw_path, map_location=device))
-    s_model.load_state_dict(torch.load(sw_path, map_location=device))
+            torch.save(c_weight, cw_path)
+            torch.save(s_weight, sw_path)
+        
+        c_model.load_state_dict(torch.load(cw_path, map_location=device))
+        s_model.load_state_dict(torch.load(sw_path, map_location=device))
     return c_model, s_model
 
 def resnet_splitter_client(num_classes = 1000, weight_root = '/home/tonypeng/Workspace1/adaptfilter/Adaptfilter/Weights/imagenet', 

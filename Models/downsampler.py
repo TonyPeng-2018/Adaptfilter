@@ -1,9 +1,9 @@
 import torch.nn as nn
 import torch
 
-class Encoder(nn.Module):
+class Downsampler(nn.Module):
     def __init__(self, in_ch, num_of_layers = 2):
-        super(Encoder, self).__init__()
+        super(Downsampler, self).__init__()
         
         # simple two layers CNN
         # down sampling, this is for square image
@@ -19,17 +19,3 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         return self.encoder(x)
-    
-class Encoder_Gate(nn.Module):
-    def __init__(self, in_ch):
-        super(Encoder_Gate, self).__init__()
-        
-        # reduce channel in_ch to out_ch
-        self.in_ch = in_ch
-        encoder_gate_sequence = []
-        while self.in_ch >= 1:
-            encoder_gate_sequence.append(nn.Conv2d(in_channels=self.in_ch, out_channels=self.in_ch//2, kernel_size=1))
-            encoder_gate_sequence.append(nn.BatchNorm2d(in_ch))
-            encoder_gate_sequence.append(nn.ReLU(True))
-            self.in_ch = self.in_ch//2
-        

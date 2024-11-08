@@ -1,9 +1,9 @@
 import torch.nn as nn
 import torch
 
-class Decoder(nn.Module):
+class Upsampler(nn.Module):
     def __init__(self, in_ch, num_of_layers = 2):
-        super(Decoder, self).__init__()
+        super(Upsampler, self).__init__()
         
         # simple two layers CNN
         # down sampling, this is for square image
@@ -19,6 +19,3 @@ class Decoder(nn.Module):
 
     def forward(self, x):
         return self.decoder(x)
-    
-class Decoder_Gate(nn.Module):
-    def 

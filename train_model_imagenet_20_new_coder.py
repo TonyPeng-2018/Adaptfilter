@@ -10,14 +10,14 @@ if 'mobilenet' in model_type:
                                                   weight_root='Weights/imagenet-new/',
                                                   device='cuda:0',partition=-1)
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
-    class_weight = torch.load('Weights/imagenet-new/lastlayer/mobilenet.pth')
+    class_weight = torch.load('Weights/imagenet-new/lastlayer/resnet.pth')
     new_classifier.load_state_dict(class_weight['model'])
 elif 'resnet' in model_type:
     client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
                                                   weight_root='Weights/imagenet-new/',
                                                   device='cuda:0',partition=-1)
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
-    class_weight = torch.load('Weights/imagenet-new/lastlayer/resnet.pth')
+    class_weight = torch.load('Weights/imagenet-new/lastlayer/mobilenet.pth')
     new_classifier.load_state_dict(class_weight['model'])
 new_classifier = last_classifier.last_layer_classifier(1000, 20)
 
@@ -86,22 +86,22 @@ for epoch in range(epochs):
     enc.train()
     dec.train()
 
-    for i, (data, labels) in tqdm(enumerate(train)):
+    # for i, (data, labels) in tqdm(enumerate(train)):
 
-        data, labels = data.to(device), labels['label'].to(device)
+    #     data, labels = data.to(device), labels['label'].to(device)
 
-        client_out = client(data)
-        enc_out = enc(client_out)
-        dec_out = dec(enc_out)
-        pred = server(dec_out)
-        pred = new_classifier(pred)
+    #     client_out = client(data)
+    #     enc_out = enc(client_out)
+    #     dec_out = dec(enc_out)
+    #     pred = server(dec_out)
+    #     pred = new_classifier(pred)
 
-        optimizer.zero_grad()
-        loss = criterion(pred, labels)
-        train_loss += loss.item()
-        loss.backward()
-        optimizer.step()
-    print('train loss: ', train_loss/len(train))
+    #     optimizer.zero_grad()
+    #     loss = criterion(pred, labels)
+    #     train_loss += loss.item()
+    #     loss.backward()
+    #     optimizer.step()
+    # print('train loss: ', train_loss/len(train))
 
     val_acc = 0
 
@@ -115,9 +115,9 @@ for epoch in range(epochs):
 
         data, labels = data.to(device), labels['label'].to(device)
         client_out = client(data)
-        enc_out = enc(client_out)
-        dec_out = dec(enc_out)
-        pred = server(dec_out)
+        # enc_out = enc(client_out)
+        # dec_out = dec(enc_out)
+        pred = server(client_out)
         pred = new_classifier(pred)
 
         # get the number of 0 and 1

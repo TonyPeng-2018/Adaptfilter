@@ -102,13 +102,8 @@ for epoch in range(epochs):
         accuracy = torch.eq(pred, labels).float()
 
         # print the rate of gate exit
-<<<<<<< HEAD
-        val_acc += accuracy.mean().item()
-    print('val_acc: ', val_acc)
-=======
         val_acc += accuracy.sum().item()
     print('val_acc: ', val_acc/len(val.dataset))
->>>>>>> fbc4048b300f4114433e2f15b0beda43d61e2dfb
 
     torch.save({
         'model': new_classifier.state_dict(),

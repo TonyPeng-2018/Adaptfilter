@@ -143,7 +143,7 @@ for epoch in range(epochs):
         'new_classifier': new_classifier.state_dict(),
         'enc': enc.state_dict(),
         'dec': dec.state_dict(),
-        'optimizer': optimizer_enc.state_dict(),
+        'optimizer': optimizer.state_dict(),
         'epoch': epoch,
         'val_acc': val_acc
     }, f'Weights/training/{model_type}_coder_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')

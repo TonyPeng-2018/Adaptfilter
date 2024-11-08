@@ -23,7 +23,7 @@ model_time = datetime.datetime.now().strftime("%m%d%H%M%S")
 
 from Dataloaders import dataloader_image_20_new
 
-train, _, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=128, test_batch=64)
+train, val, _ = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=128, test_batch=64)
 
 import torch.optim as optim
 import torch.nn as nn
@@ -59,8 +59,8 @@ import os
 epochs = 100
 max_val_acc = 0
 
-if f'Weights/training/{model_type}_{model_time}/' not in os.listdir('Weights/training/'):
-    os.mkdir(f'Weights/training/{model_type}_{model_time}/')
+if not os.path.exists(f'Weights/training/{model_type}_new_classifier_{model_time}/'):
+    os.mkdir(f'Weights/training/{model_type}_new_classifier_{model_time}/')
 
 for epoch in range(epochs):
     train_loss = 0.0
@@ -82,7 +82,7 @@ for epoch in range(epochs):
         train_loss += loss.item()
         loss.backward()
         optimizer.step()
-    print('train loss: ', train_loss)
+    print('train loss: ', train_loss/len(train))
 
     val_acc = 0
 
@@ -102,8 +102,8 @@ for epoch in range(epochs):
         accuracy = torch.eq(pred, labels).float()
 
         # print the rate of gate exit
-        val_acc += accuracy.mean().item()
-    print('val_acc: ', val_acc)
+        val_acc += accuracy.sum().item()
+    print('val_acc: ', val_acc/len(val.dataset))
 
     torch.save({
         'model': new_classifier.state_dict(),

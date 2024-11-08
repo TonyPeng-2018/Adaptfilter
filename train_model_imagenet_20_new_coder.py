@@ -127,7 +127,8 @@ for epoch in range(epochs):
 
         # print the rate of gate exit
         val_acc += accuracy.sum().item()
-    print('val_acc: ', val_acc/len(val.dataset))
+    val_acc = val_acc/len(val)
+    print('val acc: ', val_acc)
 
     torch.save({
         'model': enc.state_dict(),

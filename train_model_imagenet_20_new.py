@@ -48,6 +48,10 @@ import os
 
 epochs = 100
 max_val_acc = 0
+
+if f'Weights/training/{model_type}_{model_time}/' not in os.listdir('Weights/training/'):
+    os.mkdir(f'Weights/training/{model_type}_{model_time}/')
+        
 for epoch in range(epochs):
     train_loss = 0.0
     model.train()
@@ -77,9 +81,6 @@ for epoch in range(epochs):
         # print the rate of gate exit
         val_acc += accuracy.mean().item()
     print('val_acc: ', val_acc)
-
-    if f'Weights/training/{model_type}_{model_time}/' not in os.listdir('Weights/training/'):
-        os.mkdir(f'Weights/training/{model_type}_{model_time}/')
 
     torch.save({
         'model': model.state_dict(),

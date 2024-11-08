@@ -5,11 +5,11 @@ import torch
 model_type = sys.argv[1]
 if 'mobilenet' in model_type:
     client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagenet',
+                                                  weight_root='Weights/imagenet-new',
                                                   device='cuda:0',partition=-1)
 elif 'resnet' in model_type:
     client, server = resnet.resnet_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagenet/',
+                                                  weight_root='Weights/imagenet-new/',
                                                   device='cuda:0', layers=50)
 new_classifier = last_classifier.last_layer_classifier(1000, 20)
 

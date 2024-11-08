@@ -344,6 +344,7 @@ class MobileNetV2_server(nn.Module):
             nn.Dropout(p=dropout),
             nn.Linear(self.last_channel, num_classes),
         )
+        print(self.last_channel)
 
         # weight initialization
         for m in self.modules():

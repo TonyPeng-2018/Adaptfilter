@@ -54,7 +54,7 @@ class Dataset_imagenet_20():
     def return_class_index(self):
         return self.class_index
 
-class Dataloader_imagenet(Dataset):
+class Dataloader_imagenet_20(Dataset):
     def __init__(self, dataset, transform):
         self.image_path = dataset.image_path
         self.label = dataset.label
@@ -84,7 +84,7 @@ class Dataloader_imagenet(Dataset):
             'image_name': torch.tensor(image_name)
         }
 
-        return img, torch.tensor(label)
+        return img, labels
 
     def transform(self):
         mean = (0.485, 0.456, 0.406)
@@ -114,21 +114,19 @@ def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 100, trans
 
     trainset = Dataset_imagenet_20(path = 'data/imagenet-20-new/train/')
     testset = Dataset_imagenet_20(path = 'data/imagenet-20-new/test/')
-    valset = Dataset_imagenet_20(path = '/home/tonypeng/Workspace1/adaptfilter/data/imagenet-20-new/val/')
-    tr_sampler, t_sampler, v_sampler = dataset.return_sampler()
-    tr_dict, t_dict, v_dict = dataset.return_dict()
-    class_index = dataset.return_class_index()
-    train = Dataloader_imagenet(tr_sampler, tr_dict, transform=transform)
-    test = Dataloader_imagenet(t_sampler, t_dict, transform=transform)
-    val = Dataloader_imagenet(v_sampler, v_dict, transform=transform)
+    valset = Dataset_imagenet_20(path = 'data/imagenet-20-new/val/')
+
+    train = Dataloader_imagenet_20(trainset, transform=transform)
+    test = Dataloader_imagenet_20(testset, transform=transform)
+    val = Dataloader_imagenet_20(valset, transform=transform)
     train = torch.utils.data.DataLoader(train, batch_size=train_batch, shuffle=True)
     test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=False)
-    val = torch.utils.data.DataLoader(val, batch_size=train_batch, shuffle=True)
+    val = torch.utils.data.DataLoader(val, batch_size=test_batch, shuffle=True)
     return train, test, val
 
 if __name__ == '__main__':
-    # train, test, val, classes = Dataloader_imagenet_20_integrated()
-    Dataset_imagenet_20(path = '/home/tonypeng/Workspace1/adaptfilter/data/imagenet-20-new/train/')
+    train, test, val = Dataloader_imagenet_20_integrated()
+    # Dataset_imagenet_20(path = '/home/tonypeng/Workspace1/adaptfilter/data/imagenet-20-new/train/')
     # for i, data in enumerate(train):
     #     inputs, labels, new_labels = data
     #     print(inputs.size(), labels.size(), new_labels.size())

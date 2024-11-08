@@ -26,7 +26,7 @@ client, server = mobilenetv2.mobilenetv2_splitter(
 
 from Dataloaders import dataloader_image_20
 
-train, _, val, _ = dataloader_image_20.Dataloader_imagenet_20_integrated(
+train, _, val = dataloader_image_20.Dataloader_imagenet_20_integrated(
     device="home", train_batch=64, test_batch=100
 )
 
@@ -40,6 +40,7 @@ server = server.to(device)
 client = client.eval()
 server = server.eval()
 
+middle_sizes = [1, 2, 4, 8, 16]
 middles = []
 for middle_size in middle_sizes:
     middle = mobilenetv2.MobileNetV2_middle(middle=middle_size)
@@ -60,7 +61,8 @@ for epoch in tqdm(range(epochs)):
     for middle in middles:
         middle.train()
     for i, data in enumerate(tqdm(train)):
-        inputs, labels, newlabel = data
+        inputs, labels = data
+        print(labels)
         inputs, labels = inputs.to(device), labels.to(device)
 
         client_out = client(inputs).detach()
@@ -72,6 +74,7 @@ for epoch in tqdm(range(epochs)):
 
             outputs = middle(client_out)
             outputs = server(outputs)
+            print(outputs.size(), labels.size())
             # print(outputs.size(), labels.size())
             loss = criterion(outputs, labels)
             loss.backward()

@@ -38,7 +38,7 @@ model_time = datetime.datetime.now().strftime("%m%d%H%M%S")
 
 from Dataloaders import dataloader_image_20_new
 
-train, _, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=128, test_batch=64)
+train, _, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=64, test_batch=32)
 
 import torch.optim as optim
 import torch.nn as nn
@@ -62,8 +62,11 @@ dec = dec.to(device)
 criterion = nn.CrossEntropyLoss()
 # optimizer_client = optim.adam(client.parameters(), lr=0.001)
 # optimizer_server = optim.adam(server.parameters(), lr=0.001)
-list_params = list(client.parameters()) + list(server.parameters()) + list(new_classifier.parameters()) + list(enc.parameters()) + list(dec.parameters())
-optimizer = optim.Adam(list_params, lr=0.001)
+# list_params = list(client.parameters()) + list(server.parameters()) + list(new_classifier.parameters()) + list(enc.parameters()) + list(dec.parameters())
+list_params = list(client.parameters()) + list(server.parameters()) + list(new_classifier.parameters())
+list_params_2 = list(enc.parameters()) + list(dec.parameters())
+optimizer = optim.Adam(list_params, lr=0.0001)
+optimizer2 = optim.Adam(list_params_2, lr=0.001)
 # optimizer_enc = optim.Adam(enc.parameters(), lr=0.001)
 # optimizer_dec = optim.Adam(dec.parameters(), lr=0.001)
 
@@ -93,21 +96,23 @@ for epoch in range(epochs):
 
         data, labels = data.to(device), labels['label'].to(device)
 
-        client_out = client(data)
-        enc_out = enc(client_out)
-        dec_out = dec(enc_out)
-        pred = server(dec_out)
+        output = client(data)
+        output = enc(output)
+        output = dec(output)
+        pred = server(output)
         pred = new_classifier(pred)
 
         # optimizer_enc.zero_grad()
         # optimizer_dec.zero_grad()
         optimizer.zero_grad()
+        optimizer2.zero_grad()
         loss = criterion(pred, labels)
         train_loss += loss.item()
         loss.backward()
         # optimizer_enc.step()
         # optimizer_dec.step()
         optimizer.step()
+        optimizer2.step()
     print('train loss: ', train_loss/len(train.dataset))
 
     val_acc = 0
@@ -121,11 +126,12 @@ for epoch in range(epochs):
     for i, (data, labels) in tqdm(enumerate(val)):
 
         data, labels = data.to(device), labels['label'].to(device)
-        client_out = client(data)
-        enc_out = enc(client_out)
-        dec_out = dec(enc_out)
-        pred = server(client_out)
-        pred = new_classifier(pred)
+
+        output = client(data)
+        output = enc(output)
+        output = dec(output)
+        output = server(output)
+        pred = new_classifier(output)
 
         # get the number of 0 and 1
         pred = torch.softmax(pred, dim=1)

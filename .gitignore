@@ -8,6 +8,7 @@ checkpoint/
 *.tar
 # no pycache
 __pycache__/
+data/
 
 # no trainning logger
 

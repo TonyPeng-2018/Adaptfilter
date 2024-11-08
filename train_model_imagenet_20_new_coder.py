@@ -52,12 +52,12 @@ enc = enc.to(device)
 dec = dec.to(device)
 
 # freeze model parameters
-for param in client.parameters():
-    param.requires_grad = False
-for param in server.parameters():
-    param.requires_grad = False
-for param in new_classifier.parameters():
-    param.requires_grad = False
+# for param in client.parameters():
+#     param.requires_grad = False
+# for param in server.parameters():
+#     param.requires_grad = False
+# for param in new_classifier.parameters():
+#     param.requires_grad = False
 
 criterion = nn.CrossEntropyLoss()
 # optimizer_client = optim.adam(client.parameters(), lr=0.001)
@@ -100,11 +100,13 @@ for epoch in range(epochs):
 
         optimizer_enc.zero_grad()
         optimizer_dec.zero_grad()
+        # optimizer.zero_grad()
         loss = criterion(pred, labels)
         train_loss += loss.item()
         loss.backward()
         optimizer_enc.step()
         optimizer_dec.step()
+        # optimizer.step()
     print('train loss: ', train_loss/len(train.dataset))
 
     val_acc = 0
@@ -135,15 +137,12 @@ for epoch in range(epochs):
     print('val acc: ', val_acc)
 
     torch.save({
-        'model': enc.state_dict(),
+        'client': client.state_dict(),
+        'server': server.state_dict(),
+        'new_classifier': new_classifier.state_dict(),
+        'enc': enc.state_dict(),
+        'dec': dec.state_dict(),
         'optimizer': optimizer_enc.state_dict(),
         'epoch': epoch,
         'val_acc': val_acc
     }, f'Weights/training/{model_type}_coder_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
-
-    torch.save({
-        'model': dec.state_dict(),
-        'optimizer': optimizer_dec.state_dict(),
-        'epoch': epoch,
-        'val_acc': val_acc
-    }, f'Weights/training/{model_type}_coder_{model_time}/decoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')

@@ -13,9 +13,9 @@ if 'mobilenet' in model_type:
     class_weight = torch.load('Weights/imagenet-new/lastlayer/resnet.pth')
     new_classifier.load_state_dict(class_weight['model'])
 elif 'resnet' in model_type:
-    client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagenet-new/',
-                                                  device='cuda:0',partition=-1)
+    client, server = resnet.resnet_splitter(num_classes=1000,
+                                                  weight_root='Weights/imagenet/',
+                                                  device='cuda:0', layers=50)
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
     class_weight = torch.load('Weights/imagenet-new/lastlayer/mobilenet.pth')
     new_classifier.load_state_dict(class_weight['model'])
@@ -86,22 +86,22 @@ for epoch in range(epochs):
     enc.train()
     dec.train()
 
-    # for i, (data, labels) in tqdm(enumerate(train)):
+    for i, (data, labels) in tqdm(enumerate(train)):
 
-    #     data, labels = data.to(device), labels['label'].to(device)
+        data, labels = data.to(device), labels['label'].to(device)
 
-    #     client_out = client(data)
-    #     enc_out = enc(client_out)
-    #     dec_out = dec(enc_out)
-    #     pred = server(dec_out)
-    #     pred = new_classifier(pred)
+        client_out = client(data)
+        enc_out = enc(client_out)
+        dec_out = dec(enc_out)
+        pred = server(dec_out)
+        pred = new_classifier(pred)
 
-    #     optimizer.zero_grad()
-    #     loss = criterion(pred, labels)
-    #     train_loss += loss.item()
-    #     loss.backward()
-    #     optimizer.step()
-    # print('train loss: ', train_loss/len(train))
+        optimizer.zero_grad()
+        loss = criterion(pred, labels)
+        train_loss += loss.item()
+        loss.backward()
+        optimizer.step()
+    print('train loss: ', train_loss/len(train.dataset))
 
     val_acc = 0
 
@@ -127,7 +127,7 @@ for epoch in range(epochs):
 
         # print the rate of gate exit
         val_acc += accuracy.sum().item()
-    val_acc = val_acc/len(val)
+    val_acc = val_acc/len(val.dataset)
     print('val acc: ', val_acc)
 
     torch.save({

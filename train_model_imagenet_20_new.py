@@ -5,12 +5,12 @@ import torch
 model_type = sys.argv[1]
 if 'mobilenet' in model_type:
     client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagenet-new',
+                                                  weight_root='Weights/imagenet',
                                                   device='cuda:0',partition=-1)
 elif 'resnet' in model_type:
-    client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagenet-new/',
-                                                  device='cuda:0',partition=-1)
+    client, server = resnet.resnet_splitter(num_classes=1000,
+                                                  weight_root='Weights/imagenet/',
+                                                  device='cuda:0', layers=50)
 new_classifier = last_classifier.last_layer_classifier(1000, 20)
 
 import datetime
@@ -29,10 +29,6 @@ import torch.optim as optim
 import torch.nn as nn
 
 device = torch.device('cuda:0')
-# client = client.to(device)
-# server = server.to(device)
-# client = client.train()
-# server = server.train()
 
 client = client.to(device)
 server = server.to(device)
@@ -45,8 +41,6 @@ for param in server.parameters():
     param.requires_grad = False
 
 criterion = nn.CrossEntropyLoss()
-# optimizer_client = optim.adam(client.parameters(), lr=0.001)
-# optimizer_server = optim.adam(server.parameters(), lr=0.001)
 optimizer = optim.Adam(new_classifier.parameters(), lr=0.001)
 
 from tqdm import tqdm
@@ -73,16 +67,16 @@ for epoch in range(epochs):
 
         data, labels = data.to(device), labels['label'].to(device)
 
-        pred = client(data)
-        pred = server(pred)
-        pred = new_classifier(pred)
+        client_out = client(data)
+        server_out = server(client_out)
+        pred = new_classifier(server_out)
 
         optimizer.zero_grad()
         loss = criterion(pred, labels)
         train_loss += loss.item()
         loss.backward()
         optimizer.step()
-    print('train loss: ', train_loss/len(train))
+    print('train loss: ', train_loss/len(train.dataset))
 
     val_acc = 0
 
@@ -93,9 +87,9 @@ for epoch in range(epochs):
     for i, (data, labels) in tqdm(enumerate(val)):
 
         data, labels = data.to(device), labels['label'].to(device)
-        pred = client(data)
-        pred = server(pred)
-        pred = new_classifier(pred)
+        client_out = client(data)
+        server_out = server(client_out)
+        pred = new_classifier(server_out)
         # get the number of 0 and 1
         pred = torch.softmax(pred, dim=1)
         pred = torch.argmax(pred, dim=1)
@@ -103,7 +97,7 @@ for epoch in range(epochs):
 
         # print the rate of gate exit
         val_acc += accuracy.sum().item()
-    val_acc = val_acc/len(val)
+    val_acc = val_acc/len(val.dataset)
     print('val acc: ', val_acc)
 
     torch.save({

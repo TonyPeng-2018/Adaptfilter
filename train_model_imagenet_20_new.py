@@ -1,15 +1,17 @@
-from Models import mobilenetv2, resnet
+from Models import mobilenetv2, resnet, last_classifier
 import sys
-
-# client, server = mobilenetv2.mobilenetv2_splitter(num_classes=20,
-#                                                   weight_root='Weights/imagenet/',
-#                                                   device='cuda:0',partition=-1)
+import torch
 
 model_type = sys.argv[1]
 if 'mobilenet' in model_type:
-    model = mobilenetv2.MobileNetV2(num_classes=20)
+    client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
+                                                  weight_root='Weights/imagenet/',
+                                                  device='cuda:0',partition=-1)
 elif 'resnet' in model_type:
-    model = resnet.resnet50(num_classes=20)
+    client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
+                                                  weight_root='Weights/imagenet/',
+                                                  device='cuda:0',partition=-1)
+new_classifier = last_classifier.last_layer_classifier(1000, 20)
 
 import datetime
 model_time = datetime.datetime.now().strftime("%m%d%H%M%S")
@@ -22,7 +24,7 @@ model_time = datetime.datetime.now().strftime("%m%d%H%M%S")
 from Dataloaders import dataloader_image_20_new
 
 train, _, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=128, test_batch=64)
-import torch
+
 import torch.optim as optim
 import torch.nn as nn
 
@@ -32,12 +34,20 @@ device = torch.device('cuda:0')
 # client = client.train()
 # server = server.train()
 
-model = model.to(device)
+client = client.to(device)
+server = server.to(device)
+new_classifier = new_classifier.to(device)
+
+# freeze model parameters
+for param in client.parameters():
+    param.requires_grad = False
+for param in server.parameters():
+    param.requires_grad = False
 
 criterion = nn.CrossEntropyLoss()
 # optimizer_client = optim.adam(client.parameters(), lr=0.001)
 # optimizer_server = optim.adam(server.parameters(), lr=0.001)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(new_classifier.parameters(), lr=0.001)
 
 from tqdm import tqdm
 from Utils import utils
@@ -48,14 +58,24 @@ import os
 
 epochs = 100
 max_val_acc = 0
+
+if f'Weights/training/{model_type}_{model_time}/' not in os.listdir('Weights/training/'):
+    os.mkdir(f'Weights/training/{model_type}_{model_time}/')
+
 for epoch in range(epochs):
     train_loss = 0.0
-    model.train()
+
+    client.train()
+    server.train()
+    new_classifier.train()
+
     for i, (data, labels) in tqdm(enumerate(train)):
 
         data, labels = data.to(device), labels['label'].to(device)
 
-        pred = model(data)
+        pred = client(data)
+        pred = server(pred)
+        pred = new_classifier(pred)
 
         optimizer.zero_grad()
         loss = criterion(pred, labels)
@@ -66,9 +86,16 @@ for epoch in range(epochs):
 
     val_acc = 0
 
+    client.eval()
+    server.eval()
+    new_classifier.eval()
+
     for i, (data, labels) in tqdm(enumerate(val)):
+
         data, labels = data.to(device), labels['label'].to(device)
-        pred = model(data)
+        pred = client(data)
+        pred = server(pred)
+        pred = new_classifier(pred)
         # get the number of 0 and 1
         pred = torch.softmax(pred, dim=1)
         pred = torch.argmax(pred, dim=1)
@@ -78,12 +105,9 @@ for epoch in range(epochs):
         val_acc += accuracy.mean().item()
     print('val_acc: ', val_acc)
 
-    if f'Weights/training/{model_type}_{model_time}/' not in os.listdir('Weights/training/'):
-        os.mkdir(f'Weights/training/{model_type}_{model_time}/')
-
     torch.save({
-        'model': model.state_dict(),
+        'model': new_classifier.state_dict(),
         'optimizer': optimizer.state_dict(),
         'epoch': epoch,
         'val_acc': val_acc
-    }, f'Weights/training/{model_type}_{model_time}/epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
+    }, f'Weights/training/{model_type}_new_classifier_{model_time}/epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')

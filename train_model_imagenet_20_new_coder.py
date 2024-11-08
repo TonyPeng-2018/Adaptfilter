@@ -12,15 +12,14 @@ if 'mobilenet' in model_type:
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
     class_weight = torch.load('Weights/imagenet-new/lastlayer/resnet.pth')
     new_classifier.load_state_dict(class_weight['model'])
-    
+
 elif 'resnet' in model_type:
     client, server = resnet.resnet_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagenet-20/',
+                                                  weight_root='Weights/imagenet-new/',
                                                   device='cuda:0', layers=50)
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
     class_weight = torch.load('Weights/imagenet-new/lastlayer/mobilenet.pth')
     new_classifier.load_state_dict(class_weight['model'])
-new_classifier = last_classifier.last_layer_classifier(1000, 20)
 
 if 'mobilenet' in model_type:
     enc = encoder.Encoder(in_ch=32, num_of_layers=num_of_layers)
@@ -87,22 +86,22 @@ for epoch in range(epochs):
     enc.train()
     dec.train()
 
-    for i, (data, labels) in tqdm(enumerate(train)):
+    # for i, (data, labels) in tqdm(enumerate(train)):
 
-        data, labels = data.to(device), labels['label'].to(device)
+    #     data, labels = data.to(device), labels['label'].to(device)
 
-        client_out = client(data)
-        enc_out = enc(client_out)
-        dec_out = dec(enc_out)
-        pred = server(dec_out)
-        pred = new_classifier(pred)
+    #     client_out = client(data)
+    #     enc_out = enc(client_out)
+    #     dec_out = dec(enc_out)
+    #     pred = server(dec_out)
+    #     pred = new_classifier(pred)
 
-        optimizer.zero_grad()
-        loss = criterion(pred, labels)
-        train_loss += loss.item()
-        loss.backward()
-        optimizer.step()
-    print('train loss: ', train_loss/len(train.dataset))
+    #     optimizer.zero_grad()
+    #     loss = criterion(pred, labels)
+    #     train_loss += loss.item()
+    #     loss.backward()
+    #     optimizer.step()
+    # print('train loss: ', train_loss/len(train.dataset))
 
     val_acc = 0
 
@@ -131,16 +130,16 @@ for epoch in range(epochs):
     val_acc = val_acc/len(val.dataset)
     print('val acc: ', val_acc)
 
-    torch.save({
-        'model': enc.state_dict(),
-        'optimizer': optimizer.state_dict(),
-        'epoch': epoch,
-        'val_acc': val_acc
-    }, f'Weights/training/{model_type}_coder_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
+    # torch.save({
+    #     'model': enc.state_dict(),
+    #     'optimizer': optimizer.state_dict(),
+    #     'epoch': epoch,
+    #     'val_acc': val_acc
+    # }, f'Weights/training/{model_type}_coder_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
 
-    torch.save({
-        'model': dec.state_dict(),
-        'optimizer': optimizer.state_dict(),
-        'epoch': epoch,
-        'val_acc': val_acc
-    }, f'Weights/training/{model_type}_coder_{model_time}/decoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
+    # torch.save({
+    #     'model': dec.state_dict(),
+    #     'optimizer': optimizer.state_dict(),
+    #     'epoch': epoch,
+    #     'val_acc': val_acc
+    # }, f'Weights/training/{model_type}_coder_{model_time}/decoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')

@@ -93,10 +93,10 @@ for epoch in range(epochs):
 
         data, labels = data.to(device), labels['label'].to(device)
 
-        client_out = client(data)
-        enc_out = enc(client_out)
-        dec_out = dec(enc_out)
-        pred = server(dec_out)
+        output = client(data)
+        output = enc(output)
+        output = dec(output)
+        pred = server(output)
         pred = new_classifier(pred)
 
         # optimizer_enc.zero_grad()
@@ -121,10 +121,10 @@ for epoch in range(epochs):
     for i, (data, labels) in tqdm(enumerate(val)):
 
         data, labels = data.to(device), labels['label'].to(device)
-        client_out = client(data)
-        # enc_out = enc(client_out)
-        # dec_out = dec(enc_out)
-        pred = server(client_out)
+        output = client(data)
+        output = enc(output)
+        output = dec(output)
+        pred = server(output)
         pred = new_classifier(pred)
 
         # get the number of 0 and 1

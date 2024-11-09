@@ -5,9 +5,9 @@
 #SBATCH --nodes=1
 #SBATCH --time=144:00:00
 #SBATCH --cluster=gpu
-#SBATCH --partition=l40s
+#SBATCH --partition=a100
 #SBATCH --gres=gpu:1
-#SBATCH --output=./logs/train_AF_mobilenet_coder_2_1
+#SBATCH --output=./logs/train_AF_mobilenet_coder_2_64
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
  

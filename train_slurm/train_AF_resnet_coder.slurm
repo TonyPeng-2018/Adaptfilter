@@ -5,7 +5,7 @@
 #SBATCH --cluster=gpu
 #SBATCH --partition=a100
 #SBATCH --gres=gpu:1
-#SBATCH --output=./logs/train_AF_resnet_coder_2_128
+#SBATCH --output=./logs/train_AF_resnet_coder_2_64
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
  

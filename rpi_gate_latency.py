@@ -1,19 +1,8 @@
-# this file is for device on the client side
-
-# load the dataset
-
-# This file is for trainning
-# Run this on the server, or as we called offline.
-
-import argparse
 import base64
 import cv2
-import datetime
 from Models import gatedmodel, mobilenetv2, resnet
 import numpy as np
 import os
-import PIL
-import psutil
 import sys
 import time
 import torch
@@ -27,8 +16,8 @@ middle_sizes = {"mobilenet": middle_sizes_mobile, "resnet": middle_sizes_resnet}
 reduced_sizes = {"cifar-10": (32, 32), "imagenet": (224, 224)}
 reduced_rates = {"mobilenet": 2, "resnet": 4}
 
-dataset = "cifar-10"
-model = "resnet"
+dataset = sys.argv[1]
+model = sys.argv[2]
 i_stop = 100
 
 width, height = (
@@ -65,16 +54,16 @@ for i in range(len(middle_size)):
     gate_models[i].eval()
 
 # quantize
-# client = torch.ao.quantization.quantize_dynamic(
-#     client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-# )
-# for i in range(len(middle_size)):
-#     middle_models[i] = torch.ao.quantization.quantize_dynamic(
-#         middle_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-#     )
-#     gate_models[i] = torch.ao.quantization.quantize_dynamic(
-#         gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-#     )
+client = torch.ao.quantization.quantize_dynamic(
+    client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+)
+for i in range(len(middle_size)):
+    middle_models[i] = torch.ao.quantization.quantize_dynamic(
+        middle_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+    )
+    gate_models[i] = torch.ao.quantization.quantize_dynamic(
+        gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+    )
 
 # 2. dataset
 # directly read bmp image from the storage
@@ -86,7 +75,7 @@ images_list = [x for x in images_list if x.endswith(".bmp")]
 images_list = sorted(images_list)
 
 client_time = [0] * len(middle_size)
-
+import gzip
 # this is test the overspeed, so we don't need to load the models
 with torch.no_grad():
     for i, i_path in tqdm(enumerate(images_list)):
@@ -109,6 +98,8 @@ with torch.no_grad():
                 middle_int = utils.float_to_uint(middle_in)
                 middle_int = middle_int.numpy().copy(order="C")
                 middle_int = middle_int.astype(np.uint8)
+                middle_int = middle_int.tobytes()
+                middle_int = gzip.compress(middle_int)
                 send_in = base64.b64encode(middle_int)
                 s1_time = time.time()
                 client_time[j] += s1_time - s_time

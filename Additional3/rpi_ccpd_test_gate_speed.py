@@ -24,10 +24,10 @@ middle_sizes_mobile = [1, 2, 4, 8, 16]
 middle_sizes_resnet = [1, 2, 4, 8, 16, 32]
 
 middle_sizes = {"mobilenet": middle_sizes_mobile, "resnet": middle_sizes_resnet}
-reduced_sizes = {"cifar-10": (32, 32), "imagenet": (224, 224)}
+reduced_sizes = {"cifar-10": (32, 32), "imagenet": (224, 224), "ccpd": (224, 224)}
 reduced_rates = {"mobilenet": 2, "resnet": 4}
 
-dataset = "cifar-10"
+dataset = "ccpd"
 model = "resnet"
 i_stop = 100
 
@@ -44,7 +44,10 @@ middle_size = middle_sizes[model]
 #     weight_root='./Weights/'+dataset+'/',
 #     device='cpu')
 client = resnet.resnet_splitter_client(
-    num_classes=1000, weight_root="./Weights/" + dataset + "/", device="cpu", layers=50
+    num_classes=34,
+    weight_root="./Weights/" + "ccpd-small" + "/",
+    device="cpu",
+    layers=50,
 )
 
 middle_models = []
@@ -65,16 +68,16 @@ for i in range(len(middle_size)):
     gate_models[i].eval()
 
 # quantize
-# client = torch.ao.quantization.quantize_dynamic(
-#     client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-# )
-# for i in range(len(middle_size)):
-#     middle_models[i] = torch.ao.quantization.quantize_dynamic(
-#         middle_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-#     )
-#     gate_models[i] = torch.ao.quantization.quantize_dynamic(
-#         gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-#     )
+client = torch.ao.quantization.quantize_dynamic(
+    client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+)
+for i in range(len(middle_size)):
+    middle_models[i] = torch.ao.quantization.quantize_dynamic(
+        middle_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+    )
+    gate_models[i] = torch.ao.quantization.quantize_dynamic(
+        gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+    )
 
 # 2. dataset
 # directly read bmp image from the storage
@@ -85,7 +88,7 @@ images_list.remove("labels.txt")
 images_list = [x for x in images_list if x.endswith(".bmp")]
 images_list = sorted(images_list)
 
-client_time = [0] * len(middle_size)
+client_time = 0
 
 # this is test the overspeed, so we don't need to load the models
 with torch.no_grad():
@@ -111,10 +114,9 @@ with torch.no_grad():
                 middle_int = middle_int.astype(np.uint8)
                 send_in = base64.b64encode(middle_int)
                 s1_time = time.time()
-                client_time[j] += s1_time - s_time
+                client_time += s1_time - s_time
 
-for i in range(len(client_time)):
-    client_time[i] /= i_stop / 1000  # ms per frame
+client_time = client_time * 1000 / 100
 
 # print the list without [ and ]
 out_string = str(client_time).replace("[", "").replace("]", "")

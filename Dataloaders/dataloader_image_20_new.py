@@ -110,19 +110,23 @@ class Dataloader_imagenet_20(Dataset):
         return transform
 
 
-def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 64, transform=True):
+def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 64, transform=True, test_only=False):
 
-    trainset = Dataset_imagenet_20(path = 'data/imagenet-20-new/train/')
-    testset = Dataset_imagenet_20(path = 'data/imagenet-20-new/test/')
-    valset = Dataset_imagenet_20(path = 'data/imagenet-20-new/val/')
-
-    train = Dataloader_imagenet_20(trainset, transform=transform)
+    if not test_only:
+        trainset = Dataset_imagenet_20(path = 'data/imagenet-20-new/train/')
+        valset = Dataset_imagenet_20(path = 'data/imagenet-20-new/val/')
+        train = Dataloader_imagenet_20(trainset, transform=transform)
+        val = Dataloader_imagenet_20(valset, transform=transform)
+        train = torch.utils.data.DataLoader(train, batch_size=train_batch, shuffle=True)
+        val = torch.utils.data.DataLoader(val, batch_size=test_batch, shuffle=True)
+    testset = Dataset_imagenet_20(path = 'data/imagenet-20-new/test/') 
     test = Dataloader_imagenet_20(testset, transform=transform)
-    val = Dataloader_imagenet_20(valset, transform=transform)
-    train = torch.utils.data.DataLoader(train, batch_size=train_batch, shuffle=True)
     test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=False)
-    val = torch.utils.data.DataLoader(val, batch_size=test_batch, shuffle=True)
-    return train, test, val
+    
+    if not test_only:
+        return train, test, val
+    else:
+        return test
 
 if __name__ == '__main__':
     train, test, val = Dataloader_imagenet_20_integrated()

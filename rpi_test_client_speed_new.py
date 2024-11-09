@@ -107,4 +107,5 @@ for i, (data, _) in tqdm(enumerate(test)):
         client_latency[i] = t2-t1
 
 print(f'Average latency: {np.mean(client_latency)}')
+print(f'Average frequency: {client_frequency/len(test.dataset)}')
         

@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --output=./logs/train_AF_mobilenet
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=12
+#SBATCH --cpus-per-task=16
  
 module load cuda/12.4
 cd /ihome/stephenlee/anp407/Workspace/Adaptfilter

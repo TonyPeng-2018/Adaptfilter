@@ -75,7 +75,7 @@ images_list = [x for x in images_list if x.endswith(".bmp")]
 images_list = sorted(images_list)
 
 client_time = [0] * len(middle_size)
-
+import gzip
 # this is test the overspeed, so we don't need to load the models
 with torch.no_grad():
     for i, i_path in tqdm(enumerate(images_list)):
@@ -98,6 +98,8 @@ with torch.no_grad():
                 middle_int = utils.float_to_uint(middle_in)
                 middle_int = middle_int.numpy().copy(order="C")
                 middle_int = middle_int.astype(np.uint8)
+                middle_int = middle_int.tobytes()
+                middle_int = gzip.compress(middle_int)
                 send_in = base64.b64encode(middle_int)
                 s1_time = time.time()
                 client_time[j] += s1_time - s_time

@@ -65,16 +65,16 @@ for i in range(len(middle_size)):
     gate_models[i].eval()
 
 # quantize
-client = torch.ao.quantization.quantize_dynamic(
-    client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-)
-for i in range(len(middle_size)):
-    middle_models[i] = torch.ao.quantization.quantize_dynamic(
-        middle_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-    )
-    gate_models[i] = torch.ao.quantization.quantize_dynamic(
-        gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-    )
+# client = torch.ao.quantization.quantize_dynamic(
+#     client, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+# )
+# for i in range(len(middle_size)):
+#     middle_models[i] = torch.ao.quantization.quantize_dynamic(
+#         middle_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+#     )
+#     gate_models[i] = torch.ao.quantization.quantize_dynamic(
+#         gate_models[i], {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+#     )
 
 # 2. dataset
 # directly read bmp image from the storage

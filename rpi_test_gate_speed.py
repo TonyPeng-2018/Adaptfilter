@@ -150,22 +150,37 @@ with torch.no_grad():
         client_out = client(image).detach()
         c_time = time.time() - c_time
         
-        g_times = []
+        g_times = np.zeros(len(middle_size)+1)
         for j in range(len(middle_size)):
             g_time = time.time()
             for k in range(j+1):
             
                 middle_in = middle_models[j].in_layer(client_out)
                 gate_out = gate_models[j](middle_in)
+                  
 
             middle_in, mmin, mmax = utils.normalize_return(middle_in)
             middle_int = utils.float_to_uint(middle_in)
             middle_int = middle_int.numpy().copy(order="C")
             middle_int = middle_int.astype(np.uint8)
             middle_int = middle_int.tobytes()
-            middle_int = gzip.compress(middle_int)
+            middle_int = gzip.compress(middle_int, compresslevel=9)
             send_msg = base64.b64encode(middle_int)
-            g_times.append(time.time() - g_time)
+            g_times[j] = time.time() - g_time
+
+        g_time = time.time()
+        for j in range(len(middle_size)):
+            middle_in = middle_models[j].in_layer(client_out)
+            gate_out = gate_models[j](middle_in)
+        s_time = time.time()
+        middle_in, mmin, mmax = utils.normalize_return(client_out)
+        middle_int = utils.float_to_uint(middle_in)
+        middle_int = middle_int.numpy().copy(order="C")
+        middle_int = middle_int.astype(np.uint8)
+        middle_int = middle_int.tobytes()
+        middle_int = gzip.compress(middle_int, compresslevel=9)
+        send_msg = base64.b64encode(middle_int)
+        g_times[-1] = time.time() - g_time
 
         for j in range(len(middle_size)):
             middle_in = middle_models[j].in_layer(client_out)
@@ -174,7 +189,7 @@ with torch.no_grad():
             middle_int = middle_int.numpy().copy(order="C")
             middle_int = middle_int.astype(np.uint8)
             middle_int = middle_int.tobytes()
-            middle_int = gzip.compress(middle_int)
+            middle_int = gzip.compress(middle_int, compresslevel=9)
             send_msg = base64.b64encode(middle_int)
             with open(split_gate_folder + model + '_' + str(j), "wb") as f:
                 f.write(send_msg)
@@ -183,10 +198,28 @@ with torch.no_grad():
                 msg = data_set + "," + model + "," + str(mmax) + "," + str(mmin)
                 msg = msg.encode()
                 f.write(msg)
+        # write the original emb
+        middle_in = client_out
+        middle_in, mmin, mmax = utils.normalize_return(middle_in)
+        middle_int = utils.float_to_uint(middle_in)
+        middle_int = middle_int.numpy().copy(order="C")
+        middle_int = middle_int.astype(np.uint8)
+        middle_int = middle_int.tobytes()
+        middle_int = gzip.compress(middle_int, compresslevel=9)
+        send_msg = base64.b64encode(middle_int)
+        with open(split_gate_folder + model + '_' + str(len(middle_size)), "wb") as f:
+            f.write(send_msg)
+        with open(split_gate_folder + model + '_' + str(len(middle_size)) + "_h", "wb") as f:
+            # dataset, model, max, min
+            msg = data_set + "," + model + "," + str(mmax) + "," + str(mmin)
+            msg = msg.encode()
+            f.write(msg)
 
 # print the list without [ and ]
 print("dataset:", dataset, "model:", model)
 c_time = c_time * 1000
 print("client time:%.2f"%c_time)
+# np to list
+g_times = g_times.tolist()
 g_times = [x*1000 for x in g_times]
 print("gate time:", g_times)

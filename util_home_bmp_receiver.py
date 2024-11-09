@@ -13,7 +13,7 @@ class Server:
         # host = '100.64.0.2'
         # host = '100.64.0.4'
         host = "127.0.0.1"
-        self.i_stop = 5
+        self.i_stop = 10
         self.port = port
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -27,7 +27,7 @@ class Server:
 
             client_socket, addr = self.s.accept()
 
-            quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+            quality = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
             for q in quality:
                 packet_receive_time = 0
                 received_bytes = 0

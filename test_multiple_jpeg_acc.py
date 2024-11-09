@@ -85,8 +85,6 @@ with torch.no_grad():
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
 
         for j, img in enumerate(range(i_stop)):
-            if j ==0:
-                continue
             image_path = data_root + str(img) + ".bmp"
             image = cv2.imread(image_path)
             result, image = cv2.imencode(".jpg", image, encode_param)

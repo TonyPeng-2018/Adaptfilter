@@ -87,7 +87,7 @@ import sys
 import numpy as np
 import os
 
-epochs = 100
+epochs = 30
 max_val_acc = 0
 
 if not os.path.exists(f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/'):
@@ -104,25 +104,25 @@ for epoch in range(epochs):
     enc.train()
     dec.train()
 
-    # for i, (data, labels) in tqdm(enumerate(train)):
+    for i, (data, labels) in tqdm(enumerate(train)):
 
-    #     data, labels = data.to(device), labels['label'].to(device)
+        data, labels = data.to(device), labels['label'].to(device)
 
-    #     output = client(data)
-    #     output = down(output)
-    #     output = enc(output)
-    #     output = dec(output)
-    #     output = up(output)
-    #     pred = server(output)
-    #     pred = classifier(pred)
+        output = client(data)
+        output = down(output)
+        output = enc(output)
+        output = dec(output)
+        output = up(output)
+        pred = server(output)
+        pred = classifier(pred)
 
-    #     optimizer.zero_grad()
-    #     loss = criterion(pred, labels)
-    #     train_loss += loss.item()
-    #     loss.backward()
-    #     optimizer.step()
-    # train_loss = train_loss/len(train.dataset)
-    # print('train loss: ', train_loss)
+        optimizer.zero_grad()
+        loss = criterion(pred, labels)
+        train_loss += loss.item()
+        loss.backward()
+        optimizer.step()
+    train_loss = train_loss/len(train.dataset)
+    print('train loss: ', train_loss)
 
     val_acc = 0
 
@@ -140,8 +140,8 @@ for epoch in range(epochs):
 
         output = client(data)
         output = down(output)
-        # output = enc(output)
-        # output = dec(output)
+        output = enc(output)
+        output = dec(output)
         output = up(output)
         output = server(output)
         pred = classifier(output)
@@ -156,13 +156,13 @@ for epoch in range(epochs):
     val_acc = val_acc/len(test.dataset)
     print('val acc: ', val_acc)
 
-    # if val_acc > max_val_acc:
-    #     max_val_acc = val_acc
-    #     torch.save({
-    #         'encoder': enc.state_dict(),
-    #         'decoder': dec.state_dict(), 
-    #         'optimizer': optimizer.state_dict(),
-    #         'epoch': epoch,
-    #         'val_acc': val_acc
-    #     }, f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/coder_best_model.pth')
-    #     print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc)
+    if val_acc > max_val_acc:
+        max_val_acc = val_acc
+        torch.save({
+            'encoder': enc.state_dict(),
+            'decoder': dec.state_dict(), 
+            'optimizer': optimizer.state_dict(),
+            'epoch': epoch,
+            'val_acc': val_acc
+        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/coder_best_model.pth')
+        print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc)

@@ -5,13 +5,13 @@
 #SBATCH --cluster=gpu
 #SBATCH --partition=l40s
 #SBATCH --gres=gpu:1
-#SBATCH --output=./logs/train_AF_resnet_coder_2
+#SBATCH --output=./logs/train_AF_resnet_coder_1_4
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=12
+#SBATCH --cpus-per-task=16
  
 module load cuda/12.4
 cd /ihome/stephenlee/anp407/Workspace/Adaptfilter
 source /ihome/stephenlee/anp407/.bashrc
 source activate adapt
 
-python train_model_imagenet_20_new_coder.py resnet $1
+python train_model_imagenet_20_new_coder.py resnet $1 $2

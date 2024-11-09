@@ -5,7 +5,7 @@
 #SBATCH --cluster=gpu
 #SBATCH --partition=a100
 #SBATCH --gres=gpu:1
-#SBATCH --output=./logs/train_AF_resnet_coder_2_128
+#SBATCH --output=./logs/train_AF_resnet_gate_2_128
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
  
@@ -14,4 +14,4 @@ cd /ihome/stephenlee/anp407/Workspace/Adaptfilter
 source /ihome/stephenlee/anp407/.bashrc
 source activate adapt
 
-python train_model_imagenet_20_new_coder.py resnet $1 $2
+python train_model_imagenet_20_new_gate.py resnet $1 $2

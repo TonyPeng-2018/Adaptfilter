@@ -7,18 +7,18 @@ num_of_layers = int(sys.argv[2]) # 2 for mobilenet, 1 for resnet
 
 if 'mobilenet' in model_type:
     client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagenet-new/',
+                                                  weight_root='Weights/imagenet-new/used/',
                                                   device='cuda:0',partition=-1)
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
-    class_weight = torch.load('Weights/imagenet-new/lastlayer/resnet.pth')
+    class_weight = torch.load('Weights/imagenet-new/used/lastlayer/resnet.pth')
     new_classifier.load_state_dict(class_weight['model'])
 
 elif 'resnet' in model_type:
     client, server = resnet.resnet_splitter(num_classes=1000,
-                                                  weight_root='Weights/imagenet-new/',
+                                                  weight_root='Weights/imagenet-new/used/',
                                                   device='cuda:0', layers=50)
     new_classifier = last_classifier.last_layer_classifier(1000, 20)
-    class_weight = torch.load('Weights/imagenet-new/lastlayer/mobilenet.pth')
+    class_weight = torch.load('Weights/imagenet-new/used/lastlayer/mobilenet.pth')
     new_classifier.load_state_dict(class_weight['model'])
 
 if 'mobilenet' in model_type:

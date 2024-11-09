@@ -113,7 +113,8 @@ for epoch in range(epochs):
         # optimizer_dec.step()
         optimizer.step()
         optimizer2.step()
-    print('train loss: ', train_loss/len(train.dataset))
+    train_loss = train_loss/len(train.dataset)
+    print('train loss: ', train_loss)
 
     val_acc = 0
 
@@ -143,14 +144,17 @@ for epoch in range(epochs):
     val_acc = val_acc/len(val.dataset)
     print('val acc: ', val_acc)
 
-    torch.save({
-        'client': client.state_dict(),
-        'server': server.state_dict(),
-        'new_classifier': new_classifier.state_dict(),
-        'downsampler': down.state_dict(),
-        'upsampler': up.state_dict(),
-        'optimizer': optimizer.state_dict(),
-        'optimizer2': optimizer2.state_dict(),
-        'epoch': epoch,
-        'val_acc': val_acc
-    }, f'Weights/training/{model_type}_sampler_{num_of_layers}_{model_time}/encoder_epoch-{epoch}-train-loss-{train_loss}-acc-{val_acc}.pth')
+    if val_acc > max_val_acc:
+        max_val_acc = val_acc
+        torch.save({
+            'client': client.state_dict(),
+            'server': server.state_dict(),
+            'new_classifier': new_classifier.state_dict(),
+            'downsampler': down.state_dict(),
+            'upsampler': up.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'optimizer2': optimizer2.state_dict(),
+            'epoch': epoch,
+            'val_acc': val_acc
+        }, f'Weights/training/{model_type}_sampler_{num_of_layers}_{model_time}/sampler_best_model.pth')
+        print('model saved', ' val acc ', val_acc, ' train loss ', train_loss)

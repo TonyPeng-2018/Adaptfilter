@@ -135,7 +135,7 @@ for epoch in range(epochs):
     enc.eval()
     dec.eval()
 
-    for i, (data, labels) in tqdm(enumerate(test)):
+    for i, (data, labels) in tqdm(enumerate(val)):
 
         data, labels = data.to(device), labels['label'].to(device)
 
@@ -154,7 +154,7 @@ for epoch in range(epochs):
 
         # print the rate of gate exit
         val_acc += accuracy.sum().item()
-    val_acc = val_acc/len(test.dataset)
+    val_acc = val_acc/len(val.dataset)
     print('val acc: ', val_acc)
 
     if val_acc > max_val_acc:

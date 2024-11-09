@@ -154,11 +154,11 @@ def gate_renormal3(a, x):
     elif type(x) == torch.Tensor:
         return 1-torch.pow(x-1, a)
 
-def float_to_uint(x):
-    return torch.round(x * 255).int()
+def float_to_uint(x, quant):
+    return torch.round(x * quant)
 
-def uint_to_float(x):
-    return x.float() / 255
+def uint_to_float(x, quant):
+    return x / quant
 
 def return_max_min(x):
     return torch.max(x), torch.min(x)
@@ -171,7 +171,8 @@ def normalize(x):
 def normalize_return(x):
     x_min = torch.min(x)
     x_max = torch.max(x)
-    return (x - x_min)/(x_max - x_min), x_min, x_max
+    result = (x - x_min)/(x_max - x_min)
+    return result, x_min, x_max
 
 def renormalize(x, x_min, x_max):
     return x * (x_max - x_min) + x_min

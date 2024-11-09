@@ -85,9 +85,11 @@ print(img_h, img_w)
 gate = gatedmodel.ExitGate(in_planes=num_of_ch, height=img_h, width=img_w)
 gate = gate.to(device)
 
+# criterion = nn.BCELoss()
+# criterion2 = nn.CrossEntropyLoss()
 criterion = nn.MSELoss()
 
-optimizer = optim.Adam(gate.parameters(), lr=0.001)
+optimizer = optim.Adam(gate.parameters(), lr=0.01)
 
 from tqdm import tqdm
 from Utils import utils
@@ -111,6 +113,15 @@ up.eval()
 enc.eval()
 dec.eval()
 
+# saved_loss = {'mobilenet':{}, 'resnet':{}}
+# saved_loss['mobilenet'][1] = {}
+# saved_loss['mobilenet'][1][1] = 0.0248
+# saved_loss['mobilenet'][1][2] = 0.00799
+# saved_loss['mobilenet'][1][4] = 0.00305
+# saved_loss['mobilenet'][1][8] = 0.00159
+
+# avg_loss = saved_loss[model_type][num_of_layers][num_of_ch]
+
 for epoch in range(epochs):
     train_loss = 0.0
     gate.train()
@@ -132,9 +143,23 @@ for epoch in range(epochs):
 
         # the confidence of the correct label
         pred = torch.softmax(pred, dim=1)
-        conf = pred[torch.arange(pred.size(0)), labels] # cool        
+        conf = pred[torch.arange(pred.size(0)), labels] # cool
+        conf = conf.detach()
+        # print('conf', conf.size())
+        # pred = torch.argmax(pred, dim=1)
+        # conf = torch.eq(pred, labels).float()
+        # labels = labels.unsqueeze(1)
+        # print('pred[i].unsqueeze(0)', pred[0].unsqueeze(0).size())
+        # print('labels[i].unsqueeze(0)', labels[0].unsqueeze(0).size())
+        # pred_loss = [criterion2(pred[i].unsqueeze(0), labels[i].unsqueeze(0)).detach() for i in range(len(pred))]
+        # print('pred_loss', pred_loss)
+        # pred_loss = torch.stack(pred_loss)
+        # print('pred_loss', pred_loss)
+        # conf = torch.where(pred_loss < avg_loss, torch.tensor([1.]).to(device), torch.tensor([0.]).to(device))
 
         optimizer.zero_grad()
+        # print('g&c', gate_score[0], conf[0])
+        conf = conf.unsqueeze(1)
         loss = criterion(gate_score, conf)
         train_loss += loss.item()
         loss.backward()
@@ -167,6 +192,7 @@ for epoch in range(epochs):
         gate_threshold = 0.5
         gate_eval = torch.where(gate_score > gate_threshold, torch.tensor([1.]).to(device), torch.tensor([0.]).to(device))
         pred_eval = torch.where(pred == labels, torch.tensor([1.]).to(device), torch.tensor([0.]).to(device))
+        pred_eval = pred_eval.unsqueeze(1)
 
         accuracy = torch.eq(gate_eval, pred_eval).float()
         # print the rate of gate exit
@@ -181,5 +207,5 @@ for epoch in range(epochs):
             'optimizer': optimizer.state_dict(),
             'epoch': epoch,
             'val_acc': val_acc
-        }, f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/gate_best_model.pth')
+        }, f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/{model_type}_gate_{num_of_layers}_{num_of_ch}.pth')
         print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc)

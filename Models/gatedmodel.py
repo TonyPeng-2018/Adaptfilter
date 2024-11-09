@@ -323,3 +323,23 @@ class ExitGate(nn.Module):
         out = self.sigmoid(out)
 
         return out
+    
+# class ExitGate_2(nn.Module):
+#     def __init__(self, in_planes, height, width):
+#         super().__init__()
+#         self.pool = nn.MaxPool2d((int(height), int(width)))
+#         self.bn0 = nn.BatchNorm2d(in_planes)
+#         self.relu = nn.ReLU()
+#         self.conv1 = nn.Conv2d(in_planes, 64, kernel_size=1, stride=1, bias=True)
+#         self.bn1 = nn.BatchNorm2d(64)
+#         self.linear = nn.Linear(64, 1, bias=True)
+#         self.sigmoid = nn.Sigmoid()
+
+#     def forward(self, x):
+#         x = self.relu(self.bn0(self.pool(x)))
+#         x = self.relu(self.bn1(self.conv1(x)))
+#         x = torch.flatten(x, 1)
+#         out = self.linear(x)
+#         out = self.sigmoid(out)
+
+#         return out

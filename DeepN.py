@@ -85,10 +85,15 @@ def main(args):
         for j in range(8):
             imp_index[i][j] = np.std(coeff_array[i][j][:])
     imp_index = np.round(imp_index)
+    # save int qtable
+    np.savetxt('qt.txt', imp_index, fmt="%d")
     print(imp_index)
 
 
-def main_no_store(img):
+def Get_Qtable(img):
+    # img = cv2.imread(args[1], cv2.IMREAD_COLOR)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # input = np.array(img)
     input = img
     input_matrix = input[0:224, 0:224]
     input_matrix = np.expand_dims(input_matrix, axis=0)

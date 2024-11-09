@@ -16,7 +16,7 @@ class Sender:
         host = "127.0.0.1"
         self.host = host
         self.port = port
-        self.i_stop = 100
+        self.i_stop = 1
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.host, self.port))
 
@@ -28,7 +28,10 @@ class Sender:
             # quality = [100]
             for q in quality:
                 for j in tqdm(range(i_stop)):
-                    image = cv2.imread(d_path + 'imagenet-20-raw-image-224/' + str(j)+'.bmp')
+                    image = cv2.imread(d_path + 'cifar-10-raw-image/' + str(j)+'.bmp')
+                    # image = cv2.imread(d_path + 'imagenet-20-raw-image-224/' + str(j)+'.bmp')
+                    # image = cv2.imread(d_path + 'ccpd-raw-image/' + str(j)+'.bmp')
+                    
                     # if q > 0:
                     # compress q using jpeg
                     send_image = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), q])[1]

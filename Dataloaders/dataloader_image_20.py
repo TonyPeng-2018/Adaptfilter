@@ -15,7 +15,7 @@ class Dataset_imagenet_20():
         # path to the file, the number of it, 
         np.random.seed(2024)
         if device == 'home':
-            self.r_path = '/home/tonypeng/Workspace1/adaptfilter/data/imagenet-20/'
+            self.r_path = '../data/imagenet-20/'
         elif device == 'tintin':
             self.r_path = '/data/anp407/imagenet-20/'
         self.d_path = self.r_path

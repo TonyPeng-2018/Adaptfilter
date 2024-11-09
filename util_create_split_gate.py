@@ -42,7 +42,7 @@ dataset = sys.argv[1]
 model = sys.argv[2]
 data_set = dataset if dataset != "imagenet" else "imagenet-20"
 weight = weight_root[dataset]
-i_stop = 1
+i_stop = 3
 
 width, height = (
     r_sizes[dataset][0] // r_rates[model],

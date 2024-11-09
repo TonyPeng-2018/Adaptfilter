@@ -25,34 +25,24 @@ class Sender:
             d_subpath = []
 
 
-            d_subpath = "split_gate_folder2/"
+            d_subpath = "split_gate_folder_cifar/"
+
             # quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-            m1 = 'mobile'
-            m2 = 'resnet'
+            ms = []
+            # ms.append("mobile")
+            ms.append("resnet")        
 
-            for i in range(6):
-                if i <5 :
-                    continue
-                m_f = m1+"_"+str(i)
-                f = open(d_path+d_subpath+m_f, "rb")
-                msg = f.read()
-                msg_l = pack(">Q", len(msg))
-                self.s.sendall(msg_l)
-                self.s.sendall(msg)
-                done = self.s.recv(1)
-                time.sleep(0.01)
-
-            for i in range(7):
-                if i <6 :
-                    continue
-                m_f = m2+"_"+str(i)
-                f = open(d_path+d_subpath+m_f, "rb")
-                msg = f.read()
-                msg_l = pack(">Q", len(msg))
-                self.s.sendall(msg_l)
-                self.s.sendall(msg)
-                done = self.s.recv(1)
-                time.sleep(0.01)
+            for m  in ms:
+                for i in range(7):
+                    m_f = m+"_"+str(i)
+                    f = open(d_path+d_subpath+m_f, "rb")
+                    msg = f.read()
+                    msg_l = pack(">Q", len(msg))
+                    print("Sending ", m_f, " size: ", len(msg))
+                    self.s.sendall(msg_l)
+                    self.s.sendall(msg)
+                    done = self.s.recv(1)
+                    time.sleep(0.01)
 
             self.s.close()
         except Exception as e:

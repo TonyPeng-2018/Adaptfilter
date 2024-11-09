@@ -29,6 +29,7 @@ i_stop = 600
 dataset = sys.argv[1]
 data_set = dataset if dataset != "imagenet" else "imagenet-20"
 model = sys.argv[2]
+classes = {"cifar-10": 10, "imagenet": 1000, "ccpd": 34}
 weight_root = "./Weights/" + dataset + "/"
 
 # 2. dataset
@@ -42,11 +43,11 @@ label = label.split("\n")
 jpeg_folders_quality = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 if model == "resnet":
     client, server = resnet.resnet_splitter(
-        weight_root="./Weights/" + dataset + "/", layers=50, device="cuda:0"
+        weight_root="./Weights/" + dataset + "/", layers=50, device="cuda:0", num_classes=classes[dataset]
     )
 elif model == "mobile":
     client, server = mobilenetv2.mobilenetv2_splitter(
-        weight_root="./Weights/" + dataset + "/", device="cuda:0"
+        weight_root="./Weights/" + dataset + "/", device="cuda:0", num_classes=classes[dataset]
     )
 client = client.eval()
 server = server.eval()
@@ -112,7 +113,7 @@ with torch.no_grad():
 
 # change to 2 dicimal
 
-accuracies = [round(x, 2) for x in accuracies]
-server_time = [round(x, 2) for x in server_time]
+accuracies = [round(x, 4) for x in accuracies]
+server_time = [round(x, 4) for x in server_time]
 print("accuracies ", accuracies)
 print("server_time ", server_time)

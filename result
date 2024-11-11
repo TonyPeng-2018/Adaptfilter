@@ -1,0 +1,107 @@
+python util_home_final_receiver_new.py resnet 2 1M
+Got a connection from ('127.0.0.1', 59502)
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:08<00:00,  7.78it/s]
+data/experiment/resnet_2_0.0/  avg received bytes: 290.7  avg receive time: 128.39
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:12<00:00,  7.56it/s]
+data/experiment/resnet_2_0.1/  avg received bytes: 467.84  avg receive time: 132.16
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:15<00:00,  7.40it/s]
+data/experiment/resnet_2_0.2/  avg received bytes: 829.42  avg receive time: 134.99
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:18<00:00,  7.23it/s]
+data/experiment/resnet_2_0.3/  avg received bytes: 1214.06  avg receive time: 138.07
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:21<00:00,  7.04it/s]
+data/experiment/resnet_2_0.4/  avg received bytes: 1730.53  avg receive time: 141.85
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:27<00:00,  6.78it/s]
+data/experiment/resnet_2_0.5/  avg received bytes: 2064.82  avg receive time: 147.31
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:35<00:00,  6.44it/s]
+data/experiment/resnet_2_0.6/  avg received bytes: 2648.48  avg receive time: 155.17
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:53<00:00,  5.76it/s]
+data/experiment/resnet_2_0.7/  avg received bytes: 4694.21  avg receive time: 173.4
+100%|█████████████████████████████████████████████████████████| 1000/1000 [03:38<00:00,  4.57it/s]
+data/experiment/resnet_2_0.8/  avg received bytes: 9886.94  avg receive time: 218.59
+100%|█████████████████████████████████████████████████████████| 1000/1000 [05:13<00:00,  3.19it/s]
+data/experiment/resnet_2_0.9/  avg received bytes: 22241.8  avg receive time: 313.79
+100%|█████████████████████████████████████████████████████████| 1000/1000 [06:26<00:00,  2.58it/s]
+data/experiment/resnet_2_0.95/  avg received bytes: 31544.82  avg receive time: 386.78
+100%|█████████████████████████████████████████████████████████| 1000/1000 [07:11<00:00,  2.32it/s]
+data/experiment/resnet_2_1.0/  avg received bytes: 37466.59  avg receive time: 431.28
+(adapt) (base) tonypeng@tonypeng-MS-7C91:~/Workspace1/adaptfilter/Adaptfilter$ python util_home_final_receiver_new.py mobilenet 2 1M
+Got a connection from ('127.0.0.1', 52642)
+  2%|█▏                                                         | 21/1000 [00:02<02:01,  8.06it/s]
+unpack requires a buffer of 8 bytes
+(adapt) (base) tonypeng@tonypeng-MS-7C91:~/Workspace1/adaptfilter/Adaptfilter$ python util_home_final_receiver_new.py mobilenet 2 1M
+Got a connection from ('127.0.0.1', 52646)
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:19<00:00,  7.15it/s]
+data/experiment/mobilenet_2_0.0/  avg received bytes: 1033.55  avg receive time: 139.71
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:21<00:00,  7.08it/s]
+data/experiment/mobilenet_2_0.1/  avg received bytes: 1078.1  avg receive time: 141.1
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:22<00:00,  7.02it/s]
+data/experiment/mobilenet_2_0.2/  avg received bytes: 1202.08  avg receive time: 142.22
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:28<00:00,  6.73it/s]
+data/experiment/mobilenet_2_0.3/  avg received bytes: 2053.71  avg receive time: 148.46
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:29<00:00,  6.69it/s]
+data/experiment/mobilenet_2_0.4/  avg received bytes: 2174.22  avg receive time: 149.29
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:41<00:00,  6.19it/s]
+data/experiment/mobilenet_2_0.5/  avg received bytes: 3595.73  avg receive time: 161.44
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:43<00:00,  6.12it/s]
+data/experiment/mobilenet_2_0.6/  avg received bytes: 3837.66  avg receive time: 163.35
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:54<00:00,  5.74it/s]
+data/experiment/mobilenet_2_0.7/  avg received bytes: 5137.82  avg receive time: 173.94
+100%|█████████████████████████████████████████████████████████| 1000/1000 [03:33<00:00,  4.67it/s]
+data/experiment/mobilenet_2_0.8/  avg received bytes: 8945.28  avg receive time: 213.83
+100%|█████████████████████████████████████████████████████████| 1000/1000 [04:47<00:00,  3.48it/s]
+data/experiment/mobilenet_2_0.9/  avg received bytes: 17417.78  avg receive time: 287.0
+100%|█████████████████████████████████████████████████████████| 1000/1000 [08:51<00:00,  1.88it/s]
+data/experiment/mobilenet_2_0.95/  avg received bytes: 54251.13  avg receive time: 530.88
+100%|█████████████████████████████████████████████████████████| 1000/1000 [10:44<00:00,  1.55it/s]
+data/experiment/mobilenet_2_1.0/  avg received bytes: 70599.64  avg receive time: 644.44
+; (adapt) (base) tonypeng@tonypeng-MS-7C91:~/Workspace1/adaptfilter/Adaptfilter$ python util_home_final_receiver_new.py mobilenet 2 250k
+; Got a connection from ('127.0.0.1', 44146)
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:08<00:00,  7.80it/s]
+; data/experiment/mobilenet_2_0.0/  avg received bytes: 1033.55  avg receive time: 128.08
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:09<00:00,  7.71it/s]
+; data/experiment/mobilenet_2_0.1/  avg received bytes: 1078.1  avg receive time: 129.54
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:10<00:00,  7.68it/s]
+; data/experiment/mobilenet_2_0.2/  avg received bytes: 1202.08  avg receive time: 130.12
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:13<00:00,  7.48it/s]
+; data/experiment/mobilenet_2_0.3/  avg received bytes: 2053.71  avg receive time: 133.49
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:14<00:00,  7.46it/s]
+; data/experiment/mobilenet_2_0.4/  avg received bytes: 2174.22  avg receive time: 133.93
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:20<00:00,  7.13it/s]
+; data/experiment/mobilenet_2_0.5/  avg received bytes: 3595.73  avg receive time: 140.08
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:21<00:00,  7.08it/s]
+; data/experiment/mobilenet_2_0.6/  avg received bytes: 3837.66  avg receive time: 141.14
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:26<00:00,  6.82it/s]
+; data/experiment/mobilenet_2_0.7/  avg received bytes: 5137.82  avg receive time: 146.4
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [02:41<00:00,  6.18it/s]
+; data/experiment/mobilenet_2_0.8/  avg received bytes: 8945.28  avg receive time: 161.63
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [03:15<00:00,  5.11it/s]
+; data/experiment/mobilenet_2_0.9/  avg received bytes: 17417.78  avg receive time: 195.69
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [05:15<00:00,  3.17it/s]
+; data/experiment/mobilenet_2_0.95/  avg received bytes: 54251.13  avg receive time: 315.51
+; 100%|█████████████████████████████████████████████████████████| 1000/1000 [05:56<00:00,  2.80it/s]
+; data/experiment/mobilenet_2_1.0/  avg received bytes: 70599.64  avg receive time: 356.5
+
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:24<00:00,  6.93it/s]
+data/experiment/resnet_2_0.0/  avg received bytes: 290.7  avg receive time: 144.22
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:30<00:00,  6.63it/s]
+data/experiment/resnet_2_0.1/  avg received bytes: 467.84  avg receive time: 150.67
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:41<00:00,  6.17it/s]
+data/experiment/resnet_2_0.2/  avg received bytes: 829.42  avg receive time: 161.8
+100%|█████████████████████████████████████████████████████████| 1000/1000 [02:54<00:00,  5.74it/s]
+data/experiment/resnet_2_0.3/  avg received bytes: 1214.06  avg receive time: 174.05
+100%|█████████████████████████████████████████████████████████| 1000/1000 [03:10<00:00,  5.24it/s]
+data/experiment/resnet_2_0.4/  avg received bytes: 1730.53  avg receive time: 190.79
+100%|█████████████████████████████████████████████████████████| 1000/1000 [03:21<00:00,  4.97it/s]
+data/experiment/resnet_2_0.5/  avg received bytes: 2064.82  avg receive time: 201.27
+100%|█████████████████████████████████████████████████████████| 1000/1000 [04:09<00:00,  4.00it/s]
+data/experiment/resnet_2_0.6/  avg received bytes: 2648.48  avg receive time: 249.57
+100%|█████████████████████████████████████████████████████████| 1000/1000 [06:55<00:00,  2.41it/s]
+data/experiment/resnet_2_0.7/  avg received bytes: 4694.21  avg receive time: 415.55
+100%|█████████████████████████████████████████████████████████| 1000/1000 [08:12<00:00,  2.03it/s]
+data/experiment/resnet_2_0.8/  avg received bytes: 9886.94  avg receive time: 492.31
+100%|█████████████████████████████████████████████████████████| 1000/1000 [14:29<00:00,  1.15it/s]
+data/experiment/resnet_2_0.9/  avg received bytes: 22241.8  avg receive time: 869.07
+100%|█████████████████████████████████████████████████████████| 1000/1000 [19:29<00:00,  1.17s/it]
+data/experiment/resnet_2_0.95/  avg received bytes: 31544.82  avg receive time: 1169.3
+100%|█████████████████████████████████████████████████████████| 1000/1000 [22:16<00:00,  1.34s/it]
+data/experiment/resnet_2_1.0/  avg received bytes: 37466.59  avg receive time: 1336.58

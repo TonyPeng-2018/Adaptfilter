@@ -8,11 +8,11 @@ import sys
 
 
 class Server:
-    def __init__(self, port):
+    def __init__(self, host, port):
         # host = 'localhost'
         # host = '100.64.0.2'
         # host = '100.64.0.4'
-        host = "127.0.0.1"
+        self.host = host
         self.port = port
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

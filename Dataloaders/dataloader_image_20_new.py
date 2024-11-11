@@ -55,12 +55,13 @@ class Dataset_imagenet_20():
         return self.class_index
 
 class Dataloader_imagenet_20(Dataset):
-    def __init__(self, dataset, transform):
+    def __init__(self, dataset, transform, quality):
         self.image_path = dataset.image_path
         self.label = dataset.label
         self.image_name = dataset.image_name
         self.label_name = dataset.label_name
         self.len = len(self.image_path)
+        self.quality = quality
         
         if transform:
             self.trans = self.transform()
@@ -74,7 +75,21 @@ class Dataloader_imagenet_20(Dataset):
         f_path = self.image_path[idx]
         label = self.label[idx]
         image_name = self.image_name[idx]
-        img = Image.open(f_path).convert('RGB')
+        img = Image.open(f_path)
+        img = img.convert('RGB')
+
+        # store the image
+        # if self.quality != -1:
+            # img = img.resize((256, 256))
+            # img = img.crop((16, 16, 240, 240))
+            # if not os.path.exists('data/jpeg-uncut/'):
+            #     os.mkdir('data/jpeg-uncut/')
+            # if not os.path.exists(f'data/jpeg-uncut/{self.quality}'):
+            #     os.mkdir(f'data/jpeg-uncut/{self.quality}')
+            # img_path = f'data/jpeg-uncut/{self.quality}/{idx}.jpg'
+            # img.save(img_path, quality=self.quality)
+            # img = Image.open(img_path)
+            # img = img.convert('RGB')
 
         if self.trans != None:
             img = self.trans(img)
@@ -110,17 +125,17 @@ class Dataloader_imagenet_20(Dataset):
         return transform
 
 
-def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 64, transform=True, test_only=False):
+def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 64, transform=True, test_only=False, JPEG=-1):
 
     if not test_only:
         trainset = Dataset_imagenet_20(path = 'data/imagenet-20-new/train/')
         valset = Dataset_imagenet_20(path = 'data/imagenet-20-new/val/')
-        train = Dataloader_imagenet_20(trainset, transform=transform)
-        val = Dataloader_imagenet_20(valset, transform=transform)
+        train = Dataloader_imagenet_20(trainset, transform=transform, quality=JPEG)
+        val = Dataloader_imagenet_20(valset, transform=transform, quality=JPEG)
         train = torch.utils.data.DataLoader(train, batch_size=train_batch, shuffle=True)
         val = torch.utils.data.DataLoader(val, batch_size=test_batch, shuffle=True)
     testset = Dataset_imagenet_20(path = 'data/imagenet-20-new/test/') 
-    test = Dataloader_imagenet_20(testset, transform=transform)
+    test = Dataloader_imagenet_20(testset, transform=transform, quality=JPEG)
     test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=False)
     
     if not test_only:
@@ -129,7 +144,16 @@ def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 64, transf
         return test
 
 if __name__ == '__main__':
-    train, test, val = Dataloader_imagenet_20_integrated()
+    for quality in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
+        test = Dataloader_imagenet_20_integrated(train_batch=1, test_batch=1, test_only=True, JPEG=quality)
+        from tqdm import tqdm
+        for i, data in tqdm(enumerate(test)):
+            continue
+    # for i, data in enumerate(train):
+    #     inputs, labels = data
+    #     print(inputs.size(), labels['label'].size())
+    #     # show image 0 and labels
+    #     break
     # Dataset_imagenet_20(path = '/home/tonypeng/Workspace1/adaptfilter/data/imagenet-20-new/train/')
     # for i, data in enumerate(train):
     #     inputs, labels, new_labels = data

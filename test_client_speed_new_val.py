@@ -104,7 +104,7 @@ save_path = f'data/experiment/{sys.argv[1]}_{sys.argv[2]}_{sys.argv[3]}/'
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
-for i, (data, labels) in tqdm(enumerate(test)):
+for i, (data, labels) in tqdm(enumerate(val)):
 
     data, labels = data.to(device), labels['label'].to(device)
     output = client(data).detach()
@@ -128,8 +128,8 @@ for i, (data, labels) in tqdm(enumerate(test)):
             exit_flag = True
             client_frequency[j] += 1
 
-            with open(f'{save_path}{i}.txt', 'wb') as f:
-                f.write(send_in)
+            # with open(f'{save_path}{i}.txt', 'wb') as f:
+            #     f.write(send_in)
             break
     if not exit_flag:
         # print('down_output', down_output.size())
@@ -143,8 +143,8 @@ for i, (data, labels) in tqdm(enumerate(test)):
         send_in = base64.b64encode(output)
         client_frequency[n_ch+num_of_layers] += 1
 
-        with open(f'{save_path}{i}.txt', 'wb') as f:
-            f.write(send_in)
+        # with open(f'{save_path}{i}.txt', 'wb') as f:
+        #     f.write(send_in)
     # decode
     send_in = base64.b64decode(send_in)
     send_in = gzip.decompress(send_in)
@@ -164,12 +164,12 @@ for i, (data, labels) in tqdm(enumerate(test)):
     pred = torch.argmax(pred, dim=1)
     client_accuracy += torch.sum(pred == labels).item()
 
-client_accuracy = client_accuracy/len(test.dataset)
-client_frequency = client_frequency/len(test.dataset)
+client_accuracy = client_accuracy/len(val.dataset)
+client_frequency = client_frequency/len(val.dataset)
 print('client accuracy: ', client_accuracy)
 print('client frequency: ', client_frequency)
 
-with open(f'client_speed_server.txt', 'a') as f:
-    f.write(f'{model_type}_{num_of_layers}_{thred} {client_accuracy} {client_frequency}\n')
 # with open(f'client_speed_server.txt', 'a') as f:
-    # f.write(f'valid {model_type}_{num_of_layers}_{thred} {client_frequency}\n')
+    # f.write(f'{model_type}_{num_of_layers}_{thred} {client_accuracy} {client_frequency}\n')
+with open(f'client_speed_server.txt', 'a') as f:
+    f.write(f'valid {model_type}_{num_of_layers}_{thred} {client_frequency}\n')

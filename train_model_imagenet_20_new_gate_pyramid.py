@@ -1,61 +1,58 @@
-from Models import mobilenetv2, resnet, last_classifier, encoder, decoder, upsampler, downsampler
+from Models import mobilenetv2, resnet, last_classifier, encoder, decoder, upsampler, downsampler, gatedmodel
 import sys
 import torch
 
 model_type = sys.argv[1]
-num_of_layers = int(sys.argv[2]) # 1 for 1 CNN, 2 for 2 CNN
-num_of_coders = int(sys.argv[3]) # 1 for pyramid, 2 for pyramid heavy
+num_of_layers = int(sys.argv[2]) # use 1 for accuracy
+weighted = int(sys.argv[3]) # 1 for unweighted, 2 for weighted
+num_of_ch = int(sys.argv[4])
 
 if 'mobilenet' in model_type:
+    in_ch = 32
+    img_h, img_w = 112, 112
     client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
                                                   weight_root=None,
                                                   device='cuda:0',partition=-1)
-    all_weights = f'Weights/imagenet-new/pretrained/mobilenet_{num_of_layers}.pth'
-    client_weight = f'Weights/imagenet-new/pretrained/used/client/mobilenetv2.pth'
-    server_weight = f'Weights/imagenet-new/pretrained/used/server/mobilenetv2.pth'
-    class_weight = f'Weights/imagenet-new/pretrained/used/lastlayer/mobilenet.pth'
-    in_ch = 32
+    all_weights = f'Weights/imagenet-new/mobilenet_pyramid_coder_{num_of_layers}_{weighted}.pth'
+    down = downsampler.Downsampler(in_ch=in_ch, num_of_layers=num_of_layers)
+    up = upsampler.Upsampler(in_ch=in_ch*(2**num_of_layers), num_of_layers=num_of_layers)
+
 elif 'resnet' in model_type:
+    in_ch = 64
+    img_h, img_w = 56, 56
     client, server = resnet.resnet_splitter(num_classes=1000,
                                                   weight_root=None,
                                                   device='cuda:0', layers=50)
-    all_weights = f'Weights/imagenet-new/pretrained/resnet_{num_of_layers}.pth'
-    client_weight = f'Weights/imagenet-new/pretrained/used/client/resnet50.pth'
-    server_weight = f'Weights/imagenet-new/pretrained/used/server/resnet50.pth'
-    class_weight = f'Weights/imagenet-new/pretrained/used/lastlayer/resnet.pth'
-    in_ch = 64
+    all_weights = f'Weights/imagenet-new/resnet_pyramid_coder_{num_of_layers}_{weighted}.pth'
+    down = downsampler.Downsampler(in_ch=in_ch, num_of_layers=num_of_layers)
+    up = upsampler.Upsampler(in_ch=in_ch*(2**num_of_layers), num_of_layers=num_of_layers)
+
+
 classifier = last_classifier.last_layer_classifier(1000, 20)
+if weighted == 1:
+    enc = encoder.Encoder_Pyramid(in_ch=in_ch*(2**num_of_layers),min_ch=1)
+    dec = decoder.Decoder_Pyramid(out_ch=in_ch*(2**num_of_layers),min_ch=1)
+elif weighted == 2:
+    enc = encoder.Encoder_Pyramid_Heavy(in_ch=in_ch*(2**num_of_layers),min_ch=num_of_ch)
+    dec = decoder.Decoder_Pyramid_Heavy(out_ch=in_ch*(2**num_of_layers),min_ch=num_of_ch)
 
-if 'mobilenet' in model_type:
-    down = downsampler.Downsampler(in_ch=32, num_of_layers=num_of_layers)
-    up = upsampler.Upsampler(in_ch=32*2**num_of_layers, num_of_layers=num_of_layers)
-elif 'resnet' in model_type:
-    down = downsampler.Downsampler(in_ch=64, num_of_layers=num_of_layers)
-    up = upsampler.Upsampler(in_ch=64*2**num_of_layers, num_of_layers=num_of_layers)
-    
-
-checkpoint = torch.load(all_weights, , map_location='cuda:0')
-# print(checkpoint.keys())
+checkpoint = torch.load(all_weights)
 client.load_state_dict(checkpoint['client'])
 server.load_state_dict(checkpoint['server'])
 up.load_state_dict(checkpoint['upsampler'])
 down.load_state_dict(checkpoint['downsampler'])
 classifier.load_state_dict(checkpoint['new_classifier'])
-# client.load_state_dict(torch.load(client_weight))
-# server.load_state_dict(torch.load(server_weight))
-# classifier.load_state_dict(torch.load(class_weight))
+enc.load_state_dict(checkpoint['encoder'])
+dec.load_state_dict(checkpoint['decoder'])
+
+img_h, img_w = img_h//(2**num_of_layers), img_w//(2**num_of_layers)
 
 import datetime
 model_time = datetime.datetime.now().strftime("%m%d%H%M%S")
 
-# last_channel = server.last_channel
-
-# from Models import last_classifier
-# replace_layer = last_classifier.Last_classifier(last_channel, 20)
-
 from Dataloaders import dataloader_image_20_new
 
-train, test, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=32, test_batch=16)
+train, test, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=128, test_batch=64)
 
 import torch.optim as optim
 import torch.nn as nn
@@ -67,33 +64,34 @@ server = server.to(device)
 classifier = classifier.to(device)
 down = down.to(device)
 up = up.to(device)
-
-# freeze model parameters
-# for param in client.parameters():
-#     param.requires_grad = False
-# for param in server.parameters():
-#     param.requires_grad = False
-# for param in down.parameters():
-#     param.requires_grad = False
-# for param in up.parameters():
-#     param.requires_grad = False
-# for param in classifier.parameters():
-#     param.requires_grad = False 
-
-if num_of_coders == 1:
-    enc = encoder.Encoder_Pyramid(in_ch=in_ch*(2**num_of_layers), min_ch=1)
-    dec = decoder.Decoder_Pyramid(out_ch=in_ch*(2**num_of_layers), min_ch=1)
-elif num_of_coders == 2:
-    enc = encoder.Encoder_Pyramid_Heavy(in_ch=in_ch*(2**num_of_layers), min_ch=1)
-    dec = decoder.Decoder_Pyramid_Heavy(out_ch=in_ch*(2**num_of_layers), min_ch=1)
-
 enc = enc.to(device)
 dec = dec.to(device)
 
-criterion = nn.CrossEntropyLoss()
+# freeze model parameters
+for param in client.parameters():
+    param.requires_grad = False
+for param in server.parameters():
+    param.requires_grad = False
+for param in down.parameters():
+    param.requires_grad = False
+for param in up.parameters():
+    param.requires_grad = False
+for param in classifier.parameters():
+    param.requires_grad = False
+for param in enc.parameters():
+    param.requires_grad = False
+for param in dec.parameters():
+    param.requires_grad = False
 
-optimizer1 = optim.Adam(list(client.parameters()) + list(server.parameters()) + list(classifier.parameters()), lr=0.00001)
-optimizer2 = optim.Adam(list(down.parameters()) + list(up.parameters()) +list(enc.parameters()) + list(dec.parameters()), lr=0.001)
+# print(img_h, img_w)
+gate = gatedmodel.ExitGate(in_planes=num_of_ch, height=img_h, width=img_w)
+gate = gate.to(device)
+
+# criterion = nn.BCELoss()
+# criterion2 = nn.CrossEntropyLoss()
+criterion = nn.MSELoss()
+
+optimizer = optim.Adam(gate.parameters(), lr=0.01)
 
 from tqdm import tqdm
 from Utils import utils
@@ -102,24 +100,34 @@ import sys
 import numpy as np
 import os
 
-epochs = 100
+epochs = 30
 max_val_acc = 0
-record_val_acc = np.zeros(int(np.log2(in_ch)+num_of_layers))
 
-if not os.path.exists(f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/'):
-    os.mkdir(f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/')
-print('saving to: ', f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/')
+if not os.path.exists(f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/'):
+    os.mkdir(f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/') 
+print('saving to: ', f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/')
 
+client.eval()
+server.eval()
+classifier.eval()
+down.eval()
+up.eval()
+enc.eval()
+dec.eval()
+
+# saved_loss = {'mobilenet':{}, 'resnet':{}}
+# saved_loss['mobilenet'][1] = {}
+# saved_loss['mobilenet'][1][1] = 0.0248
+# saved_loss['mobilenet'][1][2] = 0.00799
+# saved_loss['mobilenet'][1][4] = 0.00305
+# saved_loss['mobilenet'][1][8] = 0.00159
+
+# avg_loss = saved_loss[model_type][num_of_layers][num_of_ch]
+
+gate_ind = int(np.log2(num_of_ch))
 for epoch in range(epochs):
     train_loss = 0.0
-
-    client.train()
-    server.train()
-    classifier.train()
-    down.train()
-    up.train()
-    enc.train()
-    dec.train()
+    gate.train()
 
     for i, (data, labels) in tqdm(enumerate(train)):
 
@@ -127,37 +135,43 @@ for epoch in range(epochs):
 
         output = client(data)
         output = down(output)
-        outputs = enc(output)
+        output = enc(output)
+        output = output[len(output)-gate_ind-1]
+        gate_score = gate(output)
 
-        losses = None
-        for output in outputs:
-            output = dec(output)
-            output = up(output)
-            pred = server(output)
-            pred = classifier(pred)
-            if losses is None:
-                losses = criterion(pred, labels)
-            else:
-                losses += criterion(pred, labels)
+        output = dec(output)
+        output = up(output)
+        pred = server(output)
+        pred = classifier(pred)
 
-        optimizer1.zero_grad()
-        optimizer2.zero_grad()
-        train_loss += losses.item()
-        losses.backward()
-        optimizer1.step()
-        optimizer2.step()
+        # the confidence of the correct label
+        pred = torch.softmax(pred, dim=1)
+        conf = pred[torch.arange(pred.size(0)), labels] # cool
+        conf = conf.detach()
+        # print('conf', conf.size())
+        # pred = torch.argmax(pred, dim=1)
+        # conf = torch.eq(pred, labels).float()
+        # labels = labels.unsqueeze(1)
+        # print('pred[i].unsqueeze(0)', pred[0].unsqueeze(0).size())
+        # print('labels[i].unsqueeze(0)', labels[0].unsqueeze(0).size())
+        # pred_loss = [criterion2(pred[i].unsqueeze(0), labels[i].unsqueeze(0)).detach() for i in range(len(pred))]
+        # print('pred_loss', pred_loss)
+        # pred_loss = torch.stack(pred_loss)
+        # print('pred_loss', pred_loss)
+        # conf = torch.where(pred_loss < avg_loss, torch.tensor([1.]).to(device), torch.tensor([0.]).to(device))
+
+        optimizer.zero_grad()
+        # print('g&c', gate_score[0], conf[0])
+        conf = conf.unsqueeze(1)
+        loss = criterion(gate_score, conf)
+        train_loss += loss.item()
+        loss.backward()
+        optimizer.step()
     train_loss = train_loss/len(train.dataset)
     print('train loss: ', train_loss)
 
-    val_acc = np.zeros(int(np.log2(in_ch)+num_of_layers))
-
-    client.eval()
-    server.eval()
-    classifier.eval()
-    down.eval()
-    up.eval()
-    enc.eval()
-    dec.eval()
+    val_acc = 0
+    gate.eval()
 
     for i, (data, labels) in tqdm(enumerate(val)):
 
@@ -165,53 +179,36 @@ for epoch in range(epochs):
 
         output = client(data)
         output = down(output)
-        outputs = enc(output)
-        accuracies = []
-        for j, output in enumerate(outputs):
-            
-            output = dec(output)
-            output = up(output)
-            output = server(output)
-            pred = classifier(output)
+        output = enc(output)
 
-            # get the number of 0 and 1
-            pred = torch.softmax(pred, dim=1)
-            pred = torch.argmax(pred, dim=1)
-            accuracy = torch.eq(pred, labels).float()
-            val_acc[j] += accuracy.sum().item()
+        gate_score = gate(output)
 
+        output = dec(output)
+        output = up(output)
+        output = server(output)
+        pred = classifier(output)
+
+        # get the number of 0 and 1
+        pred = torch.softmax(pred, dim=1)
+        pred = torch.argmax(pred, dim=1)
+
+        gate_threshold = 0.5
+        gate_eval = torch.where(gate_score > gate_threshold, torch.tensor([1.]).to(device), torch.tensor([0.]).to(device))
+        pred_eval = torch.where(pred == labels, torch.tensor([1.]).to(device), torch.tensor([0.]).to(device))
+        pred_eval = pred_eval.unsqueeze(1)
+
+        accuracy = torch.eq(gate_eval, pred_eval).float()
         # print the rate of gate exit
+        val_acc += accuracy.sum().item()
     val_acc = val_acc/len(val.dataset)
-    val_acc_avg = np.sum(val_acc)/len(val_acc)
-    print('val acc avg: ', val_acc_avg, 'val acc: ', val_acc)
+    print('val acc: ', val_acc)
 
-    if val_acc_avg > max_val_acc:
-        max_val_acc = val_acc_avg
+    if val_acc > max_val_acc:
+        max_val_acc = val_acc
         torch.save({
-            'client': client.state_dict(),
-            'server': server.state_dict(),
-            'new_classifier': classifier.state_dict(),
-            'downsampler': down.state_dict(),
-            'upsampler': up.state_dict(),
-            'encoder': enc.state_dict(),
-            'decoder': dec.state_dict(), 
-            'optimizer1': optimizer1.state_dict(),
-            'optimizer2': optimizer2.state_dict(),
+            'gate': gate.state_dict(),
+            'optimizer': optimizer.state_dict(),
             'epoch': epoch,
-            'val_acc': max_val_acc
-        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_best.pth')
-        print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc_avg, 'max acc', max_val_acc)
-    # store the last model
-    torch.save({
-        'client': client.state_dict(),
-        'server': server.state_dict(),
-        'new_classifier': classifier.state_dict(),
-        'downsampler': down.state_dict(),
-        'upsampler': up.state_dict(),
-        'encoder': enc.state_dict(),
-        'decoder': dec.state_dict(), 
-        'optimizer1': optimizer1.state_dict(),
-        'optimizer2': optimizer2.state_dict(),
-        'epoch': epoch,
-        'val_acc': val_acc_avg
-    }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_last.pth')
+            'val_acc': val_acc
+        }, f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/{model_type}_gate_{num_of_layers}_{num_of_ch}.pth')
+        print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc)

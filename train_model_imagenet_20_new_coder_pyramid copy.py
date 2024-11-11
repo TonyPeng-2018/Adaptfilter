@@ -34,7 +34,9 @@ elif 'resnet' in model_type:
     up = upsampler.Upsampler(in_ch=64*2**num_of_layers, num_of_layers=num_of_layers)
     
 
-checkpoint = torch.load(all_weights, , map_location='cuda:0')
+print('cuda id ', torch.cuda.current_device())
+
+checkpoint = torch.load(all_weights, map_location='cuda:0')
 # print(checkpoint.keys())
 client.load_state_dict(checkpoint['client'])
 server.load_state_dict(checkpoint['server'])
@@ -129,16 +131,13 @@ for epoch in range(epochs):
         output = down(output)
         outputs = enc(output)
 
-        losses = None
+        losses = 0
         for output in outputs:
             output = dec(output)
             output = up(output)
             pred = server(output)
             pred = classifier(pred)
-            if losses is None:
-                losses = criterion(pred, labels)
-            else:
-                losses += criterion(pred, labels)
+            losses = criterion(pred, labels) + 1.1*losses
 
         optimizer1.zero_grad()
         optimizer2.zero_grad()

@@ -106,9 +106,9 @@ epochs = 100
 max_val_acc = 0
 record_val_acc = np.zeros(int(np.log2(in_ch)+num_of_layers))
 
-if not os.path.exists(f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/'):
-    os.mkdir(f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/')
-print('saving to: ', f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/')
+if not os.path.exists(f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/'):
+    os.mkdir(f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/')
+print('saving to: ', f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/')
 
 for epoch in range(epochs):
     train_loss = 0.0
@@ -199,7 +199,7 @@ for epoch in range(epochs):
             'optimizer2': optimizer2.state_dict(),
             'epoch': epoch,
             'val_acc': max_val_acc
-        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/{model_type}_coder_{num_of_layers}_best.pth')
+        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_best.pth')
         print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc_avg, 'max acc', max_val_acc)
     # store the last model
     torch.save({
@@ -214,4 +214,4 @@ for epoch in range(epochs):
         'optimizer2': optimizer2.state_dict(),
         'epoch': epoch,
         'val_acc': val_acc_avg
-    }, f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/{model_type}_coder_{num_of_layers}_last.pth')
+    }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_last.pth')

@@ -10,19 +10,19 @@ if 'mobilenet' in model_type:
     client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
                                                   weight_root=None,
                                                   device='cuda:0',partition=-1)
-    all_weights = f'Weights/imagenet-new/pretrained/mobilenet_{num_of_layers}.pth'
-    client_weight = f'Weights/imagenet-new/pretrained/used/client/mobilenetv2.pth'
-    server_weight = f'Weights/imagenet-new/pretrained/used/server/mobilenetv2.pth'
-    class_weight = f'Weights/imagenet-new/pretrained/used/lastlayer/mobilenet.pth'
+    # all_weights = f'Weights/imagenet-new/pretrained/mobilenet_{num_of_layers}.pth'
+    client_weight = f'Weights/imagenet-new/used/client/mobilenetv2.pth'
+    server_weight = f'Weights/imagenet-new/used/server/mobilenetv2.pth'
+    class_weight = f'Weights/imagenet-new/used/lastlayer/mobilenet.pth'
     in_ch = 32
 elif 'resnet' in model_type:
     client, server = resnet.resnet_splitter(num_classes=1000,
                                                   weight_root=None,
                                                   device='cuda:0', layers=50)
-    all_weights = f'Weights/imagenet-new/pretrained/resnet_{num_of_layers}.pth'
-    client_weight = f'Weights/imagenet-new/pretrained/used/client/resnet50.pth'
-    server_weight = f'Weights/imagenet-new/pretrained/used/server/resnet50.pth'
-    class_weight = f'Weights/imagenet-new/pretrained/used/lastlayer/resnet.pth'
+    # all_weights = f'Weights/imagenet-new/pretrained/resnet_{num_of_layers}.pth'
+    client_weight = f'Weights/imagenet-new/used/client/resnet50.pth'
+    server_weight = f'Weights/imagenet-new/used/server/resnet50.pth'
+    class_weight = f'Weights/imagenet-new/used/lastlayer/resnet.pth'
     in_ch = 64
 classifier = last_classifier.last_layer_classifier(1000, 20)
 
@@ -110,9 +110,9 @@ epochs = 100
 max_val_acc = 0
 record_val_acc = np.zeros(int(np.log2(in_ch)+num_of_layers))
 
-if not os.path.exists(f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/'):
-    os.mkdir(f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/')
-print('saving to: ', f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/')
+if not os.path.exists(f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/'):
+    os.mkdir(f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/')
+print('saving to: ', f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/')
 
 for epoch in range(epochs):
     train_loss = 0.0
@@ -203,7 +203,7 @@ for epoch in range(epochs):
             'optimizer2': optimizer2.state_dict(),
             'epoch': epoch,
             'val_acc': max_val_acc
-        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/{model_type}_coder_{num_of_layers}_best.pth')
+        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_best.pth')
         print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc_avg, 'max acc', max_val_acc)
     # store the last model
     torch.save({
@@ -218,4 +218,4 @@ for epoch in range(epochs):
         'optimizer2': optimizer2.state_dict(),
         'epoch': epoch,
         'val_acc': val_acc_avg
-    }, f'Weights/training/{model_type}_coder_{num_of_layers}_{model_time}/{model_type}_coder_{num_of_layers}_last.pth')
+    }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_last.pth')

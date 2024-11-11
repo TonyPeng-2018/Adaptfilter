@@ -62,6 +62,7 @@ class Dataloader_imagenet_20(Dataset):
         self.label_name = dataset.label_name
         self.len = len(self.image_path)
         self.quality = quality
+        self.save_count = 0
         
         if transform:
             self.trans = self.transform()
@@ -79,17 +80,24 @@ class Dataloader_imagenet_20(Dataset):
         img = img.convert('RGB')
 
         # store the image
-        # if self.quality != -1:
-            # img = img.resize((256, 256))
-            # img = img.crop((16, 16, 240, 240))
+        if self.quality != -1 and self.save_count < 60:
+            img = img.resize((256, 256))
+            img = img.crop((16, 16, 240, 240))
+            if not os.path.exists('data/jpeg-224/'):
+                os.mkdir('data/jpeg-224/')
+            if not os.path.exists(f'data/jpeg-224/{self.quality}'):
+                os.mkdir(f'data/jpeg-224/{self.quality}')
+            img_path = f'data/jpeg-224/{self.quality}/{idx}.jpg'
+
             # if not os.path.exists('data/jpeg-uncut/'):
             #     os.mkdir('data/jpeg-uncut/')
             # if not os.path.exists(f'data/jpeg-uncut/{self.quality}'):
             #     os.mkdir(f'data/jpeg-uncut/{self.quality}')
             # img_path = f'data/jpeg-uncut/{self.quality}/{idx}.jpg'
-            # img.save(img_path, quality=self.quality)
-            # img = Image.open(img_path)
-            # img = img.convert('RGB')
+            img.save(img_path, quality=self.quality)
+            img = Image.open(img_path)
+            img = img.convert('RGB')
+            self.save_count += 1
 
         if self.trans != None:
             img = self.trans(img)
@@ -136,7 +144,7 @@ def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 64, transf
         val = torch.utils.data.DataLoader(val, batch_size=test_batch, shuffle=True)
     testset = Dataset_imagenet_20(path = 'data/imagenet-20-new/test/') 
     test = Dataloader_imagenet_20(testset, transform=transform, quality=JPEG)
-    test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=False)
+    test = torch.utils.data.DataLoader(test, batch_size=test_batch, shuffle=True)
     
     if not test_only:
         return train, test, val
@@ -144,7 +152,8 @@ def Dataloader_imagenet_20_integrated(train_batch = 128, test_batch = 64, transf
         return test
 
 if __name__ == '__main__':
-    for quality in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
+    for quality in [1,3,5,7,9,
+                    10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
         test = Dataloader_imagenet_20_integrated(train_batch=1, test_batch=1, test_only=True, JPEG=quality)
         from tqdm import tqdm
         for i, data in tqdm(enumerate(test)):

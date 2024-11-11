@@ -4,7 +4,7 @@ import torch
 
 model_type = sys.argv[1]
 num_of_layers = int(sys.argv[2]) # use 1 for accuracy
-weighted = int(sys.argv[3]) # 1 for unweighted, 2 for weighted
+weighted = int(sys.argv[3]) # 0 for unweighted, 1 for weighted
 num_of_ch = int(sys.argv[4])
 
 if 'mobilenet' in model_type:
@@ -29,10 +29,10 @@ elif 'resnet' in model_type:
 
 
 classifier = last_classifier.last_layer_classifier(1000, 20)
-if weighted == 1:
+if weighted == 0:
     enc = encoder.Encoder_Pyramid(in_ch=in_ch*(2**num_of_layers),min_ch=1)
     dec = decoder.Decoder_Pyramid(out_ch=in_ch*(2**num_of_layers),min_ch=1)
-elif weighted == 2:
+elif weighted == 1:
     enc = encoder.Encoder_Pyramid_Heavy(in_ch=in_ch*(2**num_of_layers),min_ch=num_of_ch)
     dec = decoder.Decoder_Pyramid_Heavy(out_ch=in_ch*(2**num_of_layers),min_ch=num_of_ch)
 
@@ -180,7 +180,7 @@ for epoch in range(epochs):
         output = client(data)
         output = down(output)
         output = enc(output)
-
+        output = output[len(output)-gate_ind-1]
         gate_score = gate(output)
 
         output = dec(output)

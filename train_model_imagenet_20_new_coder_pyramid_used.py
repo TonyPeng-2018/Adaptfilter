@@ -10,19 +10,19 @@ if 'mobilenet' in model_type:
     client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
                                                   weight_root=None,
                                                   device='cuda:0',partition=-1)
-    all_weights = f'Weights/imagenet-new/pretrained/mobilenet_{num_of_layers}.pth'
-    client_weight = f'Weights/imagenet-new/pretrained/used/client/mobilenetv2.pth'
-    server_weight = f'Weights/imagenet-new/pretrained/used/server/mobilenetv2.pth'
-    class_weight = f'Weights/imagenet-new/pretrained/used/lastlayer/mobilenet.pth'
+    # all_weights = f'Weights/imagenet-new/pretrained/mobilenet_{num_of_layers}.pth'
+    client_weight = f'Weights/imagenet-new/used/client/mobilenetv2.pth'
+    server_weight = f'Weights/imagenet-new/used/server/mobilenetv2.pth'
+    class_weight = f'Weights/imagenet-new/used/lastlayer/mobilenet.pth'
     in_ch = 32
 elif 'resnet' in model_type:
     client, server = resnet.resnet_splitter(num_classes=1000,
                                                   weight_root=None,
                                                   device='cuda:0', layers=50)
-    all_weights = f'Weights/imagenet-new/pretrained/resnet_{num_of_layers}.pth'
-    client_weight = f'Weights/imagenet-new/pretrained/used/client/resnet50.pth'
-    server_weight = f'Weights/imagenet-new/pretrained/used/server/resnet50.pth'
-    class_weight = f'Weights/imagenet-new/pretrained/used/lastlayer/resnet.pth'
+    # all_weights = f'Weights/imagenet-new/pretrained/resnet_{num_of_layers}.pth'
+    client_weight = f'Weights/imagenet-new/used/client/resnet50.pth'
+    server_weight = f'Weights/imagenet-new/used/server/resnet50.pth'
+    class_weight = f'Weights/imagenet-new/used/lastlayer/resnet.pth'
     in_ch = 64
 classifier = last_classifier.last_layer_classifier(1000, 20)
 
@@ -34,7 +34,7 @@ elif 'resnet' in model_type:
     up = upsampler.Upsampler(in_ch=64*2**num_of_layers, num_of_layers=num_of_layers)
     
 
-checkpoint = torch.load(all_weights)
+# checkpoint = torch.load(all_weights)
 # print(checkpoint.keys())
 # client.load_state_dict(checkpoint['client'])
 # server.load_state_dict(checkpoint['server'])

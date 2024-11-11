@@ -34,15 +34,19 @@ elif 'resnet' in model_type:
     up = upsampler.Upsampler(in_ch=64*2**num_of_layers, num_of_layers=num_of_layers)
     
 
-checkpoint = torch.load(all_weights)
+# checkpoint = torch.load(all_weights)
 # print(checkpoint.keys())
 # client.load_state_dict(checkpoint['client'])
 # server.load_state_dict(checkpoint['server'])
 # up.load_state_dict(checkpoint['upsampler'])
 # down.load_state_dict(checkpoint['downsampler'])
 # classifier.load_state_dict(checkpoint['new_classifier'])
-client.load_state_dict(torch.load(client_weight))
-server.load_state_dict(torch.load(server_weight))
+
+# check torch gpu id
+print('torch gpu id: ', torch.cuda.current_device())
+
+client.load_state_dict(torch.load(client_weight, map_location='cuda:0'))
+server.load_state_dict(torch.load(server_weight, map_location='cuda:0'))
 classifier.load_state_dict(torch.load(class_weight))
 
 import datetime

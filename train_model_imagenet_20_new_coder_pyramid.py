@@ -34,7 +34,7 @@ elif 'resnet' in model_type:
     up = upsampler.Upsampler(in_ch=64*2**num_of_layers, num_of_layers=num_of_layers)
     
 
-checkpoint = torch.load(all_weights)
+checkpoint = torch.load(all_weights, , map_location='cuda:0')
 # print(checkpoint.keys())
 client.load_state_dict(checkpoint['client'])
 server.load_state_dict(checkpoint['server'])

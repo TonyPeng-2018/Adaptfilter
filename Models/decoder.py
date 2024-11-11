@@ -59,7 +59,7 @@ class Decoder_Pyramid_Heavy(nn.Module):
             new_decoders.append(nn.Conv2d(in_channels=start_ch, out_channels=start_ch*2, kernel_size=1))
             new_decoders.append(nn.BatchNorm2d(start_ch*2))
             new_decoders.append(nn.ReLU(True))
-            new_decoders.append(nn.Conv2d(in_channels=start_ch*2, out_channels=start_ch*2, kernel_size=3))
+            new_decoders.append(nn.Conv2d(in_channels=start_ch*2, out_channels=start_ch*2, kernel_size=3, padding=1))
             new_decoders.append(nn.BatchNorm2d(start_ch*2))
             new_decoders.append(nn.ReLU(True))
 

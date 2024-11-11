@@ -55,7 +55,7 @@ model_time = datetime.datetime.now().strftime("%m%d%H%M%S")
 
 from Dataloaders import dataloader_image_20_new
 
-train, test, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=64, test_batch=32)
+train, test, val = dataloader_image_20_new.Dataloader_imagenet_20_integrated(train_batch=32, test_batch=16)
 
 import torch.optim as optim
 import torch.nn as nn

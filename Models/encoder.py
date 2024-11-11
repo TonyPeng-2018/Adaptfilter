@@ -43,7 +43,7 @@ class Encoder_Pyramid(nn.Module):
         encoders = []
         while start_ch > min_ch:
             new_encoder = []
-            new_encoder.append(nn.Conv2d(in_channels=start_ch, out_channels=start_ch//2, kernel_size=1))
+            new_encoder.append(nn.Conv2d(in_channels=start_ch, out_channels=start_ch//2, kernel_size=1, stride=1))
             new_encoder.append(nn.BatchNorm2d(start_ch//2))
             new_encoder.append(nn.ReLU(True))
             new_encoder = nn.Sequential(*new_encoder)
@@ -75,10 +75,10 @@ class Encoder_Pyramid_Heavy(nn.Module):
         encoders = []
         while start_ch > min_ch:
             new_encoder = []
-            new_encoder.append(nn.Conv2d(in_channels=start_ch, out_channels=start_ch, kernel_size=3))
+            new_encoder.append(nn.Conv2d(in_channels=start_ch, out_channels=start_ch, kernel_size=3, stride=1, padding=1))
             new_encoder.append(nn.BatchNorm2d(start_ch))
             new_encoder.append(nn.ReLU(True))
-            new_encoder.append(nn.Conv2d(in_channels=start_ch, out_channels=start_ch//2, kernel_size=1))
+            new_encoder.append(nn.Conv2d(in_channels=start_ch, out_channels=start_ch//2, kernel_size=1, stride=1))
             new_encoder.append(nn.BatchNorm2d(start_ch//2))
             new_encoder.append(nn.ReLU(True))
             new_encoder = nn.Sequential(*new_encoder)

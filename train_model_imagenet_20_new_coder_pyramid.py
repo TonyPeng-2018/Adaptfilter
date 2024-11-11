@@ -3,7 +3,7 @@ import sys
 import torch
 
 model_type = sys.argv[1]
-num_of_layers = int(sys.argv[2]) # 2 for mobilenet, 1 for resnet
+num_of_layers = int(sys.argv[2]) # 1 for 1 CNN, 2 for 2 CNN
 num_of_coders = int(sys.argv[3]) # 1 for pyramid, 2 for pyramid heavy
 
 if 'mobilenet' in model_type:
@@ -102,7 +102,7 @@ import sys
 import numpy as np
 import os
 
-epochs = 30
+epochs = 100
 max_val_acc = 0
 record_val_acc = np.zeros(int(np.log2(in_ch)+num_of_layers))
 

@@ -102,7 +102,7 @@ import sys
 import numpy as np
 import os
 
-epochs = 30
+epochs = 100
 max_val_acc = 0
 record_val_acc = np.zeros(int(np.log2(in_ch)+num_of_layers))
 

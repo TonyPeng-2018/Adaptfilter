@@ -7,7 +7,7 @@
 #SBATCH --cluster=gpu
 #SBATCH --partition=a100
 #SBATCH --gres=gpu:1
-#SBATCH --output=./logs/train_AF_mobilenet_coder_pyramid_1_2
+#SBATCH --output=./logs/train_AF_mobilenet_coder_pyramid_2_2
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
  

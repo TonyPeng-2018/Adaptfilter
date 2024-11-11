@@ -1,13 +1,13 @@
 #!/bin/bash
 # add a parameter for the model name
 
-#SBATCH --job-name=t_A_R
+#SBATCH --job-name=t_A_M
 #SBATCH --nodes=1
 #SBATCH --time=144:00:00
 #SBATCH --cluster=gpu
-#SBATCH --partition=l40s
+#SBATCH --partition=a100
 #SBATCH --gres=gpu:1
-#SBATCH --output=./logs/train_AF_resnet_coder_pyramid_1_1
+#SBATCH --output=./logs/train_AF_mobilenet_coder_pyramid_weight_1_2
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
  
@@ -16,4 +16,4 @@ cd /ihome/stephenlee/anp407/Workspace/Adaptfilter
 source /ihome/stephenlee/anp407/.bashrc
 source activate adapt
 
-python train_model_imagenet_20_new_coder_pyramid.py resnet $1 $2
+python train_model_imagenet_20_new_coder_pyramid.py mobilenet $1 $2

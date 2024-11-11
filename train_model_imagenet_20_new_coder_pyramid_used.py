@@ -43,11 +43,12 @@ elif 'resnet' in model_type:
 # classifier.load_state_dict(checkpoint['new_classifier'])
 
 # check torch gpu id
-print('torch gpu id: ', torch.cuda.current_device())
+# print('torch gpu id: ', torch.cuda.current_device())
+device = torch.device('cuda:0')
 
 client.load_state_dict(torch.load(client_weight, map_location='cuda:0'))
 server.load_state_dict(torch.load(server_weight, map_location='cuda:0'))
-classifier.load_state_dict(torch.load(class_weight))
+classifier.load_state_dict(torch.load(class_weight, map_location='cuda:0')['model'])
 
 import datetime
 model_time = datetime.datetime.now().strftime("%m%d%H%M%S")

@@ -43,7 +43,7 @@ class Decoder_Pyramid(nn.Module):
 
         x_channel = x.size(1)
         for ind, decoder in enumerate(self.decoders):
-            if x_channel >= self.ch_list[ind]:
+            if x_channel <= self.ch_list[ind]:
                 x = decoder(x)
         return x
 

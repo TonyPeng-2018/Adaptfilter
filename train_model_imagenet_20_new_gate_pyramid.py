@@ -109,9 +109,9 @@ import os
 epochs = 30
 max_val_acc = 0
 
-if not os.path.exists(f'Weights/training/{model_type}_gate_{num_of_layers}_{model_time}/'):
-    os.mkdir(f'Weights/training/{model_type}_gate_{num_of_layers}_{model_time}/') 
-print('saving to: ', f'Weights/training/{model_type}_gate_{num_of_layers}_{model_time}/')
+if not os.path.exists(f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{model_time}/'):
+    os.mkdir(f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{model_time}/') 
+print('saving to: ', f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{model_time}/')
 
 client.eval()
 server.eval()
@@ -196,11 +196,11 @@ for epoch in range(epochs):
             'optimizer': optimizer.state_dict(),
             'epoch': epoch,
             'val_acc': val_acc
-        }, f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/{model_type}_gate_{num_of_layers}_{num_of_ch}_best.pth')
+        }, f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{num_of_ch}_{model_time}/{model_type}_gate_{num_of_layers}_{num_of_ch}_best.pth')
         print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc)
     torch.save({
         'gate': gate.state_dict(),
         'optimizer': optimizer.state_dict(),
         'epoch': epoch,
         'val_acc': val_acc
-    }, f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/{model_type}_gate_{num_of_layers}_{num_of_ch}_last.pth')
+    }, f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{num_of_ch}_{model_time}/{model_type}_gate_{num_of_layers}_{num_of_ch}_last.pth')

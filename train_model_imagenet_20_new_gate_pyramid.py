@@ -3,9 +3,10 @@ import sys
 import torch
 
 model_type = sys.argv[1]
-num_of_layers = int(sys.argv[2]) # use 1 for accuracy
-weighted = int(sys.argv[3]) # 0 for unweighted, 1 for weighted
-num_of_ch = int(sys.argv[4])
+num_of_layers = 1 # use 1 for accuracy
+num_of_encoder = 2 # 1 is normal, 2 is heavy
+weighted = int(sys.argv[2]) # 1 for unweighted, 2 for weighted
+num_of_ch = int(sys.argv[3]) 
 
 if 'mobilenet' in model_type:
     in_ch = 32
@@ -13,7 +14,10 @@ if 'mobilenet' in model_type:
     client, server = mobilenetv2.mobilenetv2_splitter(num_classes=1000,
                                                   weight_root=None,
                                                   device='cuda:0',partition=-1)
-    all_weights = f'Weights/imagenet-new/mobilenet_pyramid_coder_{num_of_layers}_{weighted}.pth'
+    if weighted == 1:
+        all_weights = f'Weights/imagenet-new/mobilenet_pyramid_coder_{num_of_layers}_{num_of_encoder}.pth'
+    elif weighted == 2:
+        all_weights = f'Weights/imagenet-new/mobilenet_pyramid_coder_weight_{num_of_layers}_{num_of_encoder}.pth'
     down = downsampler.Downsampler(in_ch=in_ch, num_of_layers=num_of_layers)
     up = upsampler.Upsampler(in_ch=in_ch*(2**num_of_layers), num_of_layers=num_of_layers)
 
@@ -23,18 +27,21 @@ elif 'resnet' in model_type:
     client, server = resnet.resnet_splitter(num_classes=1000,
                                                   weight_root=None,
                                                   device='cuda:0', layers=50)
-    all_weights = f'Weights/imagenet-new/resnet_pyramid_coder_{num_of_layers}_{weighted}.pth'
+    if weighted == 1:
+        all_weights = f'Weights/imagenet-new/resnet_pyramid_coder_{num_of_layers}_{num_of_encoder}.pth'
+    elif weighted == 2:
+        all_weights = f'Weights/imagenet-new/resnet_pyramid_coder_weight_{num_of_layers}_{num_of_encoder}.pth'
     down = downsampler.Downsampler(in_ch=in_ch, num_of_layers=num_of_layers)
     up = upsampler.Upsampler(in_ch=in_ch*(2**num_of_layers), num_of_layers=num_of_layers)
 
 
 classifier = last_classifier.last_layer_classifier(1000, 20)
-if weighted == 0:
+if num_of_encoder == 1:
     enc = encoder.Encoder_Pyramid(in_ch=in_ch*(2**num_of_layers),min_ch=1)
     dec = decoder.Decoder_Pyramid(out_ch=in_ch*(2**num_of_layers),min_ch=1)
-elif weighted == 1:
-    enc = encoder.Encoder_Pyramid_Heavy(in_ch=in_ch*(2**num_of_layers),min_ch=num_of_ch)
-    dec = decoder.Decoder_Pyramid_Heavy(out_ch=in_ch*(2**num_of_layers),min_ch=num_of_ch)
+elif num_of_encoder == 2:
+    enc = encoder.Encoder_Pyramid_Heavy(in_ch=in_ch*(2**num_of_layers),min_ch=1)
+    dec = decoder.Decoder_Pyramid_Heavy(out_ch=in_ch*(2**num_of_layers),min_ch=1)
 
 checkpoint = torch.load(all_weights)
 client.load_state_dict(checkpoint['client'])
@@ -83,7 +90,6 @@ for param in enc.parameters():
 for param in dec.parameters():
     param.requires_grad = False
 
-# print(img_h, img_w)
 gate = gatedmodel.ExitGate(in_planes=num_of_ch, height=img_h, width=img_w)
 gate = gate.to(device)
 
@@ -103,9 +109,9 @@ import os
 epochs = 30
 max_val_acc = 0
 
-if not os.path.exists(f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/'):
-    os.mkdir(f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/') 
-print('saving to: ', f'Weights/training/{model_type}_gate_{num_of_layers}_{num_of_ch}_{model_time}/')
+if not os.path.exists(f'Weights/training/{model_type}_gate_{num_of_layers}_{model_time}/'):
+    os.mkdir(f'Weights/training/{model_type}_gate_{num_of_layers}_{model_time}/') 
+print('saving to: ', f'Weights/training/{model_type}_gate_{num_of_layers}_{model_time}/')
 
 client.eval()
 server.eval()
@@ -115,16 +121,7 @@ up.eval()
 enc.eval()
 dec.eval()
 
-# saved_loss = {'mobilenet':{}, 'resnet':{}}
-# saved_loss['mobilenet'][1] = {}
-# saved_loss['mobilenet'][1][1] = 0.0248
-# saved_loss['mobilenet'][1][2] = 0.00799
-# saved_loss['mobilenet'][1][4] = 0.00305
-# saved_loss['mobilenet'][1][8] = 0.00159
-
-# avg_loss = saved_loss[model_type][num_of_layers][num_of_ch]
-
-gate_ind = int(np.log2(num_of_ch))
+gate_ind = np.log2(num_of_ch).astype(int)
 for epoch in range(epochs):
     train_loss = 0.0
     gate.train()
@@ -148,17 +145,6 @@ for epoch in range(epochs):
         pred = torch.softmax(pred, dim=1)
         conf = pred[torch.arange(pred.size(0)), labels] # cool
         conf = conf.detach()
-        # print('conf', conf.size())
-        # pred = torch.argmax(pred, dim=1)
-        # conf = torch.eq(pred, labels).float()
-        # labels = labels.unsqueeze(1)
-        # print('pred[i].unsqueeze(0)', pred[0].unsqueeze(0).size())
-        # print('labels[i].unsqueeze(0)', labels[0].unsqueeze(0).size())
-        # pred_loss = [criterion2(pred[i].unsqueeze(0), labels[i].unsqueeze(0)).detach() for i in range(len(pred))]
-        # print('pred_loss', pred_loss)
-        # pred_loss = torch.stack(pred_loss)
-        # print('pred_loss', pred_loss)
-        # conf = torch.where(pred_loss < avg_loss, torch.tensor([1.]).to(device), torch.tensor([0.]).to(device))
 
         optimizer.zero_grad()
         # print('g&c', gate_score[0], conf[0])

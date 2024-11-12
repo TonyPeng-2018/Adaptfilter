@@ -109,9 +109,9 @@ import os
 epochs = 30
 max_val_acc = 0
 
-if not os.path.exists(f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{model_time}/'):
-    os.mkdir(f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{model_time}/') 
-print('saving to: ', f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{model_time}/')
+if not os.path.exists(f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{num_of_ch}_{model_time}/'):
+    os.mkdir(f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{num_of_ch}_{model_time}/') 
+print('saving to: ', f'Weights/training/{model_type}_pyramid_gate_{num_of_layers}_{num_of_ch}_{model_time}/')
 
 client.eval()
 server.eval()

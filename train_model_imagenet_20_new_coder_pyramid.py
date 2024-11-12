@@ -26,20 +26,22 @@ elif 'resnet' in model_type:
     in_ch = 64
 classifier = last_classifier.last_layer_classifier(1000, 20)
 
-if 'mobilenet' in model_type:
-    down = downsampler.Downsampler(in_ch=32, num_of_layers=num_of_layers)
-    up = upsampler.Upsampler(in_ch=32*2**num_of_layers, num_of_layers=num_of_layers)
-elif 'resnet' in model_type:
-    down = downsampler.Downsampler(in_ch=64, num_of_layers=num_of_layers)
-    up = upsampler.Upsampler(in_ch=64*2**num_of_layers, num_of_layers=num_of_layers)
+if num_of_layers > 0:
+    if 'mobilenet' in model_type:
+        down = downsampler.Downsampler(in_ch=32, num_of_layers=num_of_layers)
+        up = upsampler.Upsampler(in_ch=32*2**num_of_layers, num_of_layers=num_of_layers)
+    elif 'resnet' in model_type:
+        down = downsampler.Downsampler(in_ch=64, num_of_layers=num_of_layers)
+        up = upsampler.Upsampler(in_ch=64*2**num_of_layers, num_of_layers=num_of_layers)
     
 
-checkpoint = torch.load(all_weights, , map_location='cuda:0')
+checkpoint = torch.load(all_weights, map_location='cuda:0')
 # print(checkpoint.keys())
 client.load_state_dict(checkpoint['client'])
 server.load_state_dict(checkpoint['server'])
-up.load_state_dict(checkpoint['upsampler'])
-down.load_state_dict(checkpoint['downsampler'])
+if num_of_layers > 0:
+    down.load_state_dict(checkpoint['downsampler'])
+    up.load_state_dict(checkpoint['upsampler'])
 classifier.load_state_dict(checkpoint['new_classifier'])
 # client.load_state_dict(torch.load(client_weight))
 # server.load_state_dict(torch.load(server_weight))
@@ -65,8 +67,9 @@ device = torch.device('cuda:0')
 client = client.to(device)
 server = server.to(device)
 classifier = classifier.to(device)
-down = down.to(device)
-up = up.to(device)
+if num_of_layers > 0:
+    down = down.to(device)
+    up = up.to(device)
 
 # freeze model parameters
 # for param in client.parameters():
@@ -93,8 +96,10 @@ dec = dec.to(device)
 criterion = nn.CrossEntropyLoss()
 
 optimizer1 = optim.Adam(list(client.parameters()) + list(server.parameters()) + list(classifier.parameters()), lr=0.00001)
-optimizer2 = optim.Adam(list(down.parameters()) + list(up.parameters()) +list(enc.parameters()) + list(dec.parameters()), lr=0.001)
-
+if num_of_coders > 0:
+    optimizer2 = optim.Adam(list(down.parameters()) + list(up.parameters()) +list(enc.parameters()) + list(dec.parameters()), lr=0.001)
+else:
+    optimizer2 = optim.Adam(list(enc.parameters()) + list(dec.parameters()), lr=0.001)
 from tqdm import tqdm
 from Utils import utils
 
@@ -116,8 +121,9 @@ for epoch in range(epochs):
     client.train()
     server.train()
     classifier.train()
-    down.train()
-    up.train()
+    if num_of_coders > 0:
+        down.train()
+        up.train()
     enc.train()
     dec.train()
 
@@ -126,13 +132,15 @@ for epoch in range(epochs):
         data, labels = data.to(device), labels['label'].to(device)
 
         output = client(data)
-        output = down(output)
+        if num_of_coders > 0:
+            output = down(output)
         outputs = enc(output)
 
         losses = None
         for output in outputs:
             output = dec(output)
-            output = up(output)
+            if num_of_coders > 0:
+                output = up(output)
             pred = server(output)
             pred = classifier(pred)
             if losses is None:
@@ -154,8 +162,9 @@ for epoch in range(epochs):
     client.eval()
     server.eval()
     classifier.eval()
-    down.eval()
-    up.eval()
+    if num_of_coders > 0:
+        down.eval()
+        up.eval()
     enc.eval()
     dec.eval()
 
@@ -164,13 +173,15 @@ for epoch in range(epochs):
         data, labels = data.to(device), labels['label'].to(device)
 
         output = client(data)
-        output = down(output)
+        if num_of_coders > 0:
+            output = down(output)
         outputs = enc(output)
         accuracies = []
         for j, output in enumerate(outputs):
             
             output = dec(output)
-            output = up(output)
+            if num_of_coders > 0:
+                output = up(output)
             output = server(output)
             pred = classifier(output)
 
@@ -185,8 +196,24 @@ for epoch in range(epochs):
     val_acc_avg = np.sum(val_acc)/len(val_acc)
     print('val acc avg: ', val_acc_avg, 'val acc: ', val_acc)
 
-    if val_acc_avg > max_val_acc:
-        max_val_acc = val_acc_avg
+    if num_of_coders > 0:
+        if val_acc_avg > max_val_acc:
+            max_val_acc = val_acc_avg
+            torch.save({
+                'client': client.state_dict(),
+                'server': server.state_dict(),
+                'new_classifier': classifier.state_dict(),
+                'downsampler': down.state_dict(),
+                'upsampler': up.state_dict(),
+                'encoder': enc.state_dict(),
+                'decoder': dec.state_dict(), 
+                'optimizer1': optimizer1.state_dict(),
+                'optimizer2': optimizer2.state_dict(),
+                'epoch': epoch,
+                'val_acc': max_val_acc
+            }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_best.pth')
+            print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc_avg, 'max acc', max_val_acc)
+        # store the last model
         torch.save({
             'client': client.state_dict(),
             'server': server.state_dict(),
@@ -198,20 +225,32 @@ for epoch in range(epochs):
             'optimizer1': optimizer1.state_dict(),
             'optimizer2': optimizer2.state_dict(),
             'epoch': epoch,
-            'val_acc': max_val_acc
-        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_best.pth')
-        print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc_avg, 'max acc', max_val_acc)
-    # store the last model
-    torch.save({
-        'client': client.state_dict(),
-        'server': server.state_dict(),
-        'new_classifier': classifier.state_dict(),
-        'downsampler': down.state_dict(),
-        'upsampler': up.state_dict(),
-        'encoder': enc.state_dict(),
-        'decoder': dec.state_dict(), 
-        'optimizer1': optimizer1.state_dict(),
-        'optimizer2': optimizer2.state_dict(),
-        'epoch': epoch,
-        'val_acc': val_acc_avg
-    }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_last.pth')
+            'val_acc': val_acc_avg
+        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_last.pth')
+    else:
+        if val_acc_avg > max_val_acc:
+            max_val_acc = val_acc_avg
+            torch.save({
+                'client': client.state_dict(),
+                'server': server.state_dict(),
+                'new_classifier': classifier.state_dict(),
+                'encoder': enc.state_dict(),
+                'decoder': dec.state_dict(), 
+                'optimizer1': optimizer1.state_dict(),
+                'optimizer2': optimizer2.state_dict(),
+                'epoch': epoch,
+                'val_acc': max_val_acc
+            }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_best.pth')
+            print('model saved' + ' train loss ', train_loss, ' val acc ', val_acc_avg, 'max acc', max_val_acc)
+        # store the last model
+        torch.save({
+            'client': client.state_dict(),
+            'server': server.state_dict(),
+            'new_classifier': classifier.state_dict(),
+            'encoder': enc.state_dict(),
+            'decoder': dec.state_dict(), 
+            'optimizer1': optimizer1.state_dict(),
+            'optimizer2': optimizer2.state_dict(),
+            'epoch': epoch,
+            'val_acc': val_acc_avg
+        }, f'Weights/training/{model_type}_coder_{num_of_layers}_{num_of_coders}_{model_time}/{model_type}_coder_{num_of_layers}_last.pth')
